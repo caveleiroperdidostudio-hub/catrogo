@@ -140,7 +140,7 @@ export function ChatHome() {
       </main>
 
       <ProfileSheet open={profileOpen} onOpenChange={setProfileOpen} />
-      <NewChatDialog open={newChatOpen} onOpenChange={setNewChatOpen} onCreated={(id) => setActiveConvId(id)} />
+      <NewChatDialog open={newChatOpen} onOpenChange={setNewChatOpen} onCreated={(id: string) => setActiveConvId(id)} />
     </div>
   );
 }
