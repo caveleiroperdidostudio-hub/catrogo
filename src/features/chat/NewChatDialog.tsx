@@ -36,26 +36,10 @@ export function NewChatDialog({ open, onOpenChange, onCreated }: { open: boolean
   const startDM = async (other: Profile) => {
     if (!user) return;
     setBusy(true);
-    // Check if 1-1 conversation already exists
-    const { data: mine } = await supabase.from("conversation_members").select("conversation_id").eq("user_id", user.id);
-    const myConvs = mine?.map((m) => m.conversation_id) ?? [];
-    if (myConvs.length > 0) {
-      const { data: theirs } = await supabase.from("conversation_members").select("conversation_id").eq("user_id", other.id).in("conversation_id", myConvs);
-      const sharedIds = theirs?.map((t) => t.conversation_id) ?? [];
-      if (sharedIds.length > 0) {
-        const { data: existing } = await supabase.from("conversations").select("id").in("id", sharedIds).eq("is_group", false).neq("name", "Jarvis IA").maybeSingle();
-        if (existing) { setBusy(false); onCreated(existing.id); onOpenChange(false); return; }
-      }
-    }
-    const { data: conv, error } = await supabase
-      .from("conversations").insert({ is_group: false, created_by: user.id }).select("id").single();
-    if (error || !conv) { setBusy(false); return toast.error(error?.message ?? "Erro"); }
-    await supabase.from("conversation_members").insert([
-      { conversation_id: conv.id, user_id: user.id, is_admin: true },
-      { conversation_id: conv.id, user_id: other.id, is_admin: false },
-    ]);
+    const { data, error } = await supabase.rpc("start_dm", { _other: other.id });
     setBusy(false);
-    onCreated(conv.id);
+    if (error || !data) return toast.error(error?.message ?? "Erro");
+    onCreated(data as string);
     onOpenChange(false);
     reset();
   };
@@ -64,17 +48,13 @@ export function NewChatDialog({ open, onOpenChange, onCreated }: { open: boolean
     if (!user) return;
     if (!groupName.trim() || selected.size === 0) return toast.error("Nome do grupo e ao menos 1 membro");
     setBusy(true);
-    const { data: conv, error } = await supabase
-      .from("conversations").insert({ is_group: true, name: groupName.trim(), created_by: user.id }).select("id").single();
-    if (error || !conv) { setBusy(false); return toast.error(error?.message ?? "Erro"); }
-    const rows = [
-      { conversation_id: conv.id, user_id: user.id, is_admin: true },
-      ...Array.from(selected).map((uid) => ({ conversation_id: conv.id, user_id: uid, is_admin: false })),
-    ];
-    const { error: e2 } = await supabase.from("conversation_members").insert(rows);
-    if (e2) { setBusy(false); return toast.error(e2.message); }
+    const { data, error } = await supabase.rpc("create_group", {
+      _name: groupName.trim(),
+      _members: Array.from(selected),
+    });
     setBusy(false);
-    onCreated(conv.id);
+    if (error || !data) return toast.error(error?.message ?? "Erro");
+    onCreated(data as string);
     onOpenChange(false);
     reset();
   };
