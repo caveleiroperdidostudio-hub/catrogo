@@ -1,0 +1,62 @@
+import { useEffect, useState } from "react";
+import { supabase } from "@/integrations/supabase/client";
+import { useAuth } from "@/lib/auth-context";
+import { Sheet, SheetContent, SheetHeader, SheetTitle } from "@/components/ui/sheet";
+import { Input } from "@/components/ui/input";
+import { Label } from "@/components/ui/label";
+import { Textarea } from "@/components/ui/textarea";
+import { Button } from "@/components/ui/button";
+import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
+import { toast } from "sonner";
+
+export function ProfileSheet({ open, onOpenChange }: { open: boolean; onOpenChange: (v: boolean) => void }) {
+  const { user, profile, refreshProfile } = useAuth();
+  const [name, setName] = useState("");
+  const [about, setAbout] = useState("");
+  const [avatar, setAvatar] = useState("");
+  const [busy, setBusy] = useState(false);
+
+  useEffect(() => {
+    if (profile) {
+      setName(profile.display_name);
+      setAbout(profile.about ?? "");
+      setAvatar(profile.avatar_url ?? "");
+    }
+  }, [profile, open]);
+
+  const save = async () => {
+    if (!user) return;
+    setBusy(true);
+    const { error } = await supabase.from("profiles").update({
+      display_name: name.trim(), about: about.trim() || null, avatar_url: avatar.trim() || null, updated_at: new Date().toISOString(),
+    }).eq("id", user.id);
+    setBusy(false);
+    if (error) return toast.error(error.message);
+    await refreshProfile();
+    toast.success("Perfil atualizado");
+    onOpenChange(false);
+  };
+
+  if (!profile) return null;
+
+  return (
+    <Sheet open={open} onOpenChange={onOpenChange}>
+      <SheetContent>
+        <SheetHeader><SheetTitle>Meu perfil</SheetTitle></SheetHeader>
+        <div className="space-y-4 mt-4 px-4">
+          <div className="flex justify-center">
+            <Avatar className="h-24 w-24">
+              {avatar && <AvatarImage src={avatar} />}
+              <AvatarFallback className="text-2xl bg-primary/15 text-primary">{name.charAt(0).toUpperCase()}</AvatarFallback>
+            </Avatar>
+          </div>
+          <div className="text-center text-sm text-muted-foreground">@{profile.username}</div>
+          <div className="space-y-1.5"><Label>Nome</Label><Input value={name} onChange={(e) => setName(e.target.value)} /></div>
+          <div className="space-y-1.5"><Label>Recado</Label><Textarea value={about} onChange={(e) => setAbout(e.target.value)} rows={2} /></div>
+          <div className="space-y-1.5"><Label>URL da foto (opcional)</Label><Input value={avatar} onChange={(e) => setAvatar(e.target.value)} placeholder="https://..." /></div>
+          <Button onClick={save} disabled={busy} className="w-full">Salvar</Button>
+        </div>
+      </SheetContent>
+    </Sheet>
+  );
+}
