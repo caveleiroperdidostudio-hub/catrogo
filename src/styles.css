@@ -155,3 +155,11 @@
       radial-gradient(circle at 75% 75%, oklch(0.18 0.03 200 / 0.5) 0%, transparent 50%);
   }
 }
+
+/* === Ocultar badge Lovable === */
+#lovable-badge,
+.lovable-badge,
+[aria-label*="Lovable"],
+a[href*="lovable.dev"] {
+  display: none !important;
+}
