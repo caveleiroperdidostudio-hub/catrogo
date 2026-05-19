@@ -14,13 +14,175 @@ export type Database = {
   }
   public: {
     Tables: {
-      [_ in never]: never
+      conversation_members: {
+        Row: {
+          conversation_id: string
+          is_admin: boolean
+          joined_at: string
+          user_id: string
+        }
+        Insert: {
+          conversation_id: string
+          is_admin?: boolean
+          joined_at?: string
+          user_id: string
+        }
+        Update: {
+          conversation_id?: string
+          is_admin?: boolean
+          joined_at?: string
+          user_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "conversation_members_conversation_id_fkey"
+            columns: ["conversation_id"]
+            isOneToOne: false
+            referencedRelation: "conversations"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      conversations: {
+        Row: {
+          avatar_url: string | null
+          created_at: string
+          created_by: string | null
+          id: string
+          is_group: boolean
+          last_message_at: string
+          name: string | null
+        }
+        Insert: {
+          avatar_url?: string | null
+          created_at?: string
+          created_by?: string | null
+          id?: string
+          is_group?: boolean
+          last_message_at?: string
+          name?: string | null
+        }
+        Update: {
+          avatar_url?: string | null
+          created_at?: string
+          created_by?: string | null
+          id?: string
+          is_group?: boolean
+          last_message_at?: string
+          name?: string | null
+        }
+        Relationships: []
+      }
+      messages: {
+        Row: {
+          content: string
+          conversation_id: string
+          created_at: string
+          id: string
+          is_ai: boolean
+          message_type: string
+          sender_id: string | null
+          to_ai: boolean
+        }
+        Insert: {
+          content: string
+          conversation_id: string
+          created_at?: string
+          id?: string
+          is_ai?: boolean
+          message_type?: string
+          sender_id?: string | null
+          to_ai?: boolean
+        }
+        Update: {
+          content?: string
+          conversation_id?: string
+          created_at?: string
+          id?: string
+          is_ai?: boolean
+          message_type?: string
+          sender_id?: string | null
+          to_ai?: boolean
+        }
+        Relationships: [
+          {
+            foreignKeyName: "messages_conversation_id_fkey"
+            columns: ["conversation_id"]
+            isOneToOne: false
+            referencedRelation: "conversations"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      profiles: {
+        Row: {
+          about: string | null
+          avatar_url: string | null
+          created_at: string
+          display_name: string
+          id: string
+          phone: string | null
+          updated_at: string
+          username: string
+        }
+        Insert: {
+          about?: string | null
+          avatar_url?: string | null
+          created_at?: string
+          display_name: string
+          id: string
+          phone?: string | null
+          updated_at?: string
+          username: string
+        }
+        Update: {
+          about?: string | null
+          avatar_url?: string | null
+          created_at?: string
+          display_name?: string
+          id?: string
+          phone?: string | null
+          updated_at?: string
+          username?: string
+        }
+        Relationships: []
+      }
+      statuses: {
+        Row: {
+          background: string | null
+          content: string
+          created_at: string
+          expires_at: string
+          id: string
+          media_url: string | null
+          user_id: string
+        }
+        Insert: {
+          background?: string | null
+          content: string
+          created_at?: string
+          expires_at?: string
+          id?: string
+          media_url?: string | null
+          user_id: string
+        }
+        Update: {
+          background?: string | null
+          content?: string
+          created_at?: string
+          expires_at?: string
+          id?: string
+          media_url?: string | null
+          user_id?: string
+        }
+        Relationships: []
+      }
     }
     Views: {
       [_ in never]: never
     }
     Functions: {
-      [_ in never]: never
+      is_member: { Args: { _conv: string; _user: string }; Returns: boolean }
     }
     Enums: {
       [_ in never]: never
