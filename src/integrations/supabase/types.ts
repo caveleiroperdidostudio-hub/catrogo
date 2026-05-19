@@ -182,7 +182,12 @@ export type Database = {
       [_ in never]: never
     }
     Functions: {
+      create_group: {
+        Args: { _members: string[]; _name: string }
+        Returns: string
+      }
       is_member: { Args: { _conv: string; _user: string }; Returns: boolean }
+      start_dm: { Args: { _other: string }; Returns: string }
     }
     Enums: {
       [_ in never]: never
