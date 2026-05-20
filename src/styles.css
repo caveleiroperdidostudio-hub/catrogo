@@ -47,119 +47,181 @@
   --color-bubble-in: var(--bubble-in);
   --color-brand: var(--brand);
   --color-brand-foreground: var(--brand-foreground);
+  --color-nebula: var(--nebula);
+  --color-cosmic: var(--cosmic);
 }
 
+/* === COSMOS CHAT — Tema minimalista galáctico (dark-first) === */
 :root {
-  --radius: 0.75rem;
-  --background: oklch(0.985 0.005 95);
-  --foreground: oklch(0.18 0.02 200);
-  --card: oklch(1 0 0);
-  --card-foreground: oklch(0.18 0.02 200);
-  --popover: oklch(1 0 0);
-  --popover-foreground: oklch(0.18 0.02 200);
-  --primary: oklch(0.38 0.07 165);
-  --primary-foreground: oklch(0.985 0.005 95);
-  --secondary: oklch(0.95 0.02 160);
-  --secondary-foreground: oklch(0.25 0.04 165);
-  --muted: oklch(0.95 0.01 160);
-  --muted-foreground: oklch(0.5 0.03 200);
-  --accent: oklch(0.75 0.18 145);
-  --accent-foreground: oklch(0.15 0.03 200);
-  --destructive: oklch(0.6 0.22 27);
-  --destructive-foreground: oklch(0.985 0 0);
-  --border: oklch(0.9 0.01 170);
-  --input: oklch(0.92 0.01 170);
-  --ring: oklch(0.45 0.1 165);
-  --brand: oklch(0.45 0.12 160);
-  --brand-foreground: oklch(0.985 0 0);
-  --bubble-out: oklch(0.92 0.07 145);
-  --bubble-in: oklch(1 0 0);
-  --chart-1: oklch(0.6 0.18 145);
-  --chart-2: oklch(0.6 0.12 200);
-  --chart-3: oklch(0.4 0.07 165);
-  --chart-4: oklch(0.83 0.19 84);
-  --chart-5: oklch(0.77 0.19 70);
-  --sidebar: oklch(0.97 0.01 170);
-  --sidebar-foreground: oklch(0.18 0.02 200);
-  --sidebar-primary: oklch(0.38 0.07 165);
-  --sidebar-primary-foreground: oklch(0.985 0 0);
-  --sidebar-accent: oklch(0.93 0.02 160);
-  --sidebar-accent-foreground: oklch(0.2 0.03 200);
-  --sidebar-border: oklch(0.9 0.01 170);
-  --sidebar-ring: oklch(0.45 0.1 165);
+  --radius: 0.875rem;
+
+  /* Deep space base */
+  --background: oklch(0.13 0.03 280);
+  --foreground: oklch(0.96 0.01 280);
+
+  --card: oklch(0.17 0.035 280 / 0.7);
+  --card-foreground: oklch(0.96 0.01 280);
+  --popover: oklch(0.18 0.035 280);
+  --popover-foreground: oklch(0.96 0.01 280);
+
+  /* Roxo cósmico como primário (#7C3AED ≈) */
+  --primary: oklch(0.58 0.22 295);
+  --primary-foreground: oklch(0.98 0.005 280);
+
+  --secondary: oklch(0.22 0.04 280);
+  --secondary-foreground: oklch(0.95 0.01 280);
+
+  --muted: oklch(0.2 0.03 280);
+  --muted-foreground: oklch(0.7 0.025 280);
+
+  /* Azul nebulosa como accent (#06B6D4) */
+  --accent: oklch(0.72 0.16 215);
+  --accent-foreground: oklch(0.14 0.02 280);
+
+  --destructive: oklch(0.62 0.24 25);
+  --destructive-foreground: oklch(0.99 0 0);
+
+  --border: oklch(1 0 0 / 0.08);
+  --input: oklch(1 0 0 / 0.12);
+  --ring: oklch(0.65 0.2 295);
+
+  --brand: oklch(0.58 0.22 295);
+  --brand-foreground: oklch(0.98 0.005 280);
+
+  /* Balões: out = roxo translúcido, in = card glass */
+  --bubble-out: oklch(0.42 0.16 295 / 0.85);
+  --bubble-in: oklch(0.22 0.04 280 / 0.85);
+
+  --nebula: oklch(0.72 0.16 215);          /* azul nebulosa */
+  --cosmic: oklch(0.58 0.22 295);          /* roxo cósmico */
+  --stellar: oklch(0.75 0.02 280);         /* prata estelar */
+
+  --chart-1: oklch(0.58 0.22 295);
+  --chart-2: oklch(0.72 0.16 215);
+  --chart-3: oklch(0.78 0.18 70);
+  --chart-4: oklch(0.65 0.25 16);
+  --chart-5: oklch(0.7 0.18 145);
+
+  --sidebar: oklch(0.11 0.03 280);
+  --sidebar-foreground: oklch(0.94 0.01 280);
+  --sidebar-primary: oklch(0.58 0.22 295);
+  --sidebar-primary-foreground: oklch(0.98 0.005 280);
+  --sidebar-accent: oklch(0.2 0.04 280);
+  --sidebar-accent-foreground: oklch(0.95 0.01 280);
+  --sidebar-border: oklch(1 0 0 / 0.08);
+  --sidebar-ring: oklch(0.65 0.2 295);
 }
 
-.dark {
-  --background: oklch(0.18 0.02 200);
-  --foreground: oklch(0.96 0.01 95);
-  --card: oklch(0.22 0.025 200);
-  --card-foreground: oklch(0.96 0.01 95);
-  --popover: oklch(0.22 0.025 200);
-  --popover-foreground: oklch(0.96 0.01 95);
-  --primary: oklch(0.65 0.15 150);
-  --primary-foreground: oklch(0.12 0.02 200);
-  --secondary: oklch(0.28 0.03 200);
-  --secondary-foreground: oklch(0.96 0.01 95);
-  --muted: oklch(0.26 0.02 200);
-  --muted-foreground: oklch(0.7 0.02 200);
-  --accent: oklch(0.55 0.15 150);
-  --accent-foreground: oklch(0.12 0.02 200);
-  --destructive: oklch(0.6 0.2 27);
-  --destructive-foreground: oklch(0.985 0 0);
-  --border: oklch(1 0 0 / 12%);
-  --input: oklch(1 0 0 / 15%);
-  --ring: oklch(0.65 0.15 150);
-  --brand: oklch(0.65 0.15 150);
-  --brand-foreground: oklch(0.12 0.02 200);
-  --bubble-out: oklch(0.42 0.1 150);
-  --bubble-in: oklch(0.26 0.02 200);
-  --chart-1: oklch(0.65 0.15 150);
-  --chart-2: oklch(0.6 0.12 200);
-  --chart-3: oklch(0.77 0.19 70);
-  --chart-4: oklch(0.63 0.27 304);
-  --chart-5: oklch(0.65 0.25 16);
-  --sidebar: oklch(0.16 0.02 200);
-  --sidebar-foreground: oklch(0.96 0.01 95);
-  --sidebar-primary: oklch(0.65 0.15 150);
-  --sidebar-primary-foreground: oklch(0.12 0.02 200);
-  --sidebar-accent: oklch(0.24 0.02 200);
-  --sidebar-accent-foreground: oklch(0.96 0.01 95);
-  --sidebar-border: oklch(1 0 0 / 10%);
-  --sidebar-ring: oklch(0.65 0.15 150);
+/* O app usa dark por padrão; sobrescrita apenas se .light for adicionada */
+.dark { color-scheme: dark; }
+
+/* Variantes de tema (acento) — aplicadas no <html data-theme="..."> */
+[data-theme="aurora"] {
+  --primary: oklch(0.7 0.18 155);
+  --accent: oklch(0.78 0.16 195);
+  --ring: oklch(0.7 0.18 155);
+  --bubble-out: oklch(0.45 0.15 155 / 0.85);
+  --cosmic: oklch(0.7 0.18 155);
+  --nebula: oklch(0.78 0.16 195);
+}
+[data-theme="supernova"] {
+  --primary: oklch(0.78 0.18 70);
+  --accent: oklch(0.82 0.16 50);
+  --ring: oklch(0.78 0.18 70);
+  --bubble-out: oklch(0.55 0.16 65 / 0.85);
+  --cosmic: oklch(0.78 0.18 70);
+  --nebula: oklch(0.82 0.16 50);
+}
+[data-theme="rose"] {
+  --primary: oklch(0.7 0.2 350);
+  --accent: oklch(0.75 0.18 320);
+  --ring: oklch(0.7 0.2 350);
+  --bubble-out: oklch(0.5 0.17 350 / 0.85);
+  --cosmic: oklch(0.7 0.2 350);
+  --nebula: oklch(0.75 0.18 320);
+}
+[data-theme="eclipse"] {
+  --primary: oklch(0.55 0.04 280);
+  --accent: oklch(0.65 0.04 280);
+  --ring: oklch(0.55 0.04 280);
+  --bubble-out: oklch(0.3 0.03 280 / 0.85);
+  --cosmic: oklch(0.55 0.04 280);
+  --nebula: oklch(0.65 0.04 280);
 }
 
 @layer base {
-  * {
-    border-color: var(--color-border);
-  }
+  * { border-color: var(--color-border); }
 
-  html, body, #root {
-    height: 100%;
+  html, body, #root { height: 100%; }
+
+  html {
+    background-color: var(--color-background);
+    color: var(--color-foreground);
+    color-scheme: dark;
   }
 
   body {
     background-color: var(--color-background);
     color: var(--color-foreground);
+    background-image:
+      radial-gradient(ellipse 80% 60% at 15% 10%, color-mix(in oklab, var(--cosmic) 22%, transparent) 0%, transparent 60%),
+      radial-gradient(ellipse 70% 50% at 85% 90%, color-mix(in oklab, var(--nebula) 18%, transparent) 0%, transparent 60%),
+      radial-gradient(circle at 50% 50%, transparent 0%, oklch(0.08 0.02 280) 100%);
+    background-attachment: fixed;
   }
 
+  /* Fundo da janela de chat: campo estelar discreto */
   .chat-bg {
-    background-color: oklch(0.93 0.02 145);
+    background-color: oklch(0.11 0.025 280);
     background-image:
-      radial-gradient(circle at 25% 25%, oklch(0.88 0.04 145 / 0.6) 0%, transparent 50%),
-      radial-gradient(circle at 75% 75%, oklch(0.88 0.04 165 / 0.5) 0%, transparent 50%);
+      radial-gradient(circle at 20% 30%, color-mix(in oklab, var(--cosmic) 14%, transparent) 0%, transparent 45%),
+      radial-gradient(circle at 80% 70%, color-mix(in oklab, var(--nebula) 12%, transparent) 0%, transparent 45%),
+      radial-gradient(1px 1px at 15% 22%, oklch(1 0 0 / 0.5) 50%, transparent 100%),
+      radial-gradient(1px 1px at 72% 15%, oklch(1 0 0 / 0.4) 50%, transparent 100%),
+      radial-gradient(1px 1px at 40% 80%, oklch(1 0 0 / 0.45) 50%, transparent 100%),
+      radial-gradient(1px 1px at 88% 55%, oklch(1 0 0 / 0.35) 50%, transparent 100%),
+      radial-gradient(1px 1px at 28% 60%, oklch(1 0 0 / 0.3) 50%, transparent 100%);
   }
-  .dark .chat-bg {
-    background-color: oklch(0.13 0.02 200);
-    background-image:
-      radial-gradient(circle at 25% 25%, oklch(0.18 0.03 150 / 0.6) 0%, transparent 50%),
-      radial-gradient(circle at 75% 75%, oklch(0.18 0.03 200 / 0.5) 0%, transparent 50%);
+
+  /* Glassmorphism utilitário */
+  .glass {
+    background-color: color-mix(in oklab, var(--card) 60%, transparent);
+    backdrop-filter: blur(14px) saturate(140%);
+    -webkit-backdrop-filter: blur(14px) saturate(140%);
+    border: 1px solid color-mix(in oklab, white 8%, transparent);
+  }
+
+  .cosmic-glow {
+    box-shadow:
+      0 0 0 1px color-mix(in oklab, var(--cosmic) 30%, transparent),
+      0 0 24px -4px color-mix(in oklab, var(--cosmic) 45%, transparent);
+  }
+
+  /* Pulse animado pra avatar do Carlos */
+  @keyframes carlos-pulse {
+    0%, 100% { box-shadow: 0 0 0 0 color-mix(in oklab, var(--nebula) 55%, transparent), 0 0 18px color-mix(in oklab, var(--cosmic) 40%, transparent); }
+    50%      { box-shadow: 0 0 0 6px color-mix(in oklab, var(--nebula) 0%, transparent), 0 0 28px color-mix(in oklab, var(--cosmic) 55%, transparent); }
+  }
+  .carlos-avatar { animation: carlos-pulse 2.4s ease-in-out infinite; }
+
+  /* Holográfico p/ balão Carlos */
+  .holo {
+    background: linear-gradient(135deg,
+      color-mix(in oklab, var(--cosmic) 30%, transparent),
+      color-mix(in oklab, var(--nebula) 25%, transparent));
+    border: 1px solid color-mix(in oklab, var(--nebula) 35%, transparent);
+    box-shadow: 0 0 18px -6px color-mix(in oklab, var(--cosmic) 45%, transparent);
   }
 }
 
-/* === Ocultar badge Lovable === */
+/* Ocultar badge Lovable (fallback CSS — visibilidade real é Pro) */
 #lovable-badge,
 .lovable-badge,
 [aria-label*="Lovable"],
-a[href*="lovable.dev"] {
-  display: none !important;
-}
+a[href*="lovable.dev"] { display: none !important; }
+
+/* Scrollbar discreto */
+::-webkit-scrollbar { width: 8px; height: 8px; }
+::-webkit-scrollbar-track { background: transparent; }
+::-webkit-scrollbar-thumb { background: color-mix(in oklab, var(--cosmic) 30%, transparent); border-radius: 8px; }
+::-webkit-scrollbar-thumb:hover { background: color-mix(in oklab, var(--cosmic) 50%, transparent); }

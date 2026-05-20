@@ -1,8 +1,9 @@
 import { useEffect, useState } from "react";
 import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/lib/auth-context";
+import { useSettings } from "@/lib/settings-context";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
-import { Sparkles, Users } from "lucide-react";
+import { Sparkles, Users, Lock, Pin } from "lucide-react";
 import { formatRelative } from "date-fns";
 import { ptBR } from "date-fns/locale";
 
@@ -21,14 +22,16 @@ type Enriched = ConvRow & {
   isAi: boolean;
 };
 
+const isCarlosName = (n: string | null) => n === "Carlos" || n === "Jarvis IA";
+
 export function ChatList({ activeId, onSelect }: { activeId: string | null; onSelect: (id: string) => void }) {
   const { user } = useAuth();
+  const { locks } = useSettings();
   const [items, setItems] = useState<Enriched[]>([]);
   const [loading, setLoading] = useState(true);
 
   const load = async () => {
     if (!user) return;
-    // get conversations where user is a member
     const { data: members } = await supabase
       .from("conversation_members")
       .select("conversation_id")
@@ -44,10 +47,9 @@ export function ChatList({ activeId, onSelect }: { activeId: string | null; onSe
 
     const enriched: Enriched[] = await Promise.all(
       (convs ?? []).map(async (c) => {
-        const isAi = !c.is_group && c.name === "Jarvis IA";
-        let displayName = c.name ?? "Conversa";
+        const isAi = !c.is_group && isCarlosName(c.name);
+        let displayName = isAi ? "Carlos" : (c.name ?? "Conversa");
         if (!c.is_group && !isAi) {
-          // 1-to-1: get the other member's profile
           const { data: otherMembers } = await supabase
             .from("conversation_members")
             .select("user_id")
@@ -77,10 +79,16 @@ export function ChatList({ activeId, onSelect }: { activeId: string | null; onSe
           ...c,
           displayName,
           isAi,
-          lastMessage: last ? (last.is_ai ? "🤖 " : last.sender_id === user.id ? "Você: " : "") + last.content : undefined,
+          lastMessage: last ? (last.is_ai ? "✨ " : last.sender_id === user.id ? "Você: " : "") + last.content : undefined,
         };
       })
     );
+    // Carlos sempre fixado no topo
+    enriched.sort((a, b) => {
+      if (a.isAi && !b.isAi) return -1;
+      if (!a.isAi && b.isAi) return 1;
+      return new Date(b.last_message_at).getTime() - new Date(a.last_message_at).getTime();
+    });
     setItems(enriched);
     setLoading(false);
   };
@@ -97,38 +105,45 @@ export function ChatList({ activeId, onSelect }: { activeId: string | null; onSe
     return () => { supabase.removeChannel(ch); };
   }, [user]);
 
-  if (loading) return <div className="p-4 text-sm text-muted-foreground">Carregando...</div>;
-  if (items.length === 0) return <div className="p-6 text-sm text-muted-foreground text-center">Nenhuma conversa ainda. Toque em <Users className="inline h-3.5 w-3.5" /> acima para começar.</div>;
+  if (loading) return <div className="p-4 text-sm text-muted-foreground">Calibrando órbitas…</div>;
+  if (items.length === 0) return <div className="p-6 text-sm text-muted-foreground text-center">Nenhuma órbita ainda. Toque em <Users className="inline h-3.5 w-3.5" /> acima para iniciar.</div>;
 
   return (
     <ul>
-      {items.map((c) => (
-        <li key={c.id}>
-          <button
-            onClick={() => onSelect(c.id)}
-            className={`w-full flex items-center gap-3 px-3 py-3 hover:bg-accent/10 transition-colors border-b text-left ${activeId === c.id ? "bg-accent/20" : ""}`}
-          >
-            <Avatar className="h-12 w-12">
-              {c.avatar_url && <AvatarImage src={c.avatar_url} />}
-              <AvatarFallback className={c.isAi ? "bg-accent text-accent-foreground" : "bg-primary/15 text-primary"}>
-                {c.isAi ? <Sparkles className="h-5 w-5" /> : c.is_group ? <Users className="h-5 w-5" /> : c.displayName.charAt(0).toUpperCase()}
-              </AvatarFallback>
-            </Avatar>
-            <div className="flex-1 min-w-0">
-              <div className="flex justify-between items-baseline gap-2">
-                <span className="font-medium truncate flex items-center gap-1.5">
-                  {c.displayName}
-                  {c.isAi && <span className="text-[10px] px-1.5 py-0.5 rounded-full bg-accent/30 text-accent-foreground font-semibold">IA</span>}
-                </span>
-                <span className="text-[11px] text-muted-foreground flex-shrink-0">
-                  {formatRelative(new Date(c.last_message_at), new Date(), { locale: ptBR }).split(" às")[0]}
-                </span>
+      {items.map((c) => {
+        const locked = !!locks[c.id];
+        return (
+          <li key={c.id}>
+            <button
+              onClick={() => onSelect(c.id)}
+              className={`w-full flex items-center gap-3 px-3 py-3 hover:bg-primary/10 transition-colors border-b border-white/5 text-left ${activeId === c.id ? "bg-primary/15" : ""}`}
+            >
+              <Avatar className={`h-12 w-12 ${c.isAi ? "carlos-avatar" : ""}`}>
+                {c.avatar_url && <AvatarImage src={c.avatar_url} />}
+                <AvatarFallback className={c.isAi ? "bg-primary/30 text-[var(--nebula)] border border-primary/40" : "bg-secondary text-foreground"}>
+                  {c.isAi ? <Sparkles className="h-5 w-5" /> : c.is_group ? <Users className="h-5 w-5" /> : c.displayName.charAt(0).toUpperCase()}
+                </AvatarFallback>
+              </Avatar>
+              <div className="flex-1 min-w-0">
+                <div className="flex justify-between items-baseline gap-2">
+                  <span className="font-medium truncate flex items-center gap-1.5">
+                    {c.displayName}
+                    {c.isAi && <Pin className="h-3 w-3 text-[var(--nebula)]" />}
+                    {c.isAi && <span className="text-[10px] px-1.5 py-0.5 rounded-full bg-primary/30 text-[var(--nebula)] font-semibold">IA</span>}
+                    {locked && <Lock className="h-3 w-3 text-muted-foreground" />}
+                  </span>
+                  <span className="text-[11px] text-muted-foreground flex-shrink-0">
+                    {formatRelative(new Date(c.last_message_at), new Date(), { locale: ptBR }).split(" às")[0]}
+                  </span>
+                </div>
+                <p className="text-sm text-muted-foreground truncate">
+                  {locked ? "🔒 Chat protegido com PIN" : (c.lastMessage ?? "—")}
+                </p>
               </div>
-              <p className="text-sm text-muted-foreground truncate">{c.lastMessage ?? "—"}</p>
-            </div>
-          </button>
-        </li>
-      ))}
+            </button>
+          </li>
+        );
+      })}
     </ul>
   );
 }
