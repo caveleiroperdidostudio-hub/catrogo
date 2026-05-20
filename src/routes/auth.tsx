@@ -8,7 +8,7 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Tabs, TabsList, TabsTrigger, TabsContent } from "@/components/ui/tabs";
 import { toast } from "sonner";
-import { MessageCircle } from "lucide-react";
+import { Orbit } from "lucide-react";
 
 export const Route = createFileRoute("/auth")({
   component: AuthPage,
@@ -34,7 +34,7 @@ function AuthPage() {
     const { error } = await supabase.auth.signInWithPassword({ email, password });
     setBusy(false);
     if (error) return toast.error(error.message);
-    toast.success("Bem-vindo de volta!");
+    toast.success("Bem-vindo de volta ao cosmos");
   };
 
   const signUp = async () => {
@@ -50,7 +50,7 @@ function AuthPage() {
     });
     setBusy(false);
     if (error) return toast.error(error.message);
-    toast.success("Conta criada! Você já está dentro.");
+    toast.success("Conta criada. Boa órbita!");
   };
 
   const google = async () => {
@@ -59,20 +59,20 @@ function AuthPage() {
   };
 
   return (
-    <div className="min-h-screen flex flex-col items-center justify-center px-4 bg-gradient-to-br from-primary/10 via-background to-accent/10">
+    <div className="min-h-screen flex flex-col items-center justify-center px-4">
       <div className="mb-8 flex items-center gap-3">
-        <div className="h-14 w-14 rounded-2xl bg-primary text-primary-foreground flex items-center justify-center shadow-lg">
-          <MessageCircle className="h-7 w-7" />
+        <div className="h-14 w-14 rounded-2xl bg-primary text-primary-foreground flex items-center justify-center cosmic-glow">
+          <Orbit className="h-7 w-7" />
         </div>
         <div>
-          <h1 className="text-3xl font-bold tracking-tight">CatroGo</h1>
-          <p className="text-sm text-muted-foreground">Conversas com IA Jarvis integrada</p>
+          <h1 className="text-3xl font-bold tracking-tight">Cosmos Chat</h1>
+          <p className="text-sm text-muted-foreground">Mensagens com a IA Carlos integrada</p>
         </div>
       </div>
 
-      <div className="w-full max-w-md rounded-2xl border bg-card p-6 shadow-xl">
+      <div className="w-full max-w-md rounded-2xl glass p-6 cosmic-glow">
         <Tabs defaultValue="signin">
-          <TabsList className="grid w-full grid-cols-2">
+          <TabsList className="grid w-full grid-cols-2 bg-secondary/40">
             <TabsTrigger value="signin">Entrar</TabsTrigger>
             <TabsTrigger value="signup">Criar conta</TabsTrigger>
           </TabsList>
@@ -92,9 +92,9 @@ function AuthPage() {
         </Tabs>
 
         <div className="relative my-5">
-          <div className="absolute inset-0 flex items-center"><span className="w-full border-t" /></div>
+          <div className="absolute inset-0 flex items-center"><span className="w-full border-t border-white/10" /></div>
           <div className="relative flex justify-center text-xs uppercase">
-            <span className="bg-card px-2 text-muted-foreground">ou</span>
+            <span className="bg-card/60 backdrop-blur px-2 text-muted-foreground rounded">ou</span>
           </div>
         </div>
 
@@ -104,7 +104,7 @@ function AuthPage() {
         </Button>
       </div>
 
-      <p className="mt-6 text-xs text-muted-foreground">CatroGo · Não é WhatsApp · Rede independente</p>
+      <p className="mt-6 text-xs text-muted-foreground">Cosmos Chat · Rede independente · Privacidade galáctica</p>
     </div>
   );
 }
