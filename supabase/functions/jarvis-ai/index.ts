@@ -1,92 +1,144 @@
-import { corsHeaders } from "npm:@supabase/supabase-js@2/cors";
 import { createClient } from "npm:@supabase/supabase-js@2";
+
+const corsHeaders = {
+  "Access-Control-Allow-Origin": "*",
+  "Access-Control-Allow-Headers": "authorization, x-client-info, apikey, content-type",
+};
 
 const LOVABLE_API_KEY = Deno.env.get("LOVABLE_API_KEY")!;
 const SUPABASE_URL = Deno.env.get("SUPABASE_URL")!;
 const SUPABASE_ANON_KEY = Deno.env.get("SUPABASE_ANON_KEY")!;
 const SUPABASE_SERVICE_ROLE_KEY = Deno.env.get("SUPABASE_SERVICE_ROLE_KEY")!;
 
-const SYSTEM = `Você é Jarvis, a IA do app CatroGo (similar ao Privado Jarvis, https://privadojarvis.lovable.app).
-Você é amigável, direto, objetivo e útil. Responde em português brasileiro a menos que o usuário fale outro idioma.
-Pode redigir mensagens, traduzir, resumir, dar ideias, explicar coisas, ajudar com decisões.
-Mantenha respostas curtas e conversacionais quando possível, como uma mensagem de chat.`;
+const SYSTEM = `Você é Carlos, a IA nativa do app Cosmos Chat.
+Você é amigável, direto, criativo e cósmico. Responde em português brasileiro a menos que o usuário fale outro idioma.
+Quando alguém te invocar com @carlos no meio de um chat, responda APENAS à pergunta direcionada a você, mantendo a resposta breve e útil — como uma mensagem de chat. Pode redigir mensagens, traduzir, resumir, dar ideias, explicar coisas e ajudar em decisões.`;
+
+function json(body: unknown, status = 200) {
+  return new Response(JSON.stringify(body), {
+    status,
+    headers: { ...corsHeaders, "Content-Type": "application/json" },
+  });
+}
+
+async function aiCall(messages: Array<{ role: string; content: string }>, jsonMode = false) {
+  const body: Record<string, unknown> = { model: "google/gemini-2.5-flash", messages };
+  if (jsonMode) body.response_format = { type: "json_object" };
+  const res = await fetch("https://ai.gateway.lovable.dev/v1/chat/completions", {
+    method: "POST",
+    headers: { "Content-Type": "application/json", Authorization: `Bearer ${LOVABLE_API_KEY}` },
+    body: JSON.stringify(body),
+  });
+  if (!res.ok) throw new Error(`AI ${res.status}: ${await res.text()}`);
+  const data = await res.json();
+  return data.choices?.[0]?.message?.content?.trim() ?? "";
+}
 
 Deno.serve(async (req) => {
   if (req.method === "OPTIONS") return new Response(null, { headers: corsHeaders });
 
   try {
     const authHeader = req.headers.get("Authorization");
-    if (!authHeader) return new Response(JSON.stringify({ error: "missing auth" }), { status: 401, headers: { ...corsHeaders, "Content-Type": "application/json" } });
+    if (!authHeader) return json({ error: "missing auth" }, 401);
 
-    const userClient = createClient(SUPABASE_URL, SUPABASE_ANON_KEY, { global: { headers: { Authorization: authHeader } } });
+    const userClient = createClient(SUPABASE_URL, SUPABASE_ANON_KEY, {
+      global: { headers: { Authorization: authHeader } },
+    });
     const { data: userData } = await userClient.auth.getUser();
     const user = userData.user;
-    if (!user) return new Response(JSON.stringify({ error: "unauthorized" }), { status: 401, headers: { ...corsHeaders, "Content-Type": "application/json" } });
+    if (!user) return json({ error: "unauthorized" }, 401);
 
-    const { conversationId, mode, userMessage } = await req.json();
-    if (!conversationId || !mode) return new Response(JSON.stringify({ error: "bad request" }), { status: 400, headers: { ...corsHeaders, "Content-Type": "application/json" } });
+    const payload = await req.json();
+    const { conversationId, mode, userMessage, text, targetLang } = payload as {
+      conversationId?: string;
+      mode: "reply" | "suggest" | "summarize" | "translate" | "mention";
+      userMessage?: string;
+      text?: string;
+      targetLang?: string;
+    };
+    if (!mode) return json({ error: "bad request" }, 400);
 
-    // verify membership using user-scoped client (RLS enforced)
-    const { data: member } = await userClient.from("conversation_members").select("user_id").eq("conversation_id", conversationId).eq("user_id", user.id).maybeSingle();
-    if (!member) return new Response(JSON.stringify({ error: "not a member" }), { status: 403, headers: { ...corsHeaders, "Content-Type": "application/json" } });
+    // Modo translate não precisa de conversa
+    if (mode === "translate") {
+      if (!text) return json({ error: "missing text" }, 400);
+      const out = await aiCall([
+        { role: "system", content: "Você é um tradutor. Responda apenas com a tradução, sem comentários." },
+        { role: "user", content: `Traduza para ${targetLang ?? "inglês"}:\n\n${text}` },
+      ]);
+      return json({ translation: out });
+    }
 
-    // load last 20 messages with user client
-    const { data: msgs } = await userClient.from("messages").select("content, sender_id, is_ai, created_at").eq("conversation_id", conversationId).order("created_at", { ascending: true }).limit(40);
+    if (!conversationId) return json({ error: "missing conversationId" }, 400);
+
+    // verifica membership
+    const { data: member } = await userClient
+      .from("conversation_members")
+      .select("user_id")
+      .eq("conversation_id", conversationId)
+      .eq("user_id", user.id)
+      .maybeSingle();
+    if (!member) return json({ error: "not a member" }, 403);
+
+    const { data: msgs } = await userClient
+      .from("messages")
+      .select("content, sender_id, is_ai, created_at")
+      .eq("conversation_id", conversationId)
+      .order("created_at", { ascending: true })
+      .limit(40);
     const history = (msgs ?? []).map((m) => ({
-      role: m.is_ai ? "assistant" : (m.sender_id === user.id ? "user" : "user"),
-      content: m.is_ai ? m.content : `${m.content}`,
+      role: m.is_ai ? "assistant" : "user",
+      content: m.content,
     }));
 
-    if (mode === "reply") {
-      const messages = [
-        { role: "system", content: SYSTEM },
-        ...history,
-      ];
-      const aiRes = await fetch("https://ai.gateway.lovable.dev/v1/chat/completions", {
-        method: "POST",
-        headers: { "Content-Type": "application/json", Authorization: `Bearer ${LOVABLE_API_KEY}` },
-        body: JSON.stringify({ model: "google/gemini-2.5-flash", messages }),
-      });
-      if (!aiRes.ok) {
-        const t = await aiRes.text();
-        return new Response(JSON.stringify({ error: `AI ${aiRes.status}: ${t}` }), { status: 502, headers: { ...corsHeaders, "Content-Type": "application/json" } });
-      }
-      const data = await aiRes.json();
-      const reply = data.choices?.[0]?.message?.content?.trim() ?? "(sem resposta)";
+    const admin = createClient(SUPABASE_URL, SUPABASE_SERVICE_ROLE_KEY);
 
-      // insert with service role so sender_id can be null and bypass member-as-self check
-      const admin = createClient(SUPABASE_URL, SUPABASE_SERVICE_ROLE_KEY);
-      await admin.from("messages").insert({ conversation_id: conversationId, sender_id: null, is_ai: true, content: reply });
-      return new Response(JSON.stringify({ ok: true }), { headers: { ...corsHeaders, "Content-Type": "application/json" } });
+    if (mode === "reply") {
+      const reply = await aiCall([{ role: "system", content: SYSTEM }, ...history]);
+      await admin.from("messages").insert({
+        conversation_id: conversationId, sender_id: null, is_ai: true, content: reply,
+      });
+      return json({ ok: true });
+    }
+
+    if (mode === "mention") {
+      // resposta direta a um @carlos dentro de um chat (não-Carlos)
+      const question = userMessage ?? "";
+      const ctx = history.slice(-12).map((h) => `${h.role === "assistant" ? "Carlos" : "Alguém"}: ${h.content}`).join("\n");
+      const reply = await aiCall([
+        { role: "system", content: SYSTEM + "\nResponda direto à última pergunta marcada com @carlos. Seja breve." },
+        { role: "user", content: `Contexto recente:\n${ctx}\n\nPergunta: ${question.replace(/^@carlos\s*/i, "")}` },
+      ]);
+      await admin.from("messages").insert({
+        conversation_id: conversationId, sender_id: null, is_ai: true, content: reply,
+      });
+      return json({ ok: true });
+    }
+
+    if (mode === "summarize") {
+      const joined = history.map((h) => `${h.role === "assistant" ? "Carlos" : "Pessoa"}: ${h.content}`).join("\n");
+      const summary = await aiCall([
+        { role: "system", content: "Resuma a conversa em até 6 bullet points curtos e úteis em pt-BR." },
+        { role: "user", content: joined || "(conversa vazia)" },
+      ]);
+      return json({ summary });
     }
 
     if (mode === "suggest") {
-      const tail = history.slice(-10).map((h) => `${h.role === "user" ? "Outro" : "Eu"}: ${h.content}`).join("\n");
-      const prompt = `Considere a conversa abaixo e sugira EXATAMENTE 3 respostas curtas e naturais (no máximo 12 palavras cada) que o usuário poderia enviar. Responda APENAS com um JSON no formato {"suggestions":["...","...","..."]} sem texto adicional.\n\nConversa:\n${tail || "(vazia)"}\n\nUserMessage opcional: ${userMessage ?? ""}`;
-      const aiRes = await fetch("https://ai.gateway.lovable.dev/v1/chat/completions", {
-        method: "POST",
-        headers: { "Content-Type": "application/json", Authorization: `Bearer ${LOVABLE_API_KEY}` },
-        body: JSON.stringify({
-          model: "google/gemini-2.5-flash",
-          messages: [{ role: "system", content: "Você é um assistente que retorna apenas JSON válido." }, { role: "user", content: prompt }],
-          response_format: { type: "json_object" },
-        }),
-      });
-      if (!aiRes.ok) {
-        const t = await aiRes.text();
-        return new Response(JSON.stringify({ error: `AI ${aiRes.status}: ${t}` }), { status: 502, headers: { ...corsHeaders, "Content-Type": "application/json" } });
-      }
-      const data = await aiRes.json();
+      const tail = history.slice(-10).map((h) => `${h.role === "assistant" ? "Carlos" : "Outro"}: ${h.content}`).join("\n");
+      const out = await aiCall([
+        { role: "system", content: "Você é um assistente que retorna apenas JSON válido." },
+        { role: "user", content: `Considere a conversa e sugira EXATAMENTE 3 respostas curtas (≤12 palavras) que o usuário poderia enviar. JSON: {"suggestions":["...","...","..."]}\n\n${tail || "(vazia)"}` },
+      ], true);
       let suggestions: string[] = [];
       try {
-        const parsed = JSON.parse(data.choices?.[0]?.message?.content ?? "{}");
+        const parsed = JSON.parse(out || "{}");
         suggestions = Array.isArray(parsed.suggestions) ? parsed.suggestions.slice(0, 3) : [];
-      } catch { suggestions = []; }
-      return new Response(JSON.stringify({ suggestions }), { headers: { ...corsHeaders, "Content-Type": "application/json" } });
+      } catch { /* noop */ }
+      return json({ suggestions });
     }
 
-    return new Response(JSON.stringify({ error: "unknown mode" }), { status: 400, headers: { ...corsHeaders, "Content-Type": "application/json" } });
+    return json({ error: "unknown mode" }, 400);
   } catch (e) {
-    return new Response(JSON.stringify({ error: (e as Error).message }), { status: 500, headers: { ...corsHeaders, "Content-Type": "application/json" } });
+    return json({ error: (e as Error).message }, 500);
   }
 });
