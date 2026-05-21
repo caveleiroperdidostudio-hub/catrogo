@@ -154,6 +154,7 @@ export type Database = {
           created_at: string
           expires_at: string
           id: string
+          media_type: string | null
           media_url: string | null
           user_id: string
         }
@@ -163,6 +164,7 @@ export type Database = {
           created_at?: string
           expires_at?: string
           id?: string
+          media_type?: string | null
           media_url?: string | null
           user_id: string
         }
@@ -172,6 +174,7 @@ export type Database = {
           created_at?: string
           expires_at?: string
           id?: string
+          media_type?: string | null
           media_url?: string | null
           user_id?: string
         }
