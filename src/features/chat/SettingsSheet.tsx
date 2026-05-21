@@ -103,6 +103,29 @@ export function SettingsSheet({ open, onOpenChange }: { open: boolean; onOpenCha
               ))}
             </div>
           </section>
+
+          <Separator />
+
+          <section className="space-y-3">
+            <h3 className="text-sm font-semibold flex items-center gap-2 text-[var(--nebula)]">
+              <Palette className="h-4 w-4" /> Lobby — Wallpaper
+            </h3>
+            <p className="text-xs text-muted-foreground">Personalize o fundo da lista de conversas.</p>
+            <div className="grid grid-cols-3 gap-2">
+              {WALLPAPERS.map((w) => (
+                <button
+                  key={w.id}
+                  onClick={() => setWallpaper(w.value)}
+                  className={`h-16 rounded-lg border-2 overflow-hidden text-xs text-white/90 flex items-end p-1.5 transition ${
+                    wallpaper === w.value ? "border-[var(--cosmic)] cosmic-glow" : "border-border/40"
+                  }`}
+                  style={{ background: w.value, backgroundSize: w.id === "stars" ? "20px 20px, 35px 35px, auto" : undefined }}
+                >
+                  <span className="bg-black/40 rounded px-1.5 py-0.5 backdrop-blur-sm">{w.label}</span>
+                </button>
+              ))}
+            </div>
+          </section>
         </div>
       </SheetContent>
     </Sheet>
