@@ -4,7 +4,10 @@ import { Sheet, SheetContent, SheetHeader, SheetTitle, SheetDescription } from "
 import { Switch } from "@/components/ui/switch";
 import { Label } from "@/components/ui/label";
 import { Separator } from "@/components/ui/separator";
-import { Ghost, Eye, Keyboard, Mic, OrbitIcon, Image as ImageIcon, Palette } from "lucide-react";
+import { Button } from "@/components/ui/button";
+import { Ghost, Eye, Keyboard, Mic, OrbitIcon, Image as ImageIcon, Palette, Bell } from "lucide-react";
+import { requestPushPermission, isPushSupported } from "@/lib/push";
+import { toast } from "sonner";
 
 const THEMES: { id: ThemeAccent; label: string; sample: string }[] = [
   { id: "cosmos", label: "Roxo Cósmico", sample: "oklch(0.58 0.22 295)" },
