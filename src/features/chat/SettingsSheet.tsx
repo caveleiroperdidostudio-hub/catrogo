@@ -14,8 +14,17 @@ const THEMES: { id: ThemeAccent; label: string; sample: string }[] = [
   { id: "eclipse", label: "Eclipse Escuro", sample: "oklch(0.55 0.04 280)" },
 ];
 
+const WALLPAPERS: { id: string; label: string; value: string }[] = [
+  { id: "cosmos", label: "Cosmos", value: "radial-gradient(circle at 20% 10%, oklch(0.32 0.12 295 / 0.35), transparent 55%), radial-gradient(circle at 80% 90%, oklch(0.32 0.14 230 / 0.35), transparent 50%), oklch(0.12 0.04 280)" },
+  { id: "nebula", label: "Nebulosa", value: "radial-gradient(circle at 30% 20%, oklch(0.4 0.2 340 / 0.4), transparent 60%), radial-gradient(circle at 70% 80%, oklch(0.4 0.2 280 / 0.4), transparent 55%), oklch(0.1 0.05 320)" },
+  { id: "aurora", label: "Aurora", value: "linear-gradient(160deg, oklch(0.2 0.1 200), oklch(0.25 0.15 155), oklch(0.18 0.08 250))" },
+  { id: "void", label: "Vácuo", value: "linear-gradient(180deg, oklch(0.08 0.02 280), oklch(0.05 0.01 280))" },
+  { id: "supernova", label: "Supernova", value: "radial-gradient(circle at 50% 30%, oklch(0.5 0.2 60 / 0.4), transparent 60%), oklch(0.12 0.04 30)" },
+  { id: "stars", label: "Campo Estelar", value: "radial-gradient(white 1px, transparent 1px), radial-gradient(white 1px, transparent 1px), oklch(0.1 0.03 280)" },
+];
+
 export function SettingsSheet({ open, onOpenChange }: { open: boolean; onOpenChange: (v: boolean) => void }) {
-  const { privacy, setPrivacy, theme, setTheme } = useSettings();
+  const { privacy, setPrivacy, theme, setTheme, wallpaper, setWallpaper } = useSettings();
   const [local, setLocal] = useState(privacy);
 
   const toggle = (k: keyof typeof privacy) => {
@@ -90,6 +99,29 @@ export function SettingsSheet({ open, onOpenChange }: { open: boolean; onOpenCha
                 >
                   <span className="h-5 w-5 rounded-full ring-2 ring-white/10" style={{ background: t.sample }} />
                   <span className="truncate">{t.label}</span>
+                </button>
+              ))}
+            </div>
+          </section>
+
+          <Separator />
+
+          <section className="space-y-3">
+            <h3 className="text-sm font-semibold flex items-center gap-2 text-[var(--nebula)]">
+              <Palette className="h-4 w-4" /> Lobby — Wallpaper
+            </h3>
+            <p className="text-xs text-muted-foreground">Personalize o fundo da lista de conversas.</p>
+            <div className="grid grid-cols-3 gap-2">
+              {WALLPAPERS.map((w) => (
+                <button
+                  key={w.id}
+                  onClick={() => setWallpaper(w.value)}
+                  className={`h-16 rounded-lg border-2 overflow-hidden text-xs text-white/90 flex items-end p-1.5 transition ${
+                    wallpaper === w.value ? "border-[var(--cosmic)] cosmic-glow" : "border-border/40"
+                  }`}
+                  style={{ background: w.value, backgroundSize: w.id === "stars" ? "20px 20px, 35px 35px, auto" : undefined }}
+                >
+                  <span className="bg-black/40 rounded px-1.5 py-0.5 backdrop-blur-sm">{w.label}</span>
                 </button>
               ))}
             </div>

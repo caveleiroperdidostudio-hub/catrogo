@@ -8,6 +8,7 @@ import { CallsTab } from "./CallsTab";
 import { ProfileSheet } from "./ProfileSheet";
 import { NewChatDialog } from "./NewChatDialog";
 import { SettingsSheet } from "./SettingsSheet";
+import { useSettings } from "@/lib/settings-context";
 import { Tabs, TabsList, TabsTrigger, TabsContent } from "@/components/ui/tabs";
 import { Button } from "@/components/ui/button";
 import { MessageCircle, Users, Circle, Phone, MoreVertical, LogOut, User as UserIcon, Sparkles, Orbit, ShieldHalf } from "lucide-react";
@@ -26,6 +27,7 @@ export function ChatHome() {
   const [profileOpen, setProfileOpen] = useState(false);
   const [newChatOpen, setNewChatOpen] = useState(false);
   const [settingsOpen, setSettingsOpen] = useState(false);
+  const { wallpaper } = useSettings();
 
   // Garante que a conversa com Carlos existe para o usuário
   useEffect(() => {
@@ -69,7 +71,10 @@ export function ChatHome() {
   return (
     <div className="flex h-screen overflow-hidden">
       {/* Sidebar */}
-      <aside className={`w-full md:w-[380px] flex-shrink-0 border-r border-white/5 glass flex flex-col ${activeConvId ? "hidden md:flex" : "flex"}`}>
+      <aside
+        className={`w-full md:w-[380px] flex-shrink-0 border-r border-white/5 glass flex flex-col ${activeConvId ? "hidden md:flex" : "flex"}`}
+        style={{ background: wallpaper, backgroundSize: wallpaper.includes("radial-gradient(white") ? "20px 20px, 35px 35px, auto" : undefined }}
+      >
         {/* Header */}
         <div className="h-14 px-4 flex items-center justify-between border-b border-white/5">
           <div className="flex items-center gap-2">
