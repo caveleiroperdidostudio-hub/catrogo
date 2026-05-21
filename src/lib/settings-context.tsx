@@ -27,6 +27,8 @@ type SettingsValue = {
   unlockChat: (convId: string) => void;
   isUnlockedNow: (convId: string) => boolean;
   markUnlockedNow: (convId: string) => void;
+  wallpaper: string;
+  setWallpaper: (w: string) => void;
 };
 
 const SettingsCtx = createContext<SettingsValue | undefined>(undefined);
