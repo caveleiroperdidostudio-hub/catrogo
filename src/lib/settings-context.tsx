@@ -40,7 +40,10 @@ type Persisted = {
   privacy: PrivacyFlags;
   ephemeral: Record<string, number>;
   locks: Record<string, string>;
+  wallpaper: string;
 };
+
+const DEFAULT_WALLPAPER = "radial-gradient(circle at 20% 10%, oklch(0.32 0.12 295 / 0.35), transparent 55%), radial-gradient(circle at 80% 90%, oklch(0.32 0.14 230 / 0.35), transparent 50%), oklch(0.12 0.04 280)";
 
 const DEFAULTS: Persisted = {
   theme: "cosmos",
@@ -54,6 +57,7 @@ const DEFAULTS: Persisted = {
   },
   ephemeral: {},
   locks: {},
+  wallpaper: DEFAULT_WALLPAPER,
 };
 
 function hashPin(pin: string): string {
