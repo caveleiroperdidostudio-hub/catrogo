@@ -27,6 +27,7 @@ export function ChatHome() {
   const [profileOpen, setProfileOpen] = useState(false);
   const [newChatOpen, setNewChatOpen] = useState(false);
   const [settingsOpen, setSettingsOpen] = useState(false);
+  const { wallpaper } = useSettings();
 
   // Garante que a conversa com Carlos existe para o usuário
   useEffect(() => {
