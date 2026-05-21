@@ -8,6 +8,7 @@ import { CallsTab } from "./CallsTab";
 import { ProfileSheet } from "./ProfileSheet";
 import { NewChatDialog } from "./NewChatDialog";
 import { SettingsSheet } from "./SettingsSheet";
+import { useSettings } from "@/lib/settings-context";
 import { Tabs, TabsList, TabsTrigger, TabsContent } from "@/components/ui/tabs";
 import { Button } from "@/components/ui/button";
 import { MessageCircle, Users, Circle, Phone, MoreVertical, LogOut, User as UserIcon, Sparkles, Orbit, ShieldHalf } from "lucide-react";
