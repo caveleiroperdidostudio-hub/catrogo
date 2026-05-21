@@ -1,6 +1,7 @@
 import { createContext, useContext, useEffect, useState, type ReactNode } from "react";
 import type { Session, User } from "@supabase/supabase-js";
 import { supabase } from "@/integrations/supabase/client";
+import { setPushUserId } from "@/lib/push";
 
 type Profile = {
   id: string;
@@ -40,8 +41,10 @@ export function AuthProvider({ children }: { children: ReactNode }) {
       setSession(s);
       if (s?.user) {
         setTimeout(() => loadProfile(s.user.id), 0);
+        setPushUserId(s.user.id);
       } else {
         setProfile(null);
+        setPushUserId(null);
       }
     });
 

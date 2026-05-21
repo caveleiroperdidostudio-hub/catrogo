@@ -4,7 +4,10 @@ import { Sheet, SheetContent, SheetHeader, SheetTitle, SheetDescription } from "
 import { Switch } from "@/components/ui/switch";
 import { Label } from "@/components/ui/label";
 import { Separator } from "@/components/ui/separator";
-import { Ghost, Eye, Keyboard, Mic, OrbitIcon, Image as ImageIcon, Palette } from "lucide-react";
+import { Button } from "@/components/ui/button";
+import { Ghost, Eye, Keyboard, Mic, OrbitIcon, Image as ImageIcon, Palette, Bell } from "lucide-react";
+import { requestPushPermission, isPushSupported } from "@/lib/push";
+import { toast } from "sonner";
 
 const THEMES: { id: ThemeAccent; label: string; sample: string }[] = [
   { id: "cosmos", label: "Roxo Cósmico", sample: "oklch(0.58 0.22 295)" },
@@ -46,6 +49,33 @@ export function SettingsSheet({ open, onOpenChange }: { open: boolean; onOpenCha
         </SheetHeader>
 
         <div className="px-4 py-5 space-y-5">
+          <section className="space-y-3">
+            <h3 className="text-sm font-semibold flex items-center gap-2 text-[var(--nebula)]">
+              <Bell className="h-4 w-4" /> Notificações Push
+            </h3>
+            <Button
+              size="sm"
+              variant="outline"
+              className="w-full"
+              onClick={async () => {
+                if (!isPushSupported()) {
+                  toast.info("Push só funciona no app publicado (não no preview).");
+                  return;
+                }
+                const r = await requestPushPermission();
+                if (r === "granted") toast.success("Notificações ativadas!");
+                else if (r === "denied") toast.error("Permissão negada no navegador.");
+                else toast.info("Não suportado neste ambiente.");
+              }}
+            >
+              <Bell className="h-4 w-4 mr-1.5" /> Ativar notificações
+            </Button>
+            <p className="text-xs text-muted-foreground">Você será avisado de novas mensagens mesmo com o app fechado. Funciona na versão publicada.</p>
+          </section>
+
+          <Separator />
+
+
           <section className="space-y-3">
             <h3 className="text-sm font-semibold flex items-center gap-2 text-[var(--nebula)]">
               <Ghost className="h-4 w-4" /> Modo Fantasma Total
