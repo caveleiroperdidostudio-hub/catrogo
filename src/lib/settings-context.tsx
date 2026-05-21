@@ -123,6 +123,8 @@ export function SettingsProvider({ children }: { children: ReactNode }) {
       }),
     isUnlockedNow: (convId) => !!unlockedSession[convId],
     markUnlockedNow: (convId) => setUnlockedSession((u) => ({ ...u, [convId]: true })),
+    wallpaper: state.wallpaper,
+    setWallpaper: (w) => setState((s) => ({ ...s, wallpaper: w })),
   };
 
   return <SettingsCtx.Provider value={value}>{children}</SettingsCtx.Provider>;
