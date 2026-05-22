@@ -283,10 +283,10 @@ export function ChatView({ conversationId, onBack }: { conversationId: string; o
           {summarizing ? <Loader2 className="h-4 w-4 animate-spin" /> : <BrainCircuit className="h-4 w-4 text-[var(--nebula)]" />}
         </Button>
 
-        <Button size="icon" variant="ghost" className="h-9 w-9 hidden sm:inline-flex" onClick={() => toast.info("Sinais em breve")}>
+        <Button size="icon" variant="ghost" className="h-9 w-9 hidden sm:inline-flex" onClick={() => setCall("video")} title="Videochamada">
           <Video className="h-4 w-4" />
         </Button>
-        <Button size="icon" variant="ghost" className="h-9 w-9 hidden sm:inline-flex" onClick={() => toast.info("Sinais em breve")}>
+        <Button size="icon" variant="ghost" className="h-9 w-9 hidden sm:inline-flex" onClick={() => setCall("voice")} title="Chamada de voz">
           <Phone className="h-4 w-4" />
         </Button>
 
