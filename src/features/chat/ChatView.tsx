@@ -7,16 +7,18 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import {
   ArrowLeft, Sparkles, Send, Phone, Video, MoreVertical, Users, Wand2, Loader2,
-  Languages, BrainCircuit, Timer, Lock, OrbitIcon, ShieldHalf,
+  Languages, BrainCircuit, Timer, Lock, OrbitIcon, ShieldHalf, ShieldCheck, MailOpen, Mic,
 } from "lucide-react";
 import {
   DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger,
-  DropdownMenuSeparator, DropdownMenuLabel,
+  DropdownMenuSeparator, DropdownMenuLabel, DropdownMenuSub, DropdownMenuSubTrigger, DropdownMenuSubContent,
 } from "@/components/ui/dropdown-menu";
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription, DialogFooter } from "@/components/ui/dialog";
 import { Label } from "@/components/ui/label";
 import { toast } from "sonner";
 import { format } from "date-fns";
+import { CallScreen, type CallMode } from "./CallScreen";
+import { VoiceRecorder, AudioBubble } from "./VoiceRecorder";
 
 type Message = {
   id: string;
