@@ -372,7 +372,16 @@ export function ChatView({ conversationId, onBack }: { conversationId: string; o
                 {showSender && m.sender_id && (
                   <div className="text-xs font-semibold text-[var(--cosmic)] mb-0.5">{senderNames.current[m.sender_id] ?? "..."}</div>
                 )}
-                <div className="whitespace-pre-wrap break-words text-[15px]">{m.content}</div>
+                {(() => {
+                  const am = /^\[audio:(\d+)\]$/.exec(m.content);
+                  if (am) return <AudioBubble duration={parseInt(am[1], 10)} />;
+                  return <div className="whitespace-pre-wrap break-words text-[15px]">{m.content}</div>;
+                })()}
+                {unreadMarks[m.id] && (
+                  <div className="text-[10px] mt-0.5 inline-flex items-center gap-1 text-[var(--nebula)]">
+                    <MailOpen className="h-3 w-3" /> Marcada como não lida
+                  </div>
+                )}
                 {translations[m.id] && (
                   <div className="mt-1.5 pt-1.5 border-t border-white/10 text-[13px] text-muted-foreground whitespace-pre-wrap flex items-start gap-1.5">
                     <Languages className="h-3.5 w-3.5 mt-0.5 flex-shrink-0" />
