@@ -30,8 +30,25 @@ const WALLPAPERS: { id: string; label: string; value: string }[] = [
 ];
 
 export function SettingsSheet({ open, onOpenChange }: { open: boolean; onOpenChange: (v: boolean) => void }) {
-  const { privacy, setPrivacy, theme, setTheme, wallpaper, setWallpaper } = useSettings();
+  const { user } = useAuth();
+  const { privacy, setPrivacy, theme, setTheme, wallpaper, setWallpaper, chatWallpaper, setChatWallpaper } = useSettings();
   const [local, setLocal] = useState(privacy);
+  const [uploading, setUploading] = useState(false);
+  const fileRef = useRef<HTMLInputElement>(null);
+
+  const uploadChatBg = async (file: File, kind: "image" | "video") => {
+    if (!user) return;
+    if (file.size > 30 * 1024 * 1024) return toast.error("Máximo 30MB");
+    setUploading(true);
+    const ext = file.name.split(".").pop() ?? (kind === "video" ? "mp4" : "jpg");
+    const path = `${user.id}/wallpaper-${Date.now()}.${ext}`;
+    const { error } = await supabase.storage.from("status-media").upload(path, file, { contentType: file.type });
+    if (error) { setUploading(false); return toast.error(error.message); }
+    const { data } = supabase.storage.from("status-media").getPublicUrl(path);
+    setChatWallpaper({ type: kind, value: data.publicUrl });
+    setUploading(false);
+    toast.success(`Wallpaper ${kind === "video" ? "de vídeo" : "de foto"} aplicado!`);
+  };
 
   const toggle = (k: keyof typeof privacy) => {
     const next = { ...local, [k]: !local[k] };
