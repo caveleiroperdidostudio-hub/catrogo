@@ -329,7 +329,27 @@ export function ChatView({ conversationId, onBack }: { conversationId: string; o
       )}
 
       {/* Mensagens */}
-      <div ref={scrollRef} className="flex-1 overflow-y-auto chat-bg p-4 space-y-2">
+      <div ref={scrollRef} className={`relative flex-1 overflow-y-auto p-4 space-y-2 ${chatWallpaper.type === "gradient" && chatWallpaper.value === "stars" ? "chat-bg" : ""}`}
+        style={chatWallpaper.type === "gradient" && chatWallpaper.value !== "stars" ? { background: chatWallpaper.value } : undefined}>
+        {chatWallpaper.type === "image" && (
+          <div className="pointer-events-none absolute inset-0 -z-0">
+            <img src={chatWallpaper.value} alt="" className="h-full w-full object-cover" />
+            <div className="absolute inset-0 bg-background/40 backdrop-blur-[2px]" />
+          </div>
+        )}
+        {chatWallpaper.type === "video" && (
+          <div className="pointer-events-none absolute inset-0 -z-0">
+            <video
+              src={chatWallpaper.value}
+              autoPlay loop playsInline
+              muted={!chatWallpaper.soundEnabled}
+              ref={(el) => { if (el) el.volume = chatWallpaper.volume / 100; }}
+              className="h-full w-full object-cover pointer-events-auto"
+            />
+            <div className="absolute inset-0 bg-background/30 backdrop-blur-[1px]" />
+          </div>
+        )}
+        <div className="relative z-10 space-y-2">
         {visibleMessages.map((m, i) => {
           const mine = m.sender_id === user?.id;
           const prev = visibleMessages[i - 1];
