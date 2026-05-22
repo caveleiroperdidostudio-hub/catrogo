@@ -425,6 +425,7 @@ export function ChatView({ conversationId, onBack }: { conversationId: string; o
             </div>
           </div>
         )}
+        </div>
       </div>
 
       {/* Suggestions */}
