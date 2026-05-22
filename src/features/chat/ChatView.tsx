@@ -205,6 +205,20 @@ export function ChatView({ conversationId, onBack }: { conversationId: string; o
     }
   };
 
+  const sendAudio = async () => {
+    if (!user) return;
+    const seconds = Math.max(1, Math.round((Date.now() - recordingStartRef.current) / 1000));
+    setRecording(false);
+    const { error } = await supabase.from("messages").insert({
+      conversation_id: conversationId,
+      sender_id: user.id,
+      content: `[audio:${seconds}]`,
+      message_type: "audio",
+      to_ai: false,
+    });
+    if (error) toast.error(error.message);
+  };
+
   const suggest = async () => {
     setSuggesting(true);
     try { const r = await callAI({ conversationId, mode: "suggest" }); setSuggestions(r.suggestions ?? []); }
