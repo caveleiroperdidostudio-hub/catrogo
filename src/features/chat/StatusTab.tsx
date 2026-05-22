@@ -95,6 +95,8 @@ export function StatusTab() {
 
   const mine = statuses.filter((s) => s.user_id === user?.id);
   const others = statuses.filter((s) => s.user_id !== user?.id);
+  const all = [...mine, ...others];
+  const [viewerIndex, setViewerIndex] = useState<number | null>(null);
 
   return (
     <div className="space-y-4">
@@ -104,7 +106,7 @@ export function StatusTab() {
         <div>
           <h3 className="text-xs font-semibold text-muted-foreground uppercase tracking-wide mb-2">Meus status</h3>
           <ul className="space-y-2">
-            {mine.map((s) => <StatusCard key={s.id} s={s} onRemove={() => remove(s.id)} mine />)}
+            {mine.map((s, i) => <StatusCard key={s.id} s={s} onOpen={() => setViewerIndex(i)} onRemove={() => remove(s.id)} mine />)}
           </ul>
         </div>
       )}
@@ -115,7 +117,7 @@ export function StatusTab() {
           <p className="text-sm text-muted-foreground">Sem sinais novos no momento.</p>
         ) : (
           <ul className="space-y-2">
-            {others.map((s) => <StatusCard key={s.id} s={s} />)}
+            {others.map((s, i) => <StatusCard key={s.id} s={s} onOpen={() => setViewerIndex(mine.length + i)} />)}
           </ul>
         )}
       </div>
