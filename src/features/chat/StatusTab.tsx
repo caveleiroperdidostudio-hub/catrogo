@@ -4,11 +4,12 @@ import { useAuth } from "@/lib/auth-context";
 import { Avatar, AvatarFallback } from "@/components/ui/avatar";
 import { Button } from "@/components/ui/button";
 import { Textarea } from "@/components/ui/textarea";
-import { Plus, Trash2, Video, Image as ImageIcon, Loader2 } from "lucide-react";
+import { Plus, Trash2, Video, Image as ImageIcon, Loader2, Play } from "lucide-react";
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter } from "@/components/ui/dialog";
 import { toast } from "sonner";
 import { formatDistanceToNow } from "date-fns";
 import { ptBR } from "date-fns/locale";
+import { StatusViewer } from "./StatusViewer";
 
 type Status = {
   id: string;
