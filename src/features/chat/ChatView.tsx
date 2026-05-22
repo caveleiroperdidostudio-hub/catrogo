@@ -404,18 +404,30 @@ export function ChatView({ conversationId, onBack }: { conversationId: string; o
                       </button>
                     </DropdownMenuTrigger>
                     <DropdownMenuContent align="end">
-                      <DropdownMenuLabel>Traduzir para</DropdownMenuLabel>
-                      {TRANSLATE_TARGETS.map((l) => (
-                        <DropdownMenuItem key={l} onClick={() => translate(m, l)}>{l}</DropdownMenuItem>
-                      ))}
-                      {translations[m.id] && (
-                        <>
-                          <DropdownMenuSeparator />
-                          <DropdownMenuItem onClick={() => setTranslations((t) => { const n = { ...t }; delete n[m.id]; return n; })}>
-                            Remover tradução
-                          </DropdownMenuItem>
-                        </>
-                      )}
+                      <DropdownMenuSub>
+                        <DropdownMenuSubTrigger>
+                          <Languages className="mr-2 h-4 w-4" /> Traduzir mensagem
+                        </DropdownMenuSubTrigger>
+                        <DropdownMenuSubContent>
+                          {TRANSLATE_TARGETS.map((l) => (
+                            <DropdownMenuItem key={l} onClick={() => translate(m, l)}>{l}</DropdownMenuItem>
+                          ))}
+                          {translations[m.id] && (
+                            <>
+                              <DropdownMenuSeparator />
+                              <DropdownMenuItem onClick={() => setTranslations((t) => { const n = { ...t }; delete n[m.id]; return n; })}>
+                                Remover tradução
+                              </DropdownMenuItem>
+                            </>
+                          )}
+                        </DropdownMenuSubContent>
+                      </DropdownMenuSub>
+                      <DropdownMenuItem onClick={() => setUnreadMarks((u) => ({ ...u, [m.id]: !u[m.id] }))}>
+                        <MailOpen className="mr-2 h-4 w-4" /> {unreadMarks[m.id] ? "Desmarcar não lida" : "Marcar como não lida"}
+                      </DropdownMenuItem>
+                      <DropdownMenuItem onClick={() => toast.info("🔒 Mensagem com criptografia ponta-a-ponta (E2EE simulada · Cosmos Lattice)", { description: `ID #${m.id.slice(0, 8)} · ${format(new Date(m.created_at), "dd/MM HH:mm")}` })}>
+                        <ShieldCheck className="mr-2 h-4 w-4" /> Ver informações de criptografia
+                      </DropdownMenuItem>
                     </DropdownMenuContent>
                   </DropdownMenu>
                 </div>
