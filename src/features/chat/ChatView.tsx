@@ -463,22 +463,56 @@ export function ChatView({ conversationId, onBack }: { conversationId: string; o
 
       {/* Composer */}
       <div className="p-2 sm:p-3 border-t border-white/5 glass flex items-center gap-2">
-        {!header.isAi && (
-          <Button size="icon" variant="ghost" onClick={suggest} disabled={suggesting} title="Sugerir respostas com Carlos">
-            {suggesting ? <Loader2 className="h-4 w-4 animate-spin" /> : <Wand2 className="h-4 w-4 text-[var(--nebula)]" />}
-          </Button>
+        {recording ? (
+          <>
+            <VoiceRecorder
+              onCancel={() => setRecording(false)}
+              onSend={() => {}}
+            />
+            <Button size="icon" onClick={sendAudio} className="rounded-full cosmic-glow" title="Enviar áudio">
+              <Send className="h-4 w-4" />
+            </Button>
+          </>
+        ) : (
+          <>
+            {!header.isAi && (
+              <Button size="icon" variant="ghost" onClick={suggest} disabled={suggesting} title="Sugerir respostas com Carlos">
+                {suggesting ? <Loader2 className="h-4 w-4 animate-spin" /> : <Wand2 className="h-4 w-4 text-[var(--nebula)]" />}
+              </Button>
+            )}
+            <Input
+              value={text}
+              onChange={(e) => setText(e.target.value)}
+              onKeyDown={(e) => { if (e.key === "Enter" && !e.shiftKey) { e.preventDefault(); send(); } }}
+              placeholder={header.isAi ? "Pergunte algo ao Carlos…" : "Mensagem (use @carlos pra invocar a IA)"}
+              className="flex-1 rounded-full bg-secondary/40 border-white/10"
+            />
+            {text.trim() ? (
+              <Button size="icon" onClick={send} disabled={sending} className="rounded-full cosmic-glow">
+                <Send className="h-4 w-4" />
+              </Button>
+            ) : (
+              <Button
+                size="icon" variant="ghost"
+                onClick={() => { recordingStartRef.current = Date.now(); setRecording(true); }}
+                title="Gravar áudio" className="rounded-full"
+              >
+                <Mic className="h-4 w-4 text-[var(--nebula)]" />
+              </Button>
+            )}
+          </>
         )}
-        <Input
-          value={text}
-          onChange={(e) => setText(e.target.value)}
-          onKeyDown={(e) => { if (e.key === "Enter" && !e.shiftKey) { e.preventDefault(); send(); } }}
-          placeholder={header.isAi ? "Pergunte algo ao Carlos…" : "Mensagem (use @carlos pra invocar a IA)"}
-          className="flex-1 rounded-full bg-secondary/40 border-white/10"
-        />
-        <Button size="icon" onClick={send} disabled={sending || !text.trim()} className="rounded-full cosmic-glow">
-          <Send className="h-4 w-4" />
-        </Button>
       </div>
+
+      {/* Call overlay */}
+      {call && (
+        <CallScreen
+          mode={call}
+          name={header.displayName}
+          avatarUrl={header.avatar_url}
+          onEnd={() => { setCall(null); toast.info("Sinal encerrado"); }}
+        />
+      )}
 
       {/* PIN dialogs */}
       <PinDialog open={pinOpen} setOpen={setPinOpen} pinValue={pinValue} setPinValue={setPinValue} onSubmit={tryUnlock} />
