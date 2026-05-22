@@ -55,7 +55,12 @@ export function ChatView({ conversationId, onBack }: { conversationId: string; o
   const { user } = useAuth();
   const {
     privacy, ephemeral, setEphemeral, locks, lockChat, unlockChat, isUnlockedNow, markUnlockedNow,
+    chatWallpaper,
   } = useSettings();
+  const [call, setCall] = useState<CallMode | null>(null);
+  const [recording, setRecording] = useState(false);
+  const recordingStartRef = useRef<number>(0);
+  const [unreadMarks, setUnreadMarks] = useState<Record<string, boolean>>({});
 
   const [messages, setMessages] = useState<Message[]>([]);
   const [text, setText] = useState("");
