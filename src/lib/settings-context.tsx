@@ -11,29 +11,39 @@ export type PrivacyFlags = {
   bypassViewOnce: boolean;
 };
 
-export type EphemeralSetting = number; // segundos. 0 = desativado
+export type EphemeralSetting = number;
+
+export type ChatWallpaper = {
+  type: "gradient" | "image" | "video";
+  value: string; // CSS background for gradient, URL for image/video
+  volume: number; // 0-100, only when video
+  soundEnabled: boolean;
+};
 
 type SettingsValue = {
   theme: ThemeAccent;
   setTheme: (t: ThemeAccent) => void;
   privacy: PrivacyFlags;
   setPrivacy: (p: PrivacyFlags) => void;
-  // Map<convId, segundos>
   ephemeral: Record<string, EphemeralSetting>;
   setEphemeral: (convId: string, seconds: EphemeralSetting) => void;
-  // Map<convId, pinHash>  (hash simples client-side, apenas simulação)
   locks: Record<string, string>;
   lockChat: (convId: string, pin: string) => void;
   unlockChat: (convId: string) => void;
   isUnlockedNow: (convId: string) => boolean;
   markUnlockedNow: (convId: string) => void;
+  // Lobby wallpaper (lista de chats)
   wallpaper: string;
   setWallpaper: (w: string) => void;
+  // Chat wallpaper (dentro da conversa)
+  chatWallpaper: ChatWallpaper;
+  setChatWallpaper: (w: Partial<ChatWallpaper>) => void;
 };
 
 const SettingsCtx = createContext<SettingsValue | undefined>(undefined);
+const STORAGE = "cosmos-chat:settings:v2";
 
-const STORAGE = "cosmos-chat:settings:v1";
+const DEFAULT_WALLPAPER = "radial-gradient(circle at 20% 10%, oklch(0.32 0.12 295 / 0.35), transparent 55%), radial-gradient(circle at 80% 90%, oklch(0.32 0.14 230 / 0.35), transparent 50%), oklch(0.12 0.04 280)";
 
 type Persisted = {
   theme: ThemeAccent;
@@ -41,27 +51,22 @@ type Persisted = {
   ephemeral: Record<string, number>;
   locks: Record<string, string>;
   wallpaper: string;
+  chatWallpaper: ChatWallpaper;
 };
-
-const DEFAULT_WALLPAPER = "radial-gradient(circle at 20% 10%, oklch(0.32 0.12 295 / 0.35), transparent 55%), radial-gradient(circle at 80% 90%, oklch(0.32 0.14 230 / 0.35), transparent 50%), oklch(0.12 0.04 280)";
 
 const DEFAULTS: Persisted = {
   theme: "cosmos",
   privacy: {
-    ghostLastSeen: false,
-    ghostOnline: false,
-    ghostTyping: false,
-    ghostRecording: false,
-    antiDelete: true,
-    bypassViewOnce: true,
+    ghostLastSeen: false, ghostOnline: false, ghostTyping: false, ghostRecording: false,
+    antiDelete: true, bypassViewOnce: true,
   },
   ephemeral: {},
   locks: {},
   wallpaper: DEFAULT_WALLPAPER,
+  chatWallpaper: { type: "gradient", value: "stars", volume: 30, soundEnabled: false },
 };
 
 function hashPin(pin: string): string {
-  // hash bem fraco — apenas simulação de UI; NÃO é segurança real.
   let h = 0;
   for (let i = 0; i < pin.length; i++) h = (h * 31 + pin.charCodeAt(i)) | 0;
   return `s_${h}`;
@@ -72,25 +77,20 @@ function loadInitial(): Persisted {
   try {
     const raw = localStorage.getItem(STORAGE);
     if (!raw) return DEFAULTS;
-    return { ...DEFAULTS, ...(JSON.parse(raw) as Persisted) };
-  } catch {
-    return DEFAULTS;
-  }
+    const parsed = JSON.parse(raw) as Partial<Persisted>;
+    return { ...DEFAULTS, ...parsed, chatWallpaper: { ...DEFAULTS.chatWallpaper, ...(parsed.chatWallpaper ?? {}) } };
+  } catch { return DEFAULTS; }
 }
 
 export function SettingsProvider({ children }: { children: ReactNode }) {
   const [state, setState] = useState<Persisted>(DEFAULTS);
   const [unlockedSession, setUnlockedSession] = useState<Record<string, boolean>>({});
 
-  useEffect(() => {
-    setState(loadInitial());
-  }, []);
-
+  useEffect(() => { setState(loadInitial()); }, []);
   useEffect(() => {
     if (typeof window === "undefined") return;
     localStorage.setItem(STORAGE, JSON.stringify(state));
   }, [state]);
-
   useEffect(() => {
     if (typeof document === "undefined") return;
     const html = document.documentElement;
@@ -108,23 +108,20 @@ export function SettingsProvider({ children }: { children: ReactNode }) {
     setEphemeral: (convId, seconds) =>
       setState((s) => {
         const next = { ...s.ephemeral };
-        if (!seconds) delete next[convId];
-        else next[convId] = seconds;
+        if (!seconds) delete next[convId]; else next[convId] = seconds;
         return { ...s, ephemeral: next };
       }),
     locks: state.locks,
-    lockChat: (convId, pin) =>
-      setState((s) => ({ ...s, locks: { ...s.locks, [convId]: hashPin(pin) } })),
-    unlockChat: (convId) =>
-      setState((s) => {
-        const next = { ...s.locks };
-        delete next[convId];
-        return { ...s, locks: next };
-      }),
+    lockChat: (convId, pin) => setState((s) => ({ ...s, locks: { ...s.locks, [convId]: hashPin(pin) } })),
+    unlockChat: (convId) => setState((s) => {
+      const next = { ...s.locks }; delete next[convId]; return { ...s, locks: next };
+    }),
     isUnlockedNow: (convId) => !!unlockedSession[convId],
     markUnlockedNow: (convId) => setUnlockedSession((u) => ({ ...u, [convId]: true })),
     wallpaper: state.wallpaper,
     setWallpaper: (w) => setState((s) => ({ ...s, wallpaper: w })),
+    chatWallpaper: state.chatWallpaper,
+    setChatWallpaper: (w) => setState((s) => ({ ...s, chatWallpaper: { ...s.chatWallpaper, ...w } })),
   };
 
   return <SettingsCtx.Provider value={value}>{children}</SettingsCtx.Provider>;

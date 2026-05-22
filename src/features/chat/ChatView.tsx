@@ -7,16 +7,18 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import {
   ArrowLeft, Sparkles, Send, Phone, Video, MoreVertical, Users, Wand2, Loader2,
-  Languages, BrainCircuit, Timer, Lock, OrbitIcon, ShieldHalf,
+  Languages, BrainCircuit, Timer, Lock, OrbitIcon, ShieldHalf, ShieldCheck, MailOpen, Mic,
 } from "lucide-react";
 import {
   DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger,
-  DropdownMenuSeparator, DropdownMenuLabel,
+  DropdownMenuSeparator, DropdownMenuLabel, DropdownMenuSub, DropdownMenuSubTrigger, DropdownMenuSubContent,
 } from "@/components/ui/dropdown-menu";
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription, DialogFooter } from "@/components/ui/dialog";
 import { Label } from "@/components/ui/label";
 import { toast } from "sonner";
 import { format } from "date-fns";
+import { CallScreen, type CallMode } from "./CallScreen";
+import { VoiceRecorder, AudioBubble } from "./VoiceRecorder";
 
 type Message = {
   id: string;
@@ -53,7 +55,12 @@ export function ChatView({ conversationId, onBack }: { conversationId: string; o
   const { user } = useAuth();
   const {
     privacy, ephemeral, setEphemeral, locks, lockChat, unlockChat, isUnlockedNow, markUnlockedNow,
+    chatWallpaper,
   } = useSettings();
+  const [call, setCall] = useState<CallMode | null>(null);
+  const [recording, setRecording] = useState(false);
+  const recordingStartRef = useRef<number>(0);
+  const [unreadMarks, setUnreadMarks] = useState<Record<string, boolean>>({});
 
   const [messages, setMessages] = useState<Message[]>([]);
   const [text, setText] = useState("");
@@ -198,6 +205,20 @@ export function ChatView({ conversationId, onBack }: { conversationId: string; o
     }
   };
 
+  const sendAudio = async () => {
+    if (!user) return;
+    const seconds = Math.max(1, Math.round((Date.now() - recordingStartRef.current) / 1000));
+    setRecording(false);
+    const { error } = await supabase.from("messages").insert({
+      conversation_id: conversationId,
+      sender_id: user.id,
+      content: `[audio:${seconds}]`,
+      message_type: "audio",
+      to_ai: false,
+    });
+    if (error) toast.error(error.message);
+  };
+
   const suggest = async () => {
     setSuggesting(true);
     try { const r = await callAI({ conversationId, mode: "suggest" }); setSuggestions(r.suggestions ?? []); }
@@ -276,10 +297,10 @@ export function ChatView({ conversationId, onBack }: { conversationId: string; o
           {summarizing ? <Loader2 className="h-4 w-4 animate-spin" /> : <BrainCircuit className="h-4 w-4 text-[var(--nebula)]" />}
         </Button>
 
-        <Button size="icon" variant="ghost" className="h-9 w-9 hidden sm:inline-flex" onClick={() => toast.info("Sinais em breve")}>
+        <Button size="icon" variant="ghost" className="h-9 w-9 hidden sm:inline-flex" onClick={() => setCall("video")} title="Videochamada">
           <Video className="h-4 w-4" />
         </Button>
-        <Button size="icon" variant="ghost" className="h-9 w-9 hidden sm:inline-flex" onClick={() => toast.info("Sinais em breve")}>
+        <Button size="icon" variant="ghost" className="h-9 w-9 hidden sm:inline-flex" onClick={() => setCall("voice")} title="Chamada de voz">
           <Phone className="h-4 w-4" />
         </Button>
 
@@ -322,7 +343,27 @@ export function ChatView({ conversationId, onBack }: { conversationId: string; o
       )}
 
       {/* Mensagens */}
-      <div ref={scrollRef} className="flex-1 overflow-y-auto chat-bg p-4 space-y-2">
+      <div ref={scrollRef} className={`relative flex-1 overflow-y-auto p-4 space-y-2 ${chatWallpaper.type === "gradient" && chatWallpaper.value === "stars" ? "chat-bg" : ""}`}
+        style={chatWallpaper.type === "gradient" && chatWallpaper.value !== "stars" ? { background: chatWallpaper.value } : undefined}>
+        {chatWallpaper.type === "image" && (
+          <div className="pointer-events-none absolute inset-0 -z-0">
+            <img src={chatWallpaper.value} alt="" className="h-full w-full object-cover" />
+            <div className="absolute inset-0 bg-background/40 backdrop-blur-[2px]" />
+          </div>
+        )}
+        {chatWallpaper.type === "video" && (
+          <div className="pointer-events-none absolute inset-0 -z-0">
+            <video
+              src={chatWallpaper.value}
+              autoPlay loop playsInline
+              muted={!chatWallpaper.soundEnabled}
+              ref={(el) => { if (el) el.volume = chatWallpaper.volume / 100; }}
+              className="h-full w-full object-cover pointer-events-auto"
+            />
+            <div className="absolute inset-0 bg-background/30 backdrop-blur-[1px]" />
+          </div>
+        )}
+        <div className="relative z-10 space-y-2">
         {visibleMessages.map((m, i) => {
           const mine = m.sender_id === user?.id;
           const prev = visibleMessages[i - 1];
@@ -345,7 +386,16 @@ export function ChatView({ conversationId, onBack }: { conversationId: string; o
                 {showSender && m.sender_id && (
                   <div className="text-xs font-semibold text-[var(--cosmic)] mb-0.5">{senderNames.current[m.sender_id] ?? "..."}</div>
                 )}
-                <div className="whitespace-pre-wrap break-words text-[15px]">{m.content}</div>
+                {(() => {
+                  const am = /^\[audio:(\d+)\]$/.exec(m.content);
+                  if (am) return <AudioBubble duration={parseInt(am[1], 10)} />;
+                  return <div className="whitespace-pre-wrap break-words text-[15px]">{m.content}</div>;
+                })()}
+                {unreadMarks[m.id] && (
+                  <div className="text-[10px] mt-0.5 inline-flex items-center gap-1 text-[var(--nebula)]">
+                    <MailOpen className="h-3 w-3" /> Marcada como não lida
+                  </div>
+                )}
                 {translations[m.id] && (
                   <div className="mt-1.5 pt-1.5 border-t border-white/10 text-[13px] text-muted-foreground whitespace-pre-wrap flex items-start gap-1.5">
                     <Languages className="h-3.5 w-3.5 mt-0.5 flex-shrink-0" />
@@ -368,18 +418,30 @@ export function ChatView({ conversationId, onBack }: { conversationId: string; o
                       </button>
                     </DropdownMenuTrigger>
                     <DropdownMenuContent align="end">
-                      <DropdownMenuLabel>Traduzir para</DropdownMenuLabel>
-                      {TRANSLATE_TARGETS.map((l) => (
-                        <DropdownMenuItem key={l} onClick={() => translate(m, l)}>{l}</DropdownMenuItem>
-                      ))}
-                      {translations[m.id] && (
-                        <>
-                          <DropdownMenuSeparator />
-                          <DropdownMenuItem onClick={() => setTranslations((t) => { const n = { ...t }; delete n[m.id]; return n; })}>
-                            Remover tradução
-                          </DropdownMenuItem>
-                        </>
-                      )}
+                      <DropdownMenuSub>
+                        <DropdownMenuSubTrigger>
+                          <Languages className="mr-2 h-4 w-4" /> Traduzir mensagem
+                        </DropdownMenuSubTrigger>
+                        <DropdownMenuSubContent>
+                          {TRANSLATE_TARGETS.map((l) => (
+                            <DropdownMenuItem key={l} onClick={() => translate(m, l)}>{l}</DropdownMenuItem>
+                          ))}
+                          {translations[m.id] && (
+                            <>
+                              <DropdownMenuSeparator />
+                              <DropdownMenuItem onClick={() => setTranslations((t) => { const n = { ...t }; delete n[m.id]; return n; })}>
+                                Remover tradução
+                              </DropdownMenuItem>
+                            </>
+                          )}
+                        </DropdownMenuSubContent>
+                      </DropdownMenuSub>
+                      <DropdownMenuItem onClick={() => setUnreadMarks((u) => ({ ...u, [m.id]: !u[m.id] }))}>
+                        <MailOpen className="mr-2 h-4 w-4" /> {unreadMarks[m.id] ? "Desmarcar não lida" : "Marcar como não lida"}
+                      </DropdownMenuItem>
+                      <DropdownMenuItem onClick={() => toast.info("🔒 Mensagem com criptografia ponta-a-ponta (E2EE simulada · Cosmos Lattice)", { description: `ID #${m.id.slice(0, 8)} · ${format(new Date(m.created_at), "dd/MM HH:mm")}` })}>
+                        <ShieldCheck className="mr-2 h-4 w-4" /> Ver informações de criptografia
+                      </DropdownMenuItem>
                     </DropdownMenuContent>
                   </DropdownMenu>
                 </div>
@@ -398,6 +460,7 @@ export function ChatView({ conversationId, onBack }: { conversationId: string; o
             </div>
           </div>
         )}
+        </div>
       </div>
 
       {/* Suggestions */}
@@ -414,22 +477,56 @@ export function ChatView({ conversationId, onBack }: { conversationId: string; o
 
       {/* Composer */}
       <div className="p-2 sm:p-3 border-t border-white/5 glass flex items-center gap-2">
-        {!header.isAi && (
-          <Button size="icon" variant="ghost" onClick={suggest} disabled={suggesting} title="Sugerir respostas com Carlos">
-            {suggesting ? <Loader2 className="h-4 w-4 animate-spin" /> : <Wand2 className="h-4 w-4 text-[var(--nebula)]" />}
-          </Button>
+        {recording ? (
+          <>
+            <VoiceRecorder
+              onCancel={() => setRecording(false)}
+              onSend={() => {}}
+            />
+            <Button size="icon" onClick={sendAudio} className="rounded-full cosmic-glow" title="Enviar áudio">
+              <Send className="h-4 w-4" />
+            </Button>
+          </>
+        ) : (
+          <>
+            {!header.isAi && (
+              <Button size="icon" variant="ghost" onClick={suggest} disabled={suggesting} title="Sugerir respostas com Carlos">
+                {suggesting ? <Loader2 className="h-4 w-4 animate-spin" /> : <Wand2 className="h-4 w-4 text-[var(--nebula)]" />}
+              </Button>
+            )}
+            <Input
+              value={text}
+              onChange={(e) => setText(e.target.value)}
+              onKeyDown={(e) => { if (e.key === "Enter" && !e.shiftKey) { e.preventDefault(); send(); } }}
+              placeholder={header.isAi ? "Pergunte algo ao Carlos…" : "Mensagem (use @carlos pra invocar a IA)"}
+              className="flex-1 rounded-full bg-secondary/40 border-white/10"
+            />
+            {text.trim() ? (
+              <Button size="icon" onClick={send} disabled={sending} className="rounded-full cosmic-glow">
+                <Send className="h-4 w-4" />
+              </Button>
+            ) : (
+              <Button
+                size="icon" variant="ghost"
+                onClick={() => { recordingStartRef.current = Date.now(); setRecording(true); }}
+                title="Gravar áudio" className="rounded-full"
+              >
+                <Mic className="h-4 w-4 text-[var(--nebula)]" />
+              </Button>
+            )}
+          </>
         )}
-        <Input
-          value={text}
-          onChange={(e) => setText(e.target.value)}
-          onKeyDown={(e) => { if (e.key === "Enter" && !e.shiftKey) { e.preventDefault(); send(); } }}
-          placeholder={header.isAi ? "Pergunte algo ao Carlos…" : "Mensagem (use @carlos pra invocar a IA)"}
-          className="flex-1 rounded-full bg-secondary/40 border-white/10"
-        />
-        <Button size="icon" onClick={send} disabled={sending || !text.trim()} className="rounded-full cosmic-glow">
-          <Send className="h-4 w-4" />
-        </Button>
       </div>
+
+      {/* Call overlay */}
+      {call && (
+        <CallScreen
+          mode={call}
+          name={header.displayName}
+          avatarUrl={header.avatar_url}
+          onEnd={() => { setCall(null); toast.info("Sinal encerrado"); }}
+        />
+      )}
 
       {/* PIN dialogs */}
       <PinDialog open={pinOpen} setOpen={setPinOpen} pinValue={pinValue} setPinValue={setPinValue} onSubmit={tryUnlock} />

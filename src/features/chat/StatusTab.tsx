@@ -4,11 +4,12 @@ import { useAuth } from "@/lib/auth-context";
 import { Avatar, AvatarFallback } from "@/components/ui/avatar";
 import { Button } from "@/components/ui/button";
 import { Textarea } from "@/components/ui/textarea";
-import { Plus, Trash2, Video, Image as ImageIcon, Loader2 } from "lucide-react";
+import { Plus, Trash2, Video, Image as ImageIcon, Loader2, Play } from "lucide-react";
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter } from "@/components/ui/dialog";
 import { toast } from "sonner";
 import { formatDistanceToNow } from "date-fns";
 import { ptBR } from "date-fns/locale";
+import { StatusViewer } from "./StatusViewer";
 
 type Status = {
   id: string;
@@ -94,6 +95,8 @@ export function StatusTab() {
 
   const mine = statuses.filter((s) => s.user_id === user?.id);
   const others = statuses.filter((s) => s.user_id !== user?.id);
+  const all = [...mine, ...others];
+  const [viewerIndex, setViewerIndex] = useState<number | null>(null);
 
   return (
     <div className="space-y-4">
@@ -103,7 +106,7 @@ export function StatusTab() {
         <div>
           <h3 className="text-xs font-semibold text-muted-foreground uppercase tracking-wide mb-2">Meus status</h3>
           <ul className="space-y-2">
-            {mine.map((s) => <StatusCard key={s.id} s={s} onRemove={() => remove(s.id)} mine />)}
+            {mine.map((s, i) => <StatusCard key={s.id} s={s} onOpen={() => setViewerIndex(i)} onRemove={() => remove(s.id)} mine />)}
           </ul>
         </div>
       )}
@@ -114,7 +117,7 @@ export function StatusTab() {
           <p className="text-sm text-muted-foreground">Sem sinais novos no momento.</p>
         ) : (
           <ul className="space-y-2">
-            {others.map((s) => <StatusCard key={s.id} s={s} />)}
+            {others.map((s, i) => <StatusCard key={s.id} s={s} onOpen={() => setViewerIndex(mine.length + i)} />)}
           </ul>
         )}
       </div>
@@ -159,18 +162,37 @@ export function StatusTab() {
           </DialogFooter>
         </DialogContent>
       </Dialog>
+
+      {viewerIndex !== null && all[viewerIndex] && (
+        <StatusViewer
+          statuses={all}
+          startIndex={viewerIndex}
+          onClose={() => setViewerIndex(null)}
+          onRemove={(id) => remove(id)}
+          currentUserId={user?.id}
+        />
+      )}
     </div>
   );
 }
 
-function StatusCard({ s, mine, onRemove }: { s: Status; mine?: boolean; onRemove?: () => void }) {
+function StatusCard({ s, mine, onRemove, onOpen }: { s: Status; mine?: boolean; onRemove?: () => void; onOpen?: () => void }) {
   return (
-    <li className="rounded-xl overflow-hidden text-white shadow relative min-h-[80px]" style={{ background: s.background ?? "oklch(0.32 0.18 295)" }}>
+    <li
+      onClick={onOpen}
+      className="rounded-xl overflow-hidden text-white shadow relative min-h-[80px] cursor-pointer hover:ring-2 hover:ring-[var(--cosmic)] transition"
+      style={{ background: s.background ?? "oklch(0.32 0.18 295)" }}
+    >
       {s.media_type === "image" && s.media_url && (
         <img src={s.media_url} alt="" className="absolute inset-0 h-full w-full object-cover opacity-90" />
       )}
       {s.media_type === "video" && s.media_url && (
         <video src={s.media_url} className="absolute inset-0 h-full w-full object-cover opacity-90" muted loop playsInline autoPlay />
+      )}
+      {s.media_type === "video" && (
+        <div className="absolute top-2 left-2 z-10 bg-black/50 rounded-full p-1.5 backdrop-blur-sm">
+          <Play className="h-3 w-3 text-white" />
+        </div>
       )}
       <div className="relative z-10 p-3 backdrop-blur-[1px] bg-black/20">
         {!mine && (
@@ -182,7 +204,7 @@ function StatusCard({ s, mine, onRemove }: { s: Status; mine?: boolean; onRemove
         <p className="font-medium">{s.content}</p>
         <p className="text-xs opacity-80 mt-1">há {formatDistanceToNow(new Date(s.created_at), { locale: ptBR })}</p>
         {mine && onRemove && (
-          <Button size="icon" variant="ghost" className="absolute top-2 right-2 h-7 w-7 text-white hover:bg-white/20" onClick={onRemove}>
+          <Button size="icon" variant="ghost" className="absolute top-2 right-2 h-7 w-7 text-white hover:bg-white/20" onClick={(e) => { e.stopPropagation(); onRemove(); }}>
             <Trash2 className="h-3.5 w-3.5" />
           </Button>
         )}
