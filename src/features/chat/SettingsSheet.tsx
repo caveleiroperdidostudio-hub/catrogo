@@ -176,6 +176,98 @@ export function SettingsSheet({ open, onOpenChange }: { open: boolean; onOpenCha
               ))}
             </div>
           </section>
+
+          <Separator />
+
+          <section className="space-y-3">
+            <h3 className="text-sm font-semibold flex items-center gap-2 text-[var(--nebula)]">
+              <Wallpaper className="h-4 w-4" /> Fundo do Chat
+            </h3>
+            <p className="text-xs text-muted-foreground">Cores, gradientes, foto ou vídeo em loop dentro da conversa.</p>
+
+            <div className="grid grid-cols-3 gap-2">
+              <button
+                onClick={() => setChatWallpaper({ type: "gradient", value: "stars" })}
+                className={`h-14 rounded-lg border-2 chat-bg flex items-end p-1.5 text-xs text-white ${chatWallpaper.value === "stars" && chatWallpaper.type === "gradient" ? "border-[var(--cosmic)] cosmic-glow" : "border-border/40"}`}
+              >
+                <span className="bg-black/40 px-1.5 rounded">Estelar</span>
+              </button>
+              {WALLPAPERS.slice(0, 5).map((w) => (
+                <button
+                  key={w.id}
+                  onClick={() => setChatWallpaper({ type: "gradient", value: w.value })}
+                  className={`h-14 rounded-lg border-2 overflow-hidden text-xs text-white flex items-end p-1.5 ${chatWallpaper.value === w.value && chatWallpaper.type === "gradient" ? "border-[var(--cosmic)] cosmic-glow" : "border-border/40"}`}
+                  style={{ background: w.value }}
+                >
+                  <span className="bg-black/40 px-1.5 rounded">{w.label}</span>
+                </button>
+              ))}
+            </div>
+
+            <div className="flex gap-2">
+              <Button size="sm" variant="outline" className="flex-1" onClick={() => { fileRef.current?.setAttribute("accept", "image/*"); fileRef.current?.click(); }} disabled={uploading}>
+                {uploading ? <Loader2 className="h-4 w-4 mr-1.5 animate-spin" /> : <ImageIcon className="h-4 w-4 mr-1.5" />}
+                Foto
+              </Button>
+              <Button size="sm" variant="outline" className="flex-1" onClick={() => { fileRef.current?.setAttribute("accept", "video/*"); fileRef.current?.click(); }} disabled={uploading}>
+                {uploading ? <Loader2 className="h-4 w-4 mr-1.5 animate-spin" /> : <Video className="h-4 w-4 mr-1.5" />}
+                Vídeo
+              </Button>
+              <input
+                ref={fileRef}
+                type="file"
+                className="hidden"
+                onChange={(e) => {
+                  const f = e.target.files?.[0]; if (!f) return;
+                  const kind: "image" | "video" = f.type.startsWith("video/") ? "video" : "image";
+                  uploadChatBg(f, kind);
+                  e.target.value = "";
+                }}
+              />
+            </div>
+
+            {chatWallpaper.type !== "gradient" && (
+              <div className="rounded-lg border border-border/40 p-2 space-y-2">
+                <div className="flex items-center gap-2">
+                  <div className="h-12 w-20 rounded overflow-hidden bg-black/40 flex-shrink-0">
+                    {chatWallpaper.type === "image" ? (
+                      <img src={chatWallpaper.value} className="h-full w-full object-cover" alt="" />
+                    ) : (
+                      <video src={chatWallpaper.value} className="h-full w-full object-cover" muted loop playsInline autoPlay />
+                    )}
+                  </div>
+                  <div className="text-xs flex-1">
+                    <div className="font-medium">{chatWallpaper.type === "video" ? "Vídeo em loop" : "Foto personalizada"}</div>
+                    <button className="text-muted-foreground hover:text-destructive" onClick={() => setChatWallpaper({ type: "gradient", value: "stars" })}>Remover</button>
+                  </div>
+                </div>
+
+                {chatWallpaper.type === "video" && (
+                  <>
+                    <Row
+                      icon={<Volume2 className="h-4 w-4" />}
+                      label="Ativar som do wallpaper em background"
+                      checked={chatWallpaper.soundEnabled}
+                      onChange={() => setChatWallpaper({ soundEnabled: !chatWallpaper.soundEnabled })}
+                    />
+                    {chatWallpaper.soundEnabled && (
+                      <div className="px-2 pb-1">
+                        <Label className="text-xs text-muted-foreground flex items-center justify-between mb-1.5">
+                          <span>Volume</span>
+                          <span className="font-mono text-[var(--nebula)]">{chatWallpaper.volume}%</span>
+                        </Label>
+                        <Slider
+                          value={[chatWallpaper.volume]}
+                          min={0} max={100} step={1}
+                          onValueChange={(v) => setChatWallpaper({ volume: v[0] })}
+                        />
+                      </div>
+                    )}
+                  </>
+                )}
+              </div>
+            )}
+          </section>
         </div>
       </SheetContent>
     </Sheet>
