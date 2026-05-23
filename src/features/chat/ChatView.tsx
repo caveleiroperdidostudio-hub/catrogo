@@ -342,10 +342,7 @@ export function ChatView({ conversationId, onBack }: { conversationId: string; o
           {summarizing ? <Loader2 className="h-4 w-4 animate-spin" /> : <BrainCircuit className="h-4 w-4 text-[var(--nebula)]" />}
         </Button>
 
-        <Button size="icon" variant="ghost" className="h-9 w-9 hidden sm:inline-flex" onClick={() => setCall("video")} title="Videochamada">
-          <Video className="h-4 w-4" />
-        </Button>
-        <Button size="icon" variant="ghost" className="h-9 w-9 hidden sm:inline-flex" onClick={() => setCall("voice")} title="Chamada de voz">
+        <Button size="icon" variant="ghost" className="h-9 w-9 hidden sm:inline-flex" onClick={() => startCall("voice")} title="Chamada de voz">
           <Phone className="h-4 w-4" />
         </Button>
 
@@ -525,11 +522,11 @@ export function ChatView({ conversationId, onBack }: { conversationId: string; o
         {recording ? (
           <>
             <VoiceRecorder
-              onCancel={() => setRecording(false)}
-              onSend={() => {}}
+              onCancel={cancelAudio}
+              onReady={(h) => { recHandleRef.current = h; }}
             />
-            <Button size="icon" onClick={sendAudio} className="rounded-full cosmic-glow" title="Enviar áudio">
-              <Send className="h-4 w-4" />
+            <Button size="icon" onClick={stopAndSendAudio} disabled={uploadingAudio} className="rounded-full cosmic-glow" title="Enviar áudio">
+              {uploadingAudio ? <Loader2 className="h-4 w-4 animate-spin" /> : <Send className="h-4 w-4" />}
             </Button>
           </>
         ) : (
@@ -553,8 +550,9 @@ export function ChatView({ conversationId, onBack }: { conversationId: string; o
             ) : (
               <Button
                 size="icon" variant="ghost"
-                onClick={() => { recordingStartRef.current = Date.now(); setRecording(true); }}
+                onClick={() => setRecording(true)}
                 title="Gravar áudio" className="rounded-full"
+                disabled={header.isAi}
               >
                 <Mic className="h-4 w-4 text-[var(--nebula)]" />
               </Button>
@@ -564,12 +562,16 @@ export function ChatView({ conversationId, onBack }: { conversationId: string; o
       </div>
 
       {/* Call overlay */}
-      {call && (
+      {call && user && header.otherUserId && (
         <CallScreen
-          mode={call}
+          mode={call.mode}
+          sessionId={call.sessionId}
+          isCaller={call.isCaller}
+          myUserId={user.id}
+          peerUserId={header.otherUserId}
           name={header.displayName}
           avatarUrl={header.avatar_url}
-          onEnd={() => { setCall(null); toast.info("Sinal encerrado"); }}
+          onEnd={() => { setCall(null); toast.info("Chamada encerrada"); }}
         />
       )}
 
