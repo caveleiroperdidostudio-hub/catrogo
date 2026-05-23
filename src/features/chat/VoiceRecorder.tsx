@@ -103,9 +103,9 @@ export function VoiceRecorder({
 
 function pickMime(): string | null {
   const candidates = ["audio/webm;codecs=opus", "audio/webm", "audio/mp4", "audio/ogg;codecs=opus"];
+  const MR = (typeof MediaRecorder !== "undefined" ? MediaRecorder : null) as (typeof MediaRecorder & { isTypeSupported?: (t: string) => boolean }) | null;
   for (const m of candidates) {
-    // @ts-expect-error MediaRecorder type
-    if (typeof MediaRecorder !== "undefined" && MediaRecorder.isTypeSupported?.(m)) return m;
+    if (MR?.isTypeSupported?.(m)) return m;
   }
   return null;
 }
