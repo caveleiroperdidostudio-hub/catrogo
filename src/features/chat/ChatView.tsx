@@ -18,7 +18,8 @@ import { Label } from "@/components/ui/label";
 import { toast } from "sonner";
 import { format } from "date-fns";
 import { CallScreen, type CallMode } from "./CallScreen";
-import { VoiceRecorder, AudioBubble } from "./VoiceRecorder";
+import { VoiceRecorder, AudioBubble, uploadAudio, type RecordingHandle } from "./VoiceRecorder";
+import { sendCallInvite } from "./IncomingCallListener";
 import { notifyNewMessage } from "@/lib/notify.functions";
 
 type Message = {
@@ -59,9 +60,10 @@ export function ChatView({ conversationId, onBack }: { conversationId: string; o
     privacy, ephemeral, setEphemeral, locks, lockChat, unlockChat, isUnlockedNow, markUnlockedNow,
     chatWallpaper,
   } = useSettings();
-  const [call, setCall] = useState<CallMode | null>(null);
+  const [call, setCall] = useState<null | { mode: CallMode; sessionId: string; isCaller: boolean }>(null);
   const [recording, setRecording] = useState(false);
-  const recordingStartRef = useRef<number>(0);
+  const recHandleRef = useRef<RecordingHandle | null>(null);
+  const [uploadingAudio, setUploadingAudio] = useState(false);
   const [unreadMarks, setUnreadMarks] = useState<Record<string, boolean>>({});
 
   const [messages, setMessages] = useState<Message[]>([]);
