@@ -213,19 +213,55 @@ export function ChatView({ conversationId, onBack }: { conversationId: string; o
     }
   };
 
-  const sendAudio = async () => {
-    if (!user) return;
-    const seconds = Math.max(1, Math.round((Date.now() - recordingStartRef.current) / 1000));
+  const stopAndSendAudio = async () => {
+    if (!user || !recHandleRef.current) { setRecording(false); return; }
+    setUploadingAudio(true);
+    const result = await recHandleRef.current.stop().catch(() => null);
+    recHandleRef.current = null;
     setRecording(false);
-    const { error } = await supabase.from("messages").insert({
-      conversation_id: conversationId,
-      sender_id: user.id,
-      content: `[audio:${seconds}]`,
-      message_type: "audio",
-      to_ai: false,
-    });
-    if (error) toast.error(error.message);
-    else notifyNewMessage({ data: { conversationId, preview: `🎤 Áudio (${seconds}s)` } }).catch(() => {});
+    if (!result) { setUploadingAudio(false); return; }
+    try {
+      const url = await uploadAudio(user.id, result.blob);
+      const { error } = await supabase.from("messages").insert({
+        conversation_id: conversationId,
+        sender_id: user.id,
+        content: `[audio:${result.seconds}|${url}]`,
+        message_type: "audio",
+        to_ai: false,
+      });
+      if (error) toast.error(error.message);
+      else notifyNewMessage({ data: { conversationId, preview: `🎤 Áudio (${result.seconds}s)` } }).catch(() => {});
+    } catch (e) {
+      toast.error((e as Error).message ?? "Falha ao enviar áudio");
+    } finally {
+      setUploadingAudio(false);
+    }
+  };
+
+  const cancelAudio = () => {
+    recHandleRef.current?.cancel();
+    recHandleRef.current = null;
+    setRecording(false);
+  };
+
+  const startCall = async (mode: CallMode) => {
+    if (!user || !header) return;
+    if (!header.otherUserId || header.is_group || header.isAi) {
+      toast.info("Chamadas só funcionam em conversas 1-a-1 por enquanto.");
+      return;
+    }
+    try {
+      const sessionId = await sendCallInvite({
+        peerUserId: header.otherUserId,
+        fromUserId: user.id,
+        fromName: header.displayName,
+        fromAvatar: header.avatar_url,
+        conversationId,
+      });
+      setCall({ mode, sessionId, isCaller: true });
+    } catch (e) {
+      toast.error((e as Error).message ?? "Falha ao iniciar chamada");
+    }
   };
 
   const suggest = async () => {
