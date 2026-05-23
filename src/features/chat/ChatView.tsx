@@ -429,8 +429,8 @@ export function ChatView({ conversationId, onBack }: { conversationId: string; o
                   <div className="text-xs font-semibold text-[var(--cosmic)] mb-0.5">{senderNames.current[m.sender_id] ?? "..."}</div>
                 )}
                 {(() => {
-                  const am = /^\[audio:(\d+)\]$/.exec(m.content);
-                  if (am) return <AudioBubble duration={parseInt(am[1], 10)} />;
+                  const am = /^\[audio:(\d+)(?:\|(.+))?\]$/.exec(m.content);
+                  if (am) return <AudioBubble duration={parseInt(am[1], 10)} url={am[2]} />;
                   return <div className="whitespace-pre-wrap break-words text-[15px]">{m.content}</div>;
                 })()}
                 {unreadMarks[m.id] && (

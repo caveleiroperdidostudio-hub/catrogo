@@ -8,6 +8,7 @@ import { CallsTab } from "./CallsTab";
 import { ProfileSheet } from "./ProfileSheet";
 import { NewChatDialog } from "./NewChatDialog";
 import { SettingsSheet } from "./SettingsSheet";
+import { IncomingCallListener } from "./IncomingCallListener";
 import { useSettings } from "@/lib/settings-context";
 import { Tabs, TabsList, TabsTrigger, TabsContent } from "@/components/ui/tabs";
 import { Button } from "@/components/ui/button";
@@ -163,6 +164,7 @@ export function ChatHome() {
       <ProfileSheet open={profileOpen} onOpenChange={setProfileOpen} />
       <SettingsSheet open={settingsOpen} onOpenChange={setSettingsOpen} />
       <NewChatDialog open={newChatOpen} onOpenChange={setNewChatOpen} onCreated={(id: string) => setActiveConvId(id)} />
+      <IncomingCallListener />
     </div>
   );
 }
