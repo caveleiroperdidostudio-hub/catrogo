@@ -18,7 +18,8 @@ import { Label } from "@/components/ui/label";
 import { toast } from "sonner";
 import { format } from "date-fns";
 import { CallScreen, type CallMode } from "./CallScreen";
-import { VoiceRecorder, AudioBubble } from "./VoiceRecorder";
+import { VoiceRecorder, AudioBubble, uploadAudio, type RecordingHandle } from "./VoiceRecorder";
+import { sendCallInvite } from "./IncomingCallListener";
 import { notifyNewMessage } from "@/lib/notify.functions";
 
 type Message = {
@@ -39,6 +40,7 @@ type ConvHeader = {
   displayName: string;
   subtitle: string;
   isAi: boolean;
+  otherUserId: string | null;
 };
 
 const EPHEMERAL_OPTIONS: { label: string; seconds: number }[] = [
@@ -58,9 +60,10 @@ export function ChatView({ conversationId, onBack }: { conversationId: string; o
     privacy, ephemeral, setEphemeral, locks, lockChat, unlockChat, isUnlockedNow, markUnlockedNow,
     chatWallpaper,
   } = useSettings();
-  const [call, setCall] = useState<CallMode | null>(null);
+  const [call, setCall] = useState<null | { mode: CallMode; sessionId: string; isCaller: boolean }>(null);
   const [recording, setRecording] = useState(false);
-  const recordingStartRef = useRef<number>(0);
+  const recHandleRef = useRef<RecordingHandle | null>(null);
+  const [uploadingAudio, setUploadingAudio] = useState(false);
   const [unreadMarks, setUnreadMarks] = useState<Record<string, boolean>>({});
 
   const [messages, setMessages] = useState<Message[]>([]);
@@ -109,12 +112,13 @@ export function ChatView({ conversationId, onBack }: { conversationId: string; o
       const isAi = !c.is_group && isCarlosName(c.name);
       let displayName = isAi ? "Carlos" : (c.name ?? "Conversa");
       let subtitle = isAi ? "IA Carlos · sempre orbitando" : c.is_group ? "Grupo" : "online";
+      let otherUserId: string | null = null;
       if (!c.is_group && !isAi) {
         const { data: others } = await supabase
           .from("conversation_members").select("user_id").eq("conversation_id", conversationId).neq("user_id", user.id);
-        const otherId = others?.[0]?.user_id;
-        if (otherId) {
-          const { data: p } = await supabase.from("profiles").select("display_name, avatar_url, about").eq("id", otherId).maybeSingle();
+        otherUserId = others?.[0]?.user_id ?? null;
+        if (otherUserId) {
+          const { data: p } = await supabase.from("profiles").select("display_name, avatar_url, about").eq("id", otherUserId).maybeSingle();
           if (p) { displayName = p.display_name; subtitle = p.about ?? "online"; c.avatar_url = c.avatar_url ?? p.avatar_url; }
         }
       } else if (c.is_group) {
@@ -122,7 +126,7 @@ export function ChatView({ conversationId, onBack }: { conversationId: string; o
         subtitle = `${count ?? 0} membros`;
       }
       if (privacy.ghostOnline && subtitle === "online") subtitle = "—";
-      setHeader({ id: c.id, is_group: c.is_group, name: c.name, avatar_url: c.avatar_url, displayName, subtitle, isAi });
+      setHeader({ id: c.id, is_group: c.is_group, name: c.name, avatar_url: c.avatar_url, displayName, subtitle, isAi, otherUserId });
     })();
   }, [conversationId, user, privacy.ghostOnline]);
 
@@ -209,19 +213,55 @@ export function ChatView({ conversationId, onBack }: { conversationId: string; o
     }
   };
 
-  const sendAudio = async () => {
-    if (!user) return;
-    const seconds = Math.max(1, Math.round((Date.now() - recordingStartRef.current) / 1000));
+  const stopAndSendAudio = async () => {
+    if (!user || !recHandleRef.current) { setRecording(false); return; }
+    setUploadingAudio(true);
+    const result = await recHandleRef.current.stop().catch(() => null);
+    recHandleRef.current = null;
     setRecording(false);
-    const { error } = await supabase.from("messages").insert({
-      conversation_id: conversationId,
-      sender_id: user.id,
-      content: `[audio:${seconds}]`,
-      message_type: "audio",
-      to_ai: false,
-    });
-    if (error) toast.error(error.message);
-    else notifyNewMessage({ data: { conversationId, preview: `🎤 Áudio (${seconds}s)` } }).catch(() => {});
+    if (!result) { setUploadingAudio(false); return; }
+    try {
+      const url = await uploadAudio(user.id, result.blob);
+      const { error } = await supabase.from("messages").insert({
+        conversation_id: conversationId,
+        sender_id: user.id,
+        content: `[audio:${result.seconds}|${url}]`,
+        message_type: "audio",
+        to_ai: false,
+      });
+      if (error) toast.error(error.message);
+      else notifyNewMessage({ data: { conversationId, preview: `🎤 Áudio (${result.seconds}s)` } }).catch(() => {});
+    } catch (e) {
+      toast.error((e as Error).message ?? "Falha ao enviar áudio");
+    } finally {
+      setUploadingAudio(false);
+    }
+  };
+
+  const cancelAudio = () => {
+    recHandleRef.current?.cancel();
+    recHandleRef.current = null;
+    setRecording(false);
+  };
+
+  const startCall = async (mode: CallMode) => {
+    if (!user || !header) return;
+    if (!header.otherUserId || header.is_group || header.isAi) {
+      toast.info("Chamadas só funcionam em conversas 1-a-1 por enquanto.");
+      return;
+    }
+    try {
+      const sessionId = await sendCallInvite({
+        peerUserId: header.otherUserId,
+        fromUserId: user.id,
+        fromName: header.displayName,
+        fromAvatar: header.avatar_url,
+        conversationId,
+      });
+      setCall({ mode, sessionId, isCaller: true });
+    } catch (e) {
+      toast.error((e as Error).message ?? "Falha ao iniciar chamada");
+    }
   };
 
   const suggest = async () => {
@@ -302,10 +342,7 @@ export function ChatView({ conversationId, onBack }: { conversationId: string; o
           {summarizing ? <Loader2 className="h-4 w-4 animate-spin" /> : <BrainCircuit className="h-4 w-4 text-[var(--nebula)]" />}
         </Button>
 
-        <Button size="icon" variant="ghost" className="h-9 w-9 hidden sm:inline-flex" onClick={() => setCall("video")} title="Videochamada">
-          <Video className="h-4 w-4" />
-        </Button>
-        <Button size="icon" variant="ghost" className="h-9 w-9 hidden sm:inline-flex" onClick={() => setCall("voice")} title="Chamada de voz">
+        <Button size="icon" variant="ghost" className="h-9 w-9 hidden sm:inline-flex" onClick={() => startCall("voice")} title="Chamada de voz">
           <Phone className="h-4 w-4" />
         </Button>
 
@@ -392,8 +429,8 @@ export function ChatView({ conversationId, onBack }: { conversationId: string; o
                   <div className="text-xs font-semibold text-[var(--cosmic)] mb-0.5">{senderNames.current[m.sender_id] ?? "..."}</div>
                 )}
                 {(() => {
-                  const am = /^\[audio:(\d+)\]$/.exec(m.content);
-                  if (am) return <AudioBubble duration={parseInt(am[1], 10)} />;
+                  const am = /^\[audio:(\d+)(?:\|(.+))?\]$/.exec(m.content);
+                  if (am) return <AudioBubble duration={parseInt(am[1], 10)} url={am[2]} />;
                   return <div className="whitespace-pre-wrap break-words text-[15px]">{m.content}</div>;
                 })()}
                 {unreadMarks[m.id] && (
@@ -485,11 +522,11 @@ export function ChatView({ conversationId, onBack }: { conversationId: string; o
         {recording ? (
           <>
             <VoiceRecorder
-              onCancel={() => setRecording(false)}
-              onSend={() => {}}
+              onCancel={cancelAudio}
+              onReady={(h) => { recHandleRef.current = h; }}
             />
-            <Button size="icon" onClick={sendAudio} className="rounded-full cosmic-glow" title="Enviar áudio">
-              <Send className="h-4 w-4" />
+            <Button size="icon" onClick={stopAndSendAudio} disabled={uploadingAudio} className="rounded-full cosmic-glow" title="Enviar áudio">
+              {uploadingAudio ? <Loader2 className="h-4 w-4 animate-spin" /> : <Send className="h-4 w-4" />}
             </Button>
           </>
         ) : (
@@ -513,8 +550,9 @@ export function ChatView({ conversationId, onBack }: { conversationId: string; o
             ) : (
               <Button
                 size="icon" variant="ghost"
-                onClick={() => { recordingStartRef.current = Date.now(); setRecording(true); }}
+                onClick={() => setRecording(true)}
                 title="Gravar áudio" className="rounded-full"
+                disabled={header.isAi}
               >
                 <Mic className="h-4 w-4 text-[var(--nebula)]" />
               </Button>
@@ -524,12 +562,16 @@ export function ChatView({ conversationId, onBack }: { conversationId: string; o
       </div>
 
       {/* Call overlay */}
-      {call && (
+      {call && user && header.otherUserId && (
         <CallScreen
-          mode={call}
+          mode={call.mode}
+          sessionId={call.sessionId}
+          isCaller={call.isCaller}
+          myUserId={user.id}
+          peerUserId={header.otherUserId}
           name={header.displayName}
           avatarUrl={header.avatar_url}
-          onEnd={() => { setCall(null); toast.info("Sinal encerrado"); }}
+          onEnd={() => { setCall(null); toast.info("Chamada encerrada"); }}
         />
       )}
 
