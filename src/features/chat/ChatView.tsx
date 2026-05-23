@@ -39,6 +39,7 @@ type ConvHeader = {
   displayName: string;
   subtitle: string;
   isAi: boolean;
+  otherUserId: string | null;
 };
 
 const EPHEMERAL_OPTIONS: { label: string; seconds: number }[] = [
@@ -109,12 +110,13 @@ export function ChatView({ conversationId, onBack }: { conversationId: string; o
       const isAi = !c.is_group && isCarlosName(c.name);
       let displayName = isAi ? "Carlos" : (c.name ?? "Conversa");
       let subtitle = isAi ? "IA Carlos · sempre orbitando" : c.is_group ? "Grupo" : "online";
+      let otherUserId: string | null = null;
       if (!c.is_group && !isAi) {
         const { data: others } = await supabase
           .from("conversation_members").select("user_id").eq("conversation_id", conversationId).neq("user_id", user.id);
-        const otherId = others?.[0]?.user_id;
-        if (otherId) {
-          const { data: p } = await supabase.from("profiles").select("display_name, avatar_url, about").eq("id", otherId).maybeSingle();
+        otherUserId = others?.[0]?.user_id ?? null;
+        if (otherUserId) {
+          const { data: p } = await supabase.from("profiles").select("display_name, avatar_url, about").eq("id", otherUserId).maybeSingle();
           if (p) { displayName = p.display_name; subtitle = p.about ?? "online"; c.avatar_url = c.avatar_url ?? p.avatar_url; }
         }
       } else if (c.is_group) {
@@ -122,7 +124,7 @@ export function ChatView({ conversationId, onBack }: { conversationId: string; o
         subtitle = `${count ?? 0} membros`;
       }
       if (privacy.ghostOnline && subtitle === "online") subtitle = "—";
-      setHeader({ id: c.id, is_group: c.is_group, name: c.name, avatar_url: c.avatar_url, displayName, subtitle, isAi });
+      setHeader({ id: c.id, is_group: c.is_group, name: c.name, avatar_url: c.avatar_url, displayName, subtitle, isAi, otherUserId });
     })();
   }, [conversationId, user, privacy.ghostOnline]);
 
