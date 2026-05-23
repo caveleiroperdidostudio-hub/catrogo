@@ -19,6 +19,7 @@ import { toast } from "sonner";
 import { format } from "date-fns";
 import { CallScreen, type CallMode } from "./CallScreen";
 import { VoiceRecorder, AudioBubble } from "./VoiceRecorder";
+import { notifyNewMessage } from "@/lib/notify.functions";
 
 type Message = {
   id: string;
@@ -191,6 +192,9 @@ export function ChatView({ conversationId, onBack }: { conversationId: string; o
     });
     setSending(false);
     if (error) { toast.error(error.message); setText(content); return; }
+    if (!header?.isAi) {
+      notifyNewMessage({ data: { conversationId, preview: content.slice(0, 180) } }).catch(() => {});
+    }
 
     const mentionsCarlos = /(^|\s)@carlos\b/i.test(content);
 
@@ -217,6 +221,7 @@ export function ChatView({ conversationId, onBack }: { conversationId: string; o
       to_ai: false,
     });
     if (error) toast.error(error.message);
+    else notifyNewMessage({ data: { conversationId, preview: `🎤 Áudio (${seconds}s)` } }).catch(() => {});
   };
 
   const suggest = async () => {
