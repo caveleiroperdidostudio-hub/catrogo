@@ -49,7 +49,7 @@ const WALLPAPERS: { id: string; label: string; value: string }[] = [
 
 export function SettingsSheet({ open, onOpenChange }: { open: boolean; onOpenChange: (v: boolean) => void }) {
   const { user } = useAuth();
-  const { privacy, setPrivacy, theme, setTheme, wallpaper, setWallpaper, chatWallpaper, setChatWallpaper } = useSettings();
+  const { privacy, setPrivacy, theme, setTheme, wallpaper, setWallpaper, chatWallpaper, setChatWallpaper, appearance, setAppearance } = useSettings();
   const [local, setLocal] = useState(privacy);
   const [uploading, setUploading] = useState(false);
   const fileRef = useRef<HTMLInputElement>(null);
