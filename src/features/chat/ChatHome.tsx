@@ -125,7 +125,27 @@ export function ChatHome() {
           </TabsList>
 
           <TabsContent value="chats" className="flex-1 overflow-y-auto m-0">
-            <ChatList activeId={activeConvId} onSelect={setActiveConvId} />
+            {appearance.statusOnTop && (
+              <div className="border-b border-white/5 px-2 py-2">
+                <StatusTab compact />
+              </div>
+            )}
+            {appearance.separateGroups ? (
+              <Tabs value={chatFilter} onValueChange={(v) => setChatFilter(v as "direct" | "groups")}>
+                <TabsList className="w-full justify-start bg-transparent px-2 gap-1 h-9">
+                  <TabsTrigger value="direct" className="text-xs data-[state=active]:bg-primary/15">Conversas</TabsTrigger>
+                  <TabsTrigger value="groups" className="text-xs data-[state=active]:bg-primary/15">Grupos</TabsTrigger>
+                </TabsList>
+                <TabsContent value="direct" className="m-0">
+                  <ChatList activeId={activeConvId} onSelect={setActiveConvId} filter="direct" />
+                </TabsContent>
+                <TabsContent value="groups" className="m-0">
+                  <ChatList activeId={activeConvId} onSelect={setActiveConvId} filter="groups" />
+                </TabsContent>
+              </Tabs>
+            ) : (
+              <ChatList activeId={activeConvId} onSelect={setActiveConvId} />
+            )}
           </TabsContent>
           <TabsContent value="status" className="flex-1 overflow-y-auto m-0 p-4">
             <StatusTab />
