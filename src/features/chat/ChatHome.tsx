@@ -25,10 +25,11 @@ export function ChatHome() {
   const { user, profile, signOut } = useAuth();
   const [activeConvId, setActiveConvId] = useState<string | null>(null);
   const [activeTab, setActiveTab] = useState("chats");
+  const [chatFilter, setChatFilter] = useState<"direct" | "groups">("direct");
   const [profileOpen, setProfileOpen] = useState(false);
   const [newChatOpen, setNewChatOpen] = useState(false);
   const [settingsOpen, setSettingsOpen] = useState(false);
-  const { wallpaper } = useSettings();
+  const { wallpaper, appearance } = useSettings();
 
   // Garante que a conversa com Carlos existe para o usuário
   useEffect(() => {
