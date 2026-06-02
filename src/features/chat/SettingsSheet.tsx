@@ -1,5 +1,5 @@
 import { useRef, useState } from "react";
-import { useSettings, type ThemeAccent } from "@/lib/settings-context";
+import { useSettings, type ThemeAccent, type AppFont, type BubbleStyle, type TickStyle, TICK_GLYPHS } from "@/lib/settings-context";
 import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/lib/auth-context";
 import { Sheet, SheetContent, SheetHeader, SheetTitle, SheetDescription } from "@/components/ui/sheet";
@@ -8,9 +8,27 @@ import { Label } from "@/components/ui/label";
 import { Separator } from "@/components/ui/separator";
 import { Button } from "@/components/ui/button";
 import { Slider } from "@/components/ui/slider";
-import { Ghost, Eye, Keyboard, Mic, OrbitIcon, Image as ImageIcon, Palette, Bell, Wallpaper, Video, Loader2, Volume2 } from "lucide-react";
+import { Ghost, Eye, Keyboard, Mic, OrbitIcon, Image as ImageIcon, Palette, Bell, Wallpaper, Video, Loader2, Volume2, Type, MessageSquare, CheckCheck, LayoutGrid, Droplet } from "lucide-react";
 import { requestPushPermission, isPushSupported } from "@/lib/push";
 import { toast } from "sonner";
+
+const FONTS: { id: AppFont; label: string }[] = [
+  { id: "default", label: "Padrão" },
+  { id: "rounded", label: "Arredondada" },
+  { id: "serif", label: "Serifada" },
+  { id: "mono", label: "Monoespaçada" },
+  { id: "elegant", label: "Elegante" },
+  { id: "playful", label: "Divertida" },
+];
+
+const BUBBLES: { id: BubbleStyle; label: string }[] = [
+  { id: "round", label: "Redondo" },
+  { id: "sharp", label: "Quadrado" },
+  { id: "minimal", label: "Pílula" },
+  { id: "classic", label: "Clássico" },
+];
+
+const TICKS: TickStyle[] = ["default", "hearts", "alien", "stars", "rockets"];
 
 const THEMES: { id: ThemeAccent; label: string; sample: string }[] = [
   { id: "cosmos", label: "Roxo Cósmico", sample: "oklch(0.58 0.22 295)" },
