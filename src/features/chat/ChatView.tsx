@@ -1,13 +1,13 @@
 import { useEffect, useMemo, useRef, useState } from "react";
 import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/lib/auth-context";
-import { useSettings, verifyPin } from "@/lib/settings-context";
+import { useSettings, verifyPin, TICK_GLYPHS } from "@/lib/settings-context";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import {
   ArrowLeft, Sparkles, Send, Phone, Video, MoreVertical, Users, Wand2, Loader2,
-  Languages, BrainCircuit, Timer, Lock, OrbitIcon, ShieldHalf, ShieldCheck, MailOpen, Mic,
+  Languages, BrainCircuit, Timer, Lock, OrbitIcon, ShieldHalf, ShieldCheck, MailOpen, Mic, Image as ImageIcon,
 } from "lucide-react";
 import {
   DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger,
@@ -58,8 +58,9 @@ export function ChatView({ conversationId, onBack }: { conversationId: string; o
   const { user } = useAuth();
   const {
     privacy, ephemeral, setEphemeral, locks, lockChat, unlockChat, isUnlockedNow, markUnlockedNow,
-    chatWallpaper,
+    chatWallpaper: globalWallpaper, appearance, contactWallpapers, setContactWallpaper,
   } = useSettings();
+  const chatWallpaper = contactWallpapers[conversationId] ?? globalWallpaper;
   const [call, setCall] = useState<null | { mode: CallMode; sessionId: string; isCaller: boolean }>(null);
   const [recording, setRecording] = useState(false);
   const recHandleRef = useRef<RecordingHandle | null>(null);
@@ -319,15 +320,17 @@ export function ChatView({ conversationId, onBack }: { conversationId: string; o
         <Button size="icon" variant="ghost" className="h-9 w-9 md:hidden" onClick={onBack}>
           <ArrowLeft className="h-5 w-5" />
         </Button>
-        <Avatar className={`h-9 w-9 ${header.isAi ? "carlos-avatar" : ""}`}>
-          {header.avatar_url && <AvatarImage src={header.avatar_url} />}
-          <AvatarFallback className={header.isAi ? "bg-primary/30 text-[var(--nebula)] border border-primary/40" : "bg-secondary"}>
-            {header.isAi ? <Sparkles className="h-4 w-4" /> : header.is_group ? <Users className="h-4 w-4" /> : header.displayName.charAt(0).toUpperCase()}
-          </AvatarFallback>
-        </Avatar>
+        {!appearance.hideAvatar && (
+          <Avatar className={`h-9 w-9 ${header.isAi ? "carlos-avatar" : ""}`}>
+            {header.avatar_url && <AvatarImage src={header.avatar_url} />}
+            <AvatarFallback className={header.isAi ? "bg-primary/30 text-[var(--nebula)] border border-primary/40" : "bg-secondary"}>
+              {header.isAi ? <Sparkles className="h-4 w-4" /> : header.is_group ? <Users className="h-4 w-4" /> : header.displayName.charAt(0).toUpperCase()}
+            </AvatarFallback>
+          </Avatar>
+        )}
         <div className="flex-1 min-w-0">
           <div className="font-semibold truncate flex items-center gap-1.5">
-            {header.displayName}
+            {appearance.hideName && !header.isAi ? "•••" : header.displayName}
             {header.isAi && <span className="text-[10px] px-1.5 py-0.5 rounded-full bg-primary/30 text-[var(--nebula)] font-semibold">IA</span>}
             {ephemeralSeconds > 0 && <Timer className="h-3.5 w-3.5 text-[var(--nebula)]" />}
             {privacy.antiDelete && <OrbitIcon className="h-3.5 w-3.5 text-muted-foreground" />}
@@ -342,9 +345,11 @@ export function ChatView({ conversationId, onBack }: { conversationId: string; o
           {summarizing ? <Loader2 className="h-4 w-4 animate-spin" /> : <BrainCircuit className="h-4 w-4 text-[var(--nebula)]" />}
         </Button>
 
-        <Button size="icon" variant="ghost" className="h-9 w-9 hidden sm:inline-flex" onClick={() => startCall("voice")} title="Chamada de voz">
-          <Phone className="h-4 w-4" />
-        </Button>
+        {!appearance.hideCallButton && (
+          <Button size="icon" variant="ghost" className="h-9 w-9 hidden sm:inline-flex" onClick={() => startCall("voice")} title="Chamada de voz">
+            <Phone className="h-4 w-4" />
+          </Button>
+        )}
 
         <DropdownMenu>
           <DropdownMenuTrigger asChild>
@@ -367,6 +372,18 @@ export function ChatView({ conversationId, onBack }: { conversationId: string; o
             ) : (
               <DropdownMenuItem onClick={() => { unlockChat(conversationId); toast.success("PIN removido"); }}>
                 <ShieldHalf className="mr-2 h-4 w-4" /> Remover PIN
+              </DropdownMenuItem>
+            )}
+            <DropdownMenuSeparator />
+            <DropdownMenuLabel>Fundo desta conversa</DropdownMenuLabel>
+            {header.avatar_url && (
+              <DropdownMenuItem onClick={() => { setContactWallpaper(conversationId, { type: "image", value: header.avatar_url!, volume: 0, soundEnabled: false }); toast.success("Foto do contato aplicada como fundo"); }}>
+                <ImageIcon className="mr-2 h-4 w-4" /> Usar foto do contato
+              </DropdownMenuItem>
+            )}
+            {contactWallpapers[conversationId] && (
+              <DropdownMenuItem onClick={() => { setContactWallpaper(conversationId, null); toast.success("Fundo restaurado ao padrão"); }}>
+                <OrbitIcon className="mr-2 h-4 w-4" /> Restaurar fundo padrão
               </DropdownMenuItem>
             )}
           </DropdownMenuContent>
@@ -415,7 +432,7 @@ export function ChatView({ conversationId, onBack }: { conversationId: string; o
             : null;
           return (
             <div key={m.id} className={`flex ${mine ? "justify-end" : "justify-start"}`}>
-              <div className={`max-w-[78%] rounded-2xl px-3 py-2 shadow-sm group ${
+              <div className={`chat-bubble max-w-[78%] rounded-2xl px-3 py-2 shadow-sm group ${
                 m.is_ai ? "holo rounded-tl-sm" :
                 mine ? "bg-[var(--bubble-out)] text-foreground rounded-tr-sm border border-white/10" :
                 "bg-[var(--bubble-in)] text-foreground rounded-tl-sm border border-white/10"
@@ -447,6 +464,9 @@ export function ChatView({ conversationId, onBack }: { conversationId: string; o
                 <div className="flex items-center justify-between gap-3 mt-1">
                   <div className="flex items-center gap-2 text-[10px] text-muted-foreground">
                     <span>{format(new Date(m.created_at), "HH:mm")}</span>
+                    {mine && !m.is_ai && (
+                      <span className="text-[var(--nebula)]" title="Entregue">{TICK_GLYPHS[appearance.tickStyle]}</span>
+                    )}
                     {remaining !== null && (
                       <span className="inline-flex items-center gap-0.5 text-[var(--nebula)]">
                         <Timer className="h-2.5 w-2.5" />{formatRemaining(remaining)}

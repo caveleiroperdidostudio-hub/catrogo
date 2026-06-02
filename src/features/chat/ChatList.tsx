@@ -24,11 +24,14 @@ type Enriched = ConvRow & {
 
 const isCarlosName = (n: string | null) => n === "Carlos" || n === "Jarvis IA";
 
-export function ChatList({ activeId, onSelect }: { activeId: string | null; onSelect: (id: string) => void }) {
+export function ChatList({ activeId, onSelect, filter = "all" }: { activeId: string | null; onSelect: (id: string) => void; filter?: "all" | "direct" | "groups" }) {
   const { user } = useAuth();
   const { locks } = useSettings();
-  const [items, setItems] = useState<Enriched[]>([]);
+  const [allItems, setAllItems] = useState<Enriched[]>([]);
   const [loading, setLoading] = useState(true);
+  const items = allItems.filter((c) =>
+    filter === "all" ? true : filter === "groups" ? c.is_group : !c.is_group
+  );
 
   const load = async () => {
     if (!user) return;
@@ -37,7 +40,7 @@ export function ChatList({ activeId, onSelect }: { activeId: string | null; onSe
       .select("conversation_id")
       .eq("user_id", user.id);
     const convIds = (members ?? []).map((m) => m.conversation_id);
-    if (convIds.length === 0) { setItems([]); setLoading(false); return; }
+    if (convIds.length === 0) { setAllItems([]); setLoading(false); return; }
 
     const { data: convs } = await supabase
       .from("conversations")
@@ -89,7 +92,7 @@ export function ChatList({ activeId, onSelect }: { activeId: string | null; onSe
       if (!a.isAi && b.isAi) return 1;
       return new Date(b.last_message_at).getTime() - new Date(a.last_message_at).getTime();
     });
-    setItems(enriched);
+    setAllItems(enriched);
     setLoading(false);
   };
 
