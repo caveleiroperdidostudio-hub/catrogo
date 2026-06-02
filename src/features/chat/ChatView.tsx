@@ -58,8 +58,9 @@ export function ChatView({ conversationId, onBack }: { conversationId: string; o
   const { user } = useAuth();
   const {
     privacy, ephemeral, setEphemeral, locks, lockChat, unlockChat, isUnlockedNow, markUnlockedNow,
-    chatWallpaper,
+    chatWallpaper: globalWallpaper, appearance, contactWallpapers, setContactWallpaper,
   } = useSettings();
+  const chatWallpaper = contactWallpapers[conversationId] ?? globalWallpaper;
   const [call, setCall] = useState<null | { mode: CallMode; sessionId: string; isCaller: boolean }>(null);
   const [recording, setRecording] = useState(false);
   const recHandleRef = useRef<RecordingHandle | null>(null);
