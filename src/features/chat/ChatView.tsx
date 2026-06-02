@@ -320,15 +320,17 @@ export function ChatView({ conversationId, onBack }: { conversationId: string; o
         <Button size="icon" variant="ghost" className="h-9 w-9 md:hidden" onClick={onBack}>
           <ArrowLeft className="h-5 w-5" />
         </Button>
-        <Avatar className={`h-9 w-9 ${header.isAi ? "carlos-avatar" : ""}`}>
-          {header.avatar_url && <AvatarImage src={header.avatar_url} />}
-          <AvatarFallback className={header.isAi ? "bg-primary/30 text-[var(--nebula)] border border-primary/40" : "bg-secondary"}>
-            {header.isAi ? <Sparkles className="h-4 w-4" /> : header.is_group ? <Users className="h-4 w-4" /> : header.displayName.charAt(0).toUpperCase()}
-          </AvatarFallback>
-        </Avatar>
+        {!appearance.hideAvatar && (
+          <Avatar className={`h-9 w-9 ${header.isAi ? "carlos-avatar" : ""}`}>
+            {header.avatar_url && <AvatarImage src={header.avatar_url} />}
+            <AvatarFallback className={header.isAi ? "bg-primary/30 text-[var(--nebula)] border border-primary/40" : "bg-secondary"}>
+              {header.isAi ? <Sparkles className="h-4 w-4" /> : header.is_group ? <Users className="h-4 w-4" /> : header.displayName.charAt(0).toUpperCase()}
+            </AvatarFallback>
+          </Avatar>
+        )}
         <div className="flex-1 min-w-0">
           <div className="font-semibold truncate flex items-center gap-1.5">
-            {header.displayName}
+            {appearance.hideName && !header.isAi ? "•••" : header.displayName}
             {header.isAi && <span className="text-[10px] px-1.5 py-0.5 rounded-full bg-primary/30 text-[var(--nebula)] font-semibold">IA</span>}
             {ephemeralSeconds > 0 && <Timer className="h-3.5 w-3.5 text-[var(--nebula)]" />}
             {privacy.antiDelete && <OrbitIcon className="h-3.5 w-3.5 text-muted-foreground" />}
@@ -343,9 +345,11 @@ export function ChatView({ conversationId, onBack }: { conversationId: string; o
           {summarizing ? <Loader2 className="h-4 w-4 animate-spin" /> : <BrainCircuit className="h-4 w-4 text-[var(--nebula)]" />}
         </Button>
 
-        <Button size="icon" variant="ghost" className="h-9 w-9 hidden sm:inline-flex" onClick={() => startCall("voice")} title="Chamada de voz">
-          <Phone className="h-4 w-4" />
-        </Button>
+        {!appearance.hideCallButton && (
+          <Button size="icon" variant="ghost" className="h-9 w-9 hidden sm:inline-flex" onClick={() => startCall("voice")} title="Chamada de voz">
+            <Phone className="h-4 w-4" />
+          </Button>
+        )}
 
         <DropdownMenu>
           <DropdownMenuTrigger asChild>
