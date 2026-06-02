@@ -174,6 +174,121 @@ export function SettingsSheet({ open, onOpenChange }: { open: boolean; onOpenCha
 
           <Separator />
 
+          {/* Cor de acento personalizada */}
+          <section className="space-y-3">
+            <h3 className="text-sm font-semibold flex items-center gap-2 text-[var(--nebula)]">
+              <Droplet className="h-4 w-4" /> Cor de Acento Personalizada
+            </h3>
+            <p className="text-xs text-muted-foreground">Defina manualmente o tom de cor de botões, balões e destaques.</p>
+            <div className="flex items-center justify-between">
+              <Label className="text-sm font-normal">Usar cor personalizada</Label>
+              <Switch
+                checked={appearance.accentHue != null}
+                onCheckedChange={(v) => setAppearance({ accentHue: v ? 295 : null })}
+              />
+            </div>
+            {appearance.accentHue != null && (
+              <div className="px-1">
+                <div
+                  className="h-3 rounded-full mb-2"
+                  style={{ background: "linear-gradient(to right, oklch(0.6 0.2 0), oklch(0.6 0.2 60), oklch(0.6 0.2 120), oklch(0.6 0.2 180), oklch(0.6 0.2 240), oklch(0.6 0.2 300), oklch(0.6 0.2 360))" }}
+                />
+                <Slider value={[appearance.accentHue]} min={0} max={360} step={1} onValueChange={(v) => setAppearance({ accentHue: v[0] })} />
+              </div>
+            )}
+          </section>
+
+          <Separator />
+
+          {/* Fontes */}
+          <section className="space-y-3">
+            <h3 className="text-sm font-semibold flex items-center gap-2 text-[var(--nebula)]">
+              <Type className="h-4 w-4" /> Fonte da Interface
+            </h3>
+            <div className="grid grid-cols-3 gap-2">
+              {FONTS.map((f) => (
+                <button
+                  key={f.id}
+                  onClick={() => setAppearance({ font: f.id })}
+                  className={`rounded-lg border px-2 py-2 text-xs transition-colors hover:bg-accent/10 ${appearance.font === f.id ? "border-[var(--cosmic)] cosmic-glow" : "border-border/60"}`}
+                >
+                  {f.label}
+                </button>
+              ))}
+            </div>
+          </section>
+
+          <Separator />
+
+          {/* Estilo de balões */}
+          <section className="space-y-3">
+            <h3 className="text-sm font-semibold flex items-center gap-2 text-[var(--nebula)]">
+              <MessageSquare className="h-4 w-4" /> Estilo dos Balões
+            </h3>
+            <div className="grid grid-cols-4 gap-2">
+              {BUBBLES.map((b) => (
+                <button
+                  key={b.id}
+                  onClick={() => setAppearance({ bubbleStyle: b.id })}
+                  className={`rounded-lg border px-1 py-2 text-xs transition-colors hover:bg-accent/10 ${appearance.bubbleStyle === b.id ? "border-[var(--cosmic)] cosmic-glow" : "border-border/60"}`}
+                >
+                  {b.label}
+                </button>
+              ))}
+            </div>
+          </section>
+
+          <Separator />
+
+          {/* Estilo de ticks */}
+          <section className="space-y-3">
+            <h3 className="text-sm font-semibold flex items-center gap-2 text-[var(--nebula)]">
+              <CheckCheck className="h-4 w-4" /> Estilo dos Vistos (Ticks)
+            </h3>
+            <div className="flex gap-2 flex-wrap">
+              {TICKS.map((t) => (
+                <button
+                  key={t}
+                  onClick={() => setAppearance({ tickStyle: t })}
+                  className={`h-10 w-12 rounded-lg border text-base transition-colors hover:bg-accent/10 ${appearance.tickStyle === t ? "border-[var(--cosmic)] cosmic-glow" : "border-border/60"}`}
+                >
+                  {TICK_GLYPHS[t]}
+                </button>
+              ))}
+            </div>
+          </section>
+
+          <Separator />
+
+          {/* Estilo da Home */}
+          <section className="space-y-3">
+            <h3 className="text-sm font-semibold flex items-center gap-2 text-[var(--nebula)]">
+              <LayoutGrid className="h-4 w-4" /> Estilo da Home
+            </h3>
+            <Row icon={<OrbitIcon className="h-4 w-4" />} label="Status no topo (estilo Instagram)"
+              checked={appearance.statusOnTop} onChange={() => setAppearance({ statusOnTop: !appearance.statusOnTop })} />
+            <Row icon={<LayoutGrid className="h-4 w-4" />} label="Separar grupos em abas"
+              checked={appearance.separateGroups} onChange={() => setAppearance({ separateGroups: !appearance.separateGroups })} />
+          </section>
+
+          <Separator />
+
+          {/* Cabeçalho personalizado */}
+          <section className="space-y-3">
+            <h3 className="text-sm font-semibold flex items-center gap-2 text-[var(--nebula)]">
+              <Eye className="h-4 w-4" /> Cabeçalho da Conversa
+            </h3>
+            <Row icon={<Eye className="h-4 w-4" />} label="Ocultar nome do contato"
+              checked={appearance.hideName} onChange={() => setAppearance({ hideName: !appearance.hideName })} />
+            <Row icon={<Mic className="h-4 w-4" />} label="Ocultar botão de chamada"
+              checked={appearance.hideCallButton} onChange={() => setAppearance({ hideCallButton: !appearance.hideCallButton })} />
+            <Row icon={<ImageIcon className="h-4 w-4" />} label="Ocultar foto de perfil"
+              checked={appearance.hideAvatar} onChange={() => setAppearance({ hideAvatar: !appearance.hideAvatar })} />
+          </section>
+
+          <Separator />
+
+
           <section className="space-y-3">
             <h3 className="text-sm font-semibold flex items-center gap-2 text-[var(--nebula)]">
               <Palette className="h-4 w-4" /> Lobby — Wallpaper
