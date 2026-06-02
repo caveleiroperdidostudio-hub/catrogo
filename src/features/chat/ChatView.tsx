@@ -415,7 +415,7 @@ export function ChatView({ conversationId, onBack }: { conversationId: string; o
             : null;
           return (
             <div key={m.id} className={`flex ${mine ? "justify-end" : "justify-start"}`}>
-              <div className={`max-w-[78%] rounded-2xl px-3 py-2 shadow-sm group ${
+              <div className={`chat-bubble max-w-[78%] rounded-2xl px-3 py-2 shadow-sm group ${
                 m.is_ai ? "holo rounded-tl-sm" :
                 mine ? "bg-[var(--bubble-out)] text-foreground rounded-tr-sm border border-white/10" :
                 "bg-[var(--bubble-in)] text-foreground rounded-tl-sm border border-white/10"
