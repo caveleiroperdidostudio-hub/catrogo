@@ -98,6 +98,52 @@ export function StatusTab({ compact = false }: { compact?: boolean }) {
   const all = [...mine, ...others];
   const [viewerIndex, setViewerIndex] = useState<number | null>(null);
 
+  if (compact) {
+    return (
+      <>
+        <div className="flex gap-3 overflow-x-auto pb-1">
+          <button onClick={() => setOpen(true)} className="flex flex-col items-center gap-1 flex-shrink-0">
+            <div className="h-14 w-14 rounded-full border-2 border-dashed border-[var(--cosmic)] flex items-center justify-center">
+              <Plus className="h-5 w-5 text-[var(--cosmic)]" />
+            </div>
+            <span className="text-[10px] text-muted-foreground">Novo</span>
+          </button>
+          {all.map((s, i) => (
+            <button key={s.id} onClick={() => setViewerIndex(i)} className="flex flex-col items-center gap-1 flex-shrink-0 w-16">
+              <div className="h-14 w-14 rounded-full p-[2px] bg-gradient-to-tr from-[var(--cosmic)] to-[var(--nebula)]">
+                <div className="h-full w-full rounded-full overflow-hidden bg-secondary flex items-center justify-center" style={{ background: s.background ?? undefined }}>
+                  {s.media_url && s.media_type === "image" && <img src={s.media_url} alt="" className="h-full w-full object-cover" />}
+                  {s.media_url && s.media_type === "video" && <video src={s.media_url} muted className="h-full w-full object-cover" />}
+                  {!s.media_url && <span className="text-sm text-white font-semibold">{s.profile?.display_name.charAt(0)}</span>}
+                </div>
+              </div>
+              <span className="text-[10px] text-muted-foreground truncate w-full text-center">{s.user_id === user?.id ? "Você" : s.profile?.display_name}</span>
+            </button>
+          ))}
+        </div>
+        <Dialog open={open} onOpenChange={(v) => { setOpen(v); if (!v) { setMedia(null); setText(""); } }}>
+          <DialogContent>
+            <DialogHeader><DialogTitle>Novo status</DialogTitle></DialogHeader>
+            <div className="space-y-3">
+              <Textarea value={text} onChange={(e) => setText(e.target.value)} placeholder="Sua mensagem cósmica..." rows={2} />
+              <Button type="button" size="sm" variant="outline" onClick={() => fileRef.current?.click()} disabled={uploading}>
+                {uploading ? <Loader2 className="h-4 w-4 mr-1.5 animate-spin" /> : <ImageIcon className="h-4 w-4 mr-1.5" />} Mídia
+              </Button>
+              <input ref={fileRef} type="file" accept="image/*,video/*" className="hidden" onChange={(e) => { const f = e.target.files?.[0]; if (f) uploadMedia(f); e.target.value = ""; }} />
+            </div>
+            <DialogFooter>
+              <Button onClick={create} disabled={busy || uploading || (!text.trim() && !media)}>Publicar</Button>
+            </DialogFooter>
+          </DialogContent>
+        </Dialog>
+        {viewerIndex !== null && all[viewerIndex] && (
+          <StatusViewer statuses={all} startIndex={viewerIndex} onClose={() => setViewerIndex(null)} onRemove={(id) => remove(id)} currentUserId={user?.id} />
+        )}
+      </>
+    );
+  }
+
+
   return (
     <div className="space-y-4">
       <Button onClick={() => setOpen(true)} className="w-full"><Plus className="h-4 w-4 mr-2" />Novo status</Button>
