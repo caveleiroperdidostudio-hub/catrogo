@@ -154,6 +154,14 @@
 
   html, body, #root { height: 100%; }
 
+  /* Fonte personalizada da interface (estilo GB/Lite) */
+  body { font-family: var(--app-font, inherit); }
+
+  /* Estilos de balão de mensagem */
+  [data-bubble="sharp"] .chat-bubble { border-radius: 0.25rem !important; }
+  [data-bubble="minimal"] .chat-bubble { border-radius: 1.75rem !important; border-color: transparent !important; }
+  [data-bubble="classic"] .chat-bubble { border-radius: 0.5rem !important; }
+
   html {
     background-color: var(--color-background);
     color: var(--color-foreground);
