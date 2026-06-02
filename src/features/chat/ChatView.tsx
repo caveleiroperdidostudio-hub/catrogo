@@ -374,6 +374,18 @@ export function ChatView({ conversationId, onBack }: { conversationId: string; o
                 <ShieldHalf className="mr-2 h-4 w-4" /> Remover PIN
               </DropdownMenuItem>
             )}
+            <DropdownMenuSeparator />
+            <DropdownMenuLabel>Fundo desta conversa</DropdownMenuLabel>
+            {header.avatar_url && (
+              <DropdownMenuItem onClick={() => { setContactWallpaper(conversationId, { type: "image", value: header.avatar_url!, volume: 0, soundEnabled: false }); toast.success("Foto do contato aplicada como fundo"); }}>
+                <ImageIcon className="mr-2 h-4 w-4" /> Usar foto do contato
+              </DropdownMenuItem>
+            )}
+            {contactWallpapers[conversationId] && (
+              <DropdownMenuItem onClick={() => { setContactWallpaper(conversationId, null); toast.success("Fundo restaurado ao padrão"); }}>
+                <OrbitIcon className="mr-2 h-4 w-4" /> Restaurar fundo padrão
+              </DropdownMenuItem>
+            )}
           </DropdownMenuContent>
         </DropdownMenu>
       </div>
