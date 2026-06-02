@@ -447,6 +447,9 @@ export function ChatView({ conversationId, onBack }: { conversationId: string; o
                 <div className="flex items-center justify-between gap-3 mt-1">
                   <div className="flex items-center gap-2 text-[10px] text-muted-foreground">
                     <span>{format(new Date(m.created_at), "HH:mm")}</span>
+                    {mine && !m.is_ai && (
+                      <span className="text-[var(--nebula)]" title="Entregue">{TICK_GLYPHS[appearance.tickStyle]}</span>
+                    )}
                     {remaining !== null && (
                       <span className="inline-flex items-center gap-0.5 text-[var(--nebula)]">
                         <Timer className="h-2.5 w-2.5" />{formatRemaining(remaining)}
