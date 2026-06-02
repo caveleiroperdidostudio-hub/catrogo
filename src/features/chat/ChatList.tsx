@@ -40,7 +40,7 @@ export function ChatList({ activeId, onSelect, filter = "all" }: { activeId: str
       .select("conversation_id")
       .eq("user_id", user.id);
     const convIds = (members ?? []).map((m) => m.conversation_id);
-    if (convIds.length === 0) { setItems([]); setLoading(false); return; }
+    if (convIds.length === 0) { setAllItems([]); setLoading(false); return; }
 
     const { data: convs } = await supabase
       .from("conversations")
@@ -92,7 +92,7 @@ export function ChatList({ activeId, onSelect, filter = "all" }: { activeId: str
       if (!a.isAi && b.isAi) return 1;
       return new Date(b.last_message_at).getTime() - new Date(a.last_message_at).getTime();
     });
-    setItems(enriched);
+    setAllItems(enriched);
     setLoading(false);
   };
 
