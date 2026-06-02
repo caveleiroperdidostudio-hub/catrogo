@@ -32,7 +32,7 @@ const COLORS = [
   "oklch(0.25 0.05 280)",
 ];
 
-export function StatusTab() {
+export function StatusTab({ compact = false }: { compact?: boolean }) {
   const { user } = useAuth();
   const [statuses, setStatuses] = useState<Status[]>([]);
   const [open, setOpen] = useState(false);
