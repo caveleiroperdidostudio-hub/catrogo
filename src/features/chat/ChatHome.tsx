@@ -71,7 +71,7 @@ export function ChatHome() {
   }, [user]);
 
   return (
-    <div className="flex h-screen overflow-hidden">
+    <div className="flex h-full overflow-hidden">
       {/* Sidebar */}
       <aside
         className={`w-full md:w-[380px] flex-shrink-0 border-r border-white/5 glass flex flex-col ${activeConvId ? "hidden md:flex" : "flex"}`}

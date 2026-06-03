@@ -1,6 +1,6 @@
 import { createFileRoute, Navigate } from "@tanstack/react-router";
 import { useAuth } from "@/lib/auth-context";
-import { ChatHome } from "@/features/chat/ChatHome";
+import { AppShell } from "@/features/shell/AppShell";
 
 export const Route = createFileRoute("/")({
   component: Index,
@@ -16,5 +16,5 @@ function Index() {
     );
   }
   if (!session) return <Navigate to="/auth" />;
-  return <ChatHome />;
+  return <AppShell />;
 }
