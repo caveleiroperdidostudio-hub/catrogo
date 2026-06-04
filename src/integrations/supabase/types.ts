@@ -73,6 +73,54 @@ export type Database = {
         }
         Relationships: []
       }
+      follows: {
+        Row: {
+          created_at: string
+          follower_id: string
+          following_id: string
+        }
+        Insert: {
+          created_at?: string
+          follower_id: string
+          following_id: string
+        }
+        Update: {
+          created_at?: string
+          follower_id?: string
+          following_id?: string
+        }
+        Relationships: []
+      }
+      interactions: {
+        Row: {
+          content: string | null
+          created_at: string
+          id: string
+          kind: string
+          target_id: string
+          target_type: string
+          user_id: string
+        }
+        Insert: {
+          content?: string | null
+          created_at?: string
+          id?: string
+          kind: string
+          target_id: string
+          target_type: string
+          user_id: string
+        }
+        Update: {
+          content?: string | null
+          created_at?: string
+          id?: string
+          kind?: string
+          target_id?: string
+          target_type?: string
+          user_id?: string
+        }
+        Relationships: []
+      }
       messages: {
         Row: {
           content: string
@@ -114,6 +162,48 @@ export type Database = {
           },
         ]
       }
+      posts_video: {
+        Row: {
+          created_at: string
+          description: string | null
+          duration: number | null
+          format: string
+          id: string
+          tags: string[]
+          thumbnail_url: string | null
+          title: string
+          user_id: string
+          video_url: string
+          views: number
+        }
+        Insert: {
+          created_at?: string
+          description?: string | null
+          duration?: number | null
+          format?: string
+          id?: string
+          tags?: string[]
+          thumbnail_url?: string | null
+          title: string
+          user_id: string
+          video_url: string
+          views?: number
+        }
+        Update: {
+          created_at?: string
+          description?: string | null
+          duration?: number | null
+          format?: string
+          id?: string
+          tags?: string[]
+          thumbnail_url?: string | null
+          title?: string
+          user_id?: string
+          video_url?: string
+          views?: number
+        }
+        Relationships: []
+      }
       profiles: {
         Row: {
           about: string | null
@@ -144,6 +234,39 @@ export type Database = {
           phone?: string | null
           updated_at?: string
           username?: string
+        }
+        Relationships: []
+      }
+      projects_games: {
+        Row: {
+          created_at: string
+          description: string | null
+          id: string
+          plays: number
+          source_code: string
+          title: string
+          updated_at: string
+          user_id: string
+        }
+        Insert: {
+          created_at?: string
+          description?: string | null
+          id?: string
+          plays?: number
+          source_code?: string
+          title: string
+          updated_at?: string
+          user_id: string
+        }
+        Update: {
+          created_at?: string
+          description?: string | null
+          id?: string
+          plays?: number
+          source_code?: string
+          title?: string
+          updated_at?: string
+          user_id?: string
         }
         Relationships: []
       }
@@ -189,6 +312,8 @@ export type Database = {
         Args: { _members: string[]; _name: string }
         Returns: string
       }
+      increment_game_plays: { Args: { _id: string }; Returns: undefined }
+      increment_video_views: { Args: { _id: string }; Returns: undefined }
       is_member: { Args: { _conv: string; _user: string }; Returns: boolean }
       start_dm: { Args: { _other: string }; Returns: string }
     }
