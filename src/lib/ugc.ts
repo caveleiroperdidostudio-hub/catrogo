@@ -50,7 +50,72 @@ async function attachAuthors<T extends { user_id: string }>(rows: T[]): Promise<
   return rows.map((r) => ({ ...r, author: map.get(r.user_id) as VideoPost["author"] }));
 }
 
+/* ---------------- Thumbnails ---------------- */
+
+// Captura um quadro do vídeo no navegador e devolve um JPEG como Blob.
+export async function captureVideoThumbnail(file: File): Promise<Blob | null> {
+  if (typeof document === "undefined") return null;
+  return new Promise((resolve) => {
+    const video = document.createElement("video");
+    video.preload = "metadata";
+    video.muted = true;
+    video.playsInline = true;
+    const url = URL.createObjectURL(file);
+    let settled = false;
+    const cleanup = () => {
+      URL.revokeObjectURL(url);
+      video.removeAttribute("src");
+    };
+    const fail = () => {
+      if (settled) return;
+      settled = true;
+      cleanup();
+      resolve(null);
+    };
+    const grab = () => {
+      try {
+        const w = video.videoWidth;
+        const h = video.videoHeight;
+        if (!w || !h) return fail();
+        const canvas = document.createElement("canvas");
+        canvas.width = w;
+        canvas.height = h;
+        const ctx = canvas.getContext("2d");
+        if (!ctx) return fail();
+        ctx.drawImage(video, 0, 0, w, h);
+        canvas.toBlob(
+          (blob) => {
+            if (settled) return;
+            settled = true;
+            cleanup();
+            resolve(blob);
+          },
+          "image/jpeg",
+          0.8,
+        );
+      } catch {
+        fail();
+      }
+    };
+    video.onloadedmetadata = () => {
+      // pula para ~1s (ou meio do vídeo se curto) para evitar quadro preto inicial
+      const target = Math.min(1, (video.duration || 2) / 2);
+      const onSeeked = () => grab();
+      video.onseeked = onSeeked;
+      try {
+        video.currentTime = target;
+      } catch {
+        grab();
+      }
+    };
+    video.onerror = fail;
+    setTimeout(fail, 10000);
+    video.src = url;
+  });
+}
+
 /* ---------------- Vídeos ---------------- */
+
 
 export async function listVideos(format?: VideoFormat): Promise<VideoPost[]> {
   let q = supabase.from("posts_video").select(AUTHOR_SELECT).order("created_at", { ascending: false });
