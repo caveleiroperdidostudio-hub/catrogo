@@ -184,7 +184,7 @@ export async function uploadVideo(params: {
       description: params.description || null,
       tags: params.tags,
       video_url: pub.publicUrl,
-      thumbnail_url: params.thumbnailUrl ?? null,
+      thumbnail_url: thumbnailUrl,
       duration: params.duration ?? null,
       format: params.format,
     })
