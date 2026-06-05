@@ -168,16 +168,55 @@ export function GamesModule() {
           <Input placeholder="Título do jogo" value={title} onChange={(e) => setTitle(e.target.value)} className="bg-white/5 border-white/10" />
           <Input placeholder="Descrição (opcional)" value={desc} onChange={(e) => setDesc(e.target.value)} className="bg-white/5 border-white/10" />
 
+          {/* Assistente de IA */}
+          <div className="rounded-2xl border border-primary/30 bg-primary/10 p-3 space-y-2">
+            <div className="flex items-center gap-2 text-sm font-semibold">
+              <Sparkles className="h-4 w-4 text-primary" /> Criar com IA
+            </div>
+            <p className="text-xs text-muted-foreground">
+              Descreva o jogo que você imagina e a IA escreve o código pra você. Depois é só testar e salvar.
+            </p>
+            <Textarea
+              value={aiPrompt}
+              onChange={(e) => setAiPrompt(e.target.value)}
+              placeholder="Ex: um jogo onde controlo uma nave e desvio de meteoros..."
+              className="min-h-[64px] bg-white/5 border-white/10 text-sm"
+            />
+            <div className="flex flex-wrap gap-1.5">
+              {AI_IDEAS.map((idea) => (
+                <button
+                  key={idea}
+                  onClick={() => setAiPrompt(idea)}
+                  className="rounded-full bg-white/5 px-2.5 py-1 text-[11px] text-muted-foreground hover:bg-white/10 transition"
+                >
+                  {idea}
+                </button>
+              ))}
+            </div>
+            <Button className="w-full" onClick={() => runAi(aiPrompt)} disabled={aiBusy}>
+              {aiBusy ? <Loader2 className="h-4 w-4 animate-spin mr-1" /> : <Wand2 className="h-4 w-4 mr-1" />}
+              {aiBusy ? "Criando seu jogo..." : "Gerar jogo com IA"}
+            </Button>
+          </div>
+
           <div className="flex justify-center">
             <GameCanvas code={previewCode} width={280} height={280} key={previewCode} />
           </div>
 
-          <Textarea
-            value={code}
-            onChange={(e) => setCode(e.target.value)}
-            spellCheck={false}
-            className="font-mono text-xs min-h-[220px] bg-black/40 border-white/10 leading-relaxed"
-          />
+          <div className="space-y-1.5">
+            <div className="flex items-center justify-between">
+              <p className="text-xs font-medium text-muted-foreground">Código do jogo (você pode editar)</p>
+              <button onClick={() => setView("docs")} className="text-[11px] text-primary flex items-center gap-1">
+                <BookOpen className="h-3 w-3" /> Ver comandos
+              </button>
+            </div>
+            <Textarea
+              value={code}
+              onChange={(e) => setCode(e.target.value)}
+              spellCheck={false}
+              className="font-mono text-xs min-h-[220px] bg-black/40 border-white/10 leading-relaxed"
+            />
+          </div>
           <div className="flex gap-2">
             <Button variant="secondary" className="flex-1" onClick={() => setPreviewCode(code)}>
               <Play className="h-4 w-4 mr-1" /> Testar código
@@ -187,6 +226,7 @@ export function GamesModule() {
             </Button>
           </div>
         </div>
+
       </div>
     );
   }
