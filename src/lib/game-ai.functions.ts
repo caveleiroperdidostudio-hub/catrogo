@@ -21,34 +21,93 @@ CORES: hex (#ff0) ou nomes: vermelho, verde, azul, amarelo, roxo, rosa, branco, 
 A área do jogo tem 320x320. Posicione objetos dentro dessa área.
 Sempre inclua pelo menos um objeto controlado pelo jogador, uma forma de ganhar pontos e/ou de perder.`;
 
+async function callGateway(messages: { role: string; content: string }[]) {
+  const key = process.env.LOVABLE_API_KEY;
+  if (!key) throw new Error("Missing LOVABLE_API_KEY");
+
+  const res = await fetch("https://ai.gateway.lovable.dev/v1/chat/completions", {
+    method: "POST",
+    headers: {
+      "Content-Type": "application/json",
+      "Lovable-API-Key": key,
+    },
+    body: JSON.stringify({
+      model: "google/gemini-3-flash-preview",
+      messages,
+    }),
+  });
+
+  if (res.status === 429) throw new Error("Muitas requisições. Tente novamente em instantes.");
+  if (res.status === 402) throw new Error("Créditos de IA esgotados. Adicione créditos para continuar.");
+  if (!res.ok) throw new Error("Falha ao falar com a IA. Tente novamente.");
+
+  const json = await res.json();
+  return (json?.choices?.[0]?.message?.content ?? "") as string;
+}
+
 export const generateGame = createServerFn({ method: "POST" })
   .inputValidator((input: unknown) => Input.parse(input))
   .handler(async ({ data }) => {
-    const key = process.env.LOVABLE_API_KEY;
-    if (!key) throw new Error("Missing LOVABLE_API_KEY");
-
-    const res = await fetch("https://ai.gateway.lovable.dev/v1/chat/completions", {
-      method: "POST",
-      headers: {
-        "Content-Type": "application/json",
-        "Lovable-API-Key": key,
-      },
-      body: JSON.stringify({
-        model: "google/gemini-3-flash-preview",
-        messages: [
-          { role: "system", content: SYSTEM },
-          { role: "user", content: data.prompt },
-        ],
-      }),
-    });
-
-    if (res.status === 429) throw new Error("Muitas requisições. Tente novamente em instantes.");
-    if (res.status === 402) throw new Error("Créditos de IA esgotados. Adicione créditos para continuar.");
-    if (!res.ok) throw new Error("Falha ao gerar o jogo. Tente novamente.");
-
-    const json = await res.json();
-    let code: string = json?.choices?.[0]?.message?.content ?? "";
+    let code = await callGateway([
+      { role: "system", content: SYSTEM },
+      { role: "user", content: data.prompt },
+    ]);
     // limpa eventuais cercas de código
     code = code.replace(/```[a-z]*\n?/gi, "").replace(/```/g, "").trim();
     return { code };
+  });
+
+/* ---------------- Assistente de chat (jogos + vídeos) ---------------- */
+
+const CHAT_SYSTEM = `Você é o "Catrogo IA", um assistente criativo amigável que conversa em português do Brasil. Você ajuda usuários a:
+1. Criar JOGOS na linguagem Newcatroid (descrita abaixo) — pode gerar o jogo inteiro, explicar linha a linha, ensinar a lógica, corrigir bugs e melhorar o código.
+2. Ter IDEIAS DE VÍDEOS e SHORTS: roteiros, títulos chamativos, ganchos, descrições, hashtags e dicas de gravação.
+
+ESTILO:
+- Seja didático e encorajador. Explique conceitos como se ensinasse um iniciante.
+- Quando o usuário pedir um jogo ou alterações no código, SEMPRE inclua o código completo dentro de um bloco markdown usando \`\`\`newcatroid no início e \`\`\` no final. Antes ou depois do bloco, explique em poucas frases o que o código faz ou o que você mudou.
+- Quando o usuário só quiser entender o código, explique sem necessariamente reescrever tudo.
+- Para vídeos, organize a resposta com listas e seja prático.
+
+LINGUAGEM NEWCATROID (linha a linha, comentários começam com #):
+fundo <cor>                          -> cor de fundo (ex: fundo #0b0b1e)
+gravidade <valor>                    -> gravidade vertical (ex: gravidade 0.4)
+criar <nome> <x> <y> <cor> <tam>     -> cria um objeto quadrado
+quando_tecla <tecla> mover <nome> <dx> <dy>   -> teclas: esquerda, direita, cima, baixo, espaco
+sempre mover <nome> <dx> <dy>        -> executa todo quadro
+ao_tocar <a> <b> pontos <n>          -> soma n pontos e reposiciona <b>
+ao_tocar <a> <b> fim <mensagem>      -> encerra o jogo ao colidir
+CORES: hex (#ff0) ou nomes: vermelho, verde, azul, amarelo, roxo, rosa, branco, preto, laranja, ciano.
+A área do jogo tem 320x320. Mantenha objetos dentro dela.`;
+
+const ChatInput = z.object({
+  messages: z
+    .array(
+      z.object({
+        role: z.enum(["user", "assistant"]),
+        content: z.string().min(1).max(4000),
+      }),
+    )
+    .min(1)
+    .max(40),
+  currentCode: z.string().max(8000).optional(),
+});
+
+export const chatAssistant = createServerFn({ method: "POST" })
+  .inputValidator((input: unknown) => ChatInput.parse(input))
+  .handler(async ({ data }) => {
+    const context = data.currentCode
+      ? [
+          {
+            role: "system",
+            content: `O usuário está editando este jogo no momento:\n\`\`\`newcatroid\n${data.currentCode}\n\`\`\``,
+          },
+        ]
+      : [];
+    const reply = await callGateway([
+      { role: "system", content: CHAT_SYSTEM },
+      ...context,
+      ...data.messages,
+    ]);
+    return { reply };
   });

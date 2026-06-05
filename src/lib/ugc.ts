@@ -50,7 +50,92 @@ async function attachAuthors<T extends { user_id: string }>(rows: T[]): Promise<
   return rows.map((r) => ({ ...r, author: map.get(r.user_id) as VideoPost["author"] }));
 }
 
+/* ---------------- Thumbnails ---------------- */
+
+// Captura um quadro do vídeo no navegador e devolve um JPEG como Blob.
+export async function captureVideoThumbnail(file: File): Promise<Blob | null> {
+  if (typeof document === "undefined") return null;
+  return new Promise((resolve) => {
+    const video = document.createElement("video");
+    video.preload = "metadata";
+    video.muted = true;
+    video.playsInline = true;
+    const url = URL.createObjectURL(file);
+    let settled = false;
+    const cleanup = () => {
+      URL.revokeObjectURL(url);
+      video.removeAttribute("src");
+    };
+    const fail = () => {
+      if (settled) return;
+      settled = true;
+      cleanup();
+      resolve(null);
+    };
+    const grab = () => {
+      try {
+        const w = video.videoWidth;
+        const h = video.videoHeight;
+        if (!w || !h) return fail();
+        const canvas = document.createElement("canvas");
+        canvas.width = w;
+        canvas.height = h;
+        const ctx = canvas.getContext("2d");
+        if (!ctx) return fail();
+        ctx.drawImage(video, 0, 0, w, h);
+        canvas.toBlob(
+          (blob) => {
+            if (settled) return;
+            settled = true;
+            cleanup();
+            resolve(blob);
+          },
+          "image/jpeg",
+          0.8,
+        );
+      } catch {
+        fail();
+      }
+    };
+    video.onloadedmetadata = () => {
+      // pula para ~1s (ou meio do vídeo se curto) para evitar quadro preto inicial
+      const target = Math.min(1, (video.duration || 2) / 2);
+      const onSeeked = () => grab();
+      video.onseeked = onSeeked;
+      try {
+        video.currentTime = target;
+      } catch {
+        grab();
+      }
+    };
+    video.onerror = fail;
+    setTimeout(fail, 10000);
+    video.src = url;
+  });
+}
+
+/* ---------------- Perfis / Canais ---------------- */
+
+export type PublicProfile = {
+  id: string;
+  username: string;
+  display_name: string;
+  about: string | null;
+  avatar_url: string | null;
+};
+
+export async function getProfile(userId: string): Promise<PublicProfile | null> {
+  const { data, error } = await supabase
+    .from("profiles")
+    .select("id, username, display_name, about, avatar_url")
+    .eq("id", userId)
+    .maybeSingle();
+  if (error) throw error;
+  return (data as PublicProfile) ?? null;
+}
+
 /* ---------------- Vídeos ---------------- */
+
 
 export async function listVideos(format?: VideoFormat): Promise<VideoPost[]> {
   let q = supabase.from("posts_video").select(AUTHOR_SELECT).order("created_at", { ascending: false });
@@ -81,7 +166,8 @@ export async function uploadVideo(params: {
   duration?: number | null;
 }): Promise<VideoPost> {
   const ext = params.file.name.split(".").pop() || "mp4";
-  const path = `${params.userId}/videos/${Date.now()}.${ext}`;
+  const base = `${params.userId}/videos/${Date.now()}`;
+  const path = `${base}.${ext}`;
   const { error: upErr } = await supabase.storage.from("status-media").upload(path, params.file, {
     cacheControl: "3600",
     upsert: false,
@@ -89,6 +175,26 @@ export async function uploadVideo(params: {
   });
   if (upErr) throw upErr;
   const { data: pub } = supabase.storage.from("status-media").getPublicUrl(path);
+
+  // Gera a thumbnail automaticamente a partir do vídeo (se não foi informada)
+  let thumbnailUrl = params.thumbnailUrl ?? null;
+  if (!thumbnailUrl) {
+    try {
+      const thumb = await captureVideoThumbnail(params.file);
+      if (thumb) {
+        const thumbPath = `${base}-thumb.jpg`;
+        const { error: thErr } = await supabase.storage
+          .from("status-media")
+          .upload(thumbPath, thumb, { cacheControl: "3600", upsert: false, contentType: "image/jpeg" });
+        if (!thErr) {
+          thumbnailUrl = supabase.storage.from("status-media").getPublicUrl(thumbPath).data.publicUrl;
+        }
+      }
+    } catch {
+      // segue sem thumbnail se falhar
+    }
+  }
+
 
   const { data, error } = await supabase
     .from("posts_video")
@@ -98,7 +204,7 @@ export async function uploadVideo(params: {
       description: params.description || null,
       tags: params.tags,
       video_url: pub.publicUrl,
-      thumbnail_url: params.thumbnailUrl ?? null,
+      thumbnail_url: thumbnailUrl,
       duration: params.duration ?? null,
       format: params.format,
     })

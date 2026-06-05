@@ -12,6 +12,7 @@ import {
   DialogTitle,
 } from "@/components/ui/dialog";
 import { useAuth } from "@/lib/auth-context";
+import { useChannel } from "@/lib/channel-context";
 import {
   listVideos,
   uploadVideo,
@@ -145,6 +146,7 @@ function CommentsSheet({ video, onClose }: { video: VideoPost; onClose: () => vo
 
 function VideoPlayer({ video, onDeleted }: { video: VideoPost; onDeleted: () => void }) {
   const { user } = useAuth();
+  const { openChannel } = useChannel();
   const [like, setLike] = useState({ count: 0, liked: false });
   const [showComments, setShowComments] = useState(false);
   const viewed = useRef(false);
@@ -175,9 +177,11 @@ function VideoPlayer({ video, onDeleted }: { video: VideoPost; onDeleted: () => 
         <p className="text-xs text-muted-foreground mt-1 flex items-center gap-2">
           <Eye className="h-3.5 w-3.5" /> {video.views} visualizações · {timeAgo(video.created_at)}
         </p>
-        <div className="flex items-center gap-2 mt-3">
+        <button onClick={() => openChannel(video.user_id)} className="flex items-center gap-2 mt-3 w-full text-left">
           <Avatar className="h-8 w-8"><AvatarFallback>{(video.author?.username ?? "?").charAt(0).toUpperCase()}</AvatarFallback></Avatar>
-          <span className="text-sm font-medium flex-1">@{video.author?.username ?? "criador"}</span>
+          <span className="text-sm font-medium flex-1 hover:underline">@{video.author?.username ?? "criador"}</span>
+        </button>
+        <div className="flex items-center gap-2 mt-2">
           <Button size="sm" variant="ghost" onClick={handleLike}>
             <Heart className={`h-4 w-4 mr-1 ${like.liked ? "fill-red-500 text-red-500" : ""}`} />{like.count}
           </Button>
