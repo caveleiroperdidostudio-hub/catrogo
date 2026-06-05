@@ -5,6 +5,8 @@ import { VideoModule } from "@/features/video/VideoModule";
 import { ShortsModule } from "@/features/shorts/ShortsModule";
 import { GamesModule } from "@/features/games/GamesModule";
 import { ProfileModule } from "@/features/profile/ProfileModule";
+import { ChannelView } from "@/features/profile/ChannelView";
+import { ChannelProvider } from "@/lib/channel-context";
 
 type ModuleId = "chat" | "video" | "shorts" | "games" | "profile";
 
