@@ -58,6 +58,26 @@ export function GamesModule() {
   const [saving, setSaving] = useState(false);
   const [playing, setPlaying] = useState<GameProject | null>(null);
   const [previewCode, setPreviewCode] = useState(NEWCATROID_EXAMPLE);
+  const [aiPrompt, setAiPrompt] = useState("");
+  const [aiBusy, setAiBusy] = useState(false);
+  const callGenerateGame = useServerFn(generateGame);
+
+  const runAi = async (prompt: string) => {
+    if (!prompt.trim()) return toast.error("Descreva o jogo que você quer");
+    setAiBusy(true);
+    try {
+      const { code: generated } = await callGenerateGame({ data: { prompt: prompt.trim() } });
+      if (!generated) throw new Error("Resposta vazia");
+      setCode(generated);
+      setPreviewCode(generated);
+      if (!title.trim()) setTitle(prompt.trim().slice(0, 40));
+      toast.success("Jogo criado pela IA! Veja a prévia acima.");
+    } catch (e) {
+      toast.error((e as Error).message || "A IA não conseguiu gerar o jogo");
+    } finally {
+      setAiBusy(false);
+    }
+  };
 
   const load = async () => {
     setLoading(true);
