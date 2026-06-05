@@ -33,22 +33,24 @@ export function AppShell() {
         </div>
 
 
-      <nav className="h-16 shrink-0 border-t border-white/10 glass flex items-stretch justify-around px-1 pb-[env(safe-area-inset-bottom)]">
-        {TABS.map((t) => {
-          const Icon = t.icon;
-          const isActive = active === t.id;
-          return (
-            <button
-              key={t.id}
-              onClick={() => setActive(t.id)}
-              className="flex flex-1 flex-col items-center justify-center gap-0.5 transition"
-            >
-              <Icon className={`h-5 w-5 transition ${isActive ? "text-primary scale-110" : "text-muted-foreground"}`} />
-              <span className={`text-[10px] font-medium ${isActive ? "text-primary" : "text-muted-foreground"}`}>{t.label}</span>
-            </button>
-          );
-        })}
-      </nav>
-    </div>
+        <nav className="h-16 shrink-0 border-t border-white/10 glass flex items-stretch justify-around px-1 pb-[env(safe-area-inset-bottom)]">
+          {TABS.map((t) => {
+            const Icon = t.icon;
+            const isActive = active === t.id;
+            return (
+              <button
+                key={t.id}
+                onClick={() => setActive(t.id)}
+                className="flex flex-1 flex-col items-center justify-center gap-0.5 transition"
+              >
+                <Icon className={`h-5 w-5 transition ${isActive ? "text-primary scale-110" : "text-muted-foreground"}`} />
+                <span className={`text-[10px] font-medium ${isActive ? "text-primary" : "text-muted-foreground"}`}>{t.label}</span>
+              </button>
+            );
+          })}
+        </nav>
+      </div>
+    </ChannelProvider>
   );
+
 }
