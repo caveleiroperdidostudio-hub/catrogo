@@ -1,5 +1,6 @@
 import { useEffect, useState } from "react";
-import { ArrowLeft, Gamepad2, Plus, Play, Save, Trash2, Loader2, BookOpen } from "lucide-react";
+import { useServerFn } from "@tanstack/react-start";
+import { ArrowLeft, Gamepad2, Plus, Play, Save, Trash2, Loader2, BookOpen, Sparkles, Wand2 } from "lucide-react";
 import { toast } from "sonner";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -8,6 +9,7 @@ import { Avatar, AvatarFallback } from "@/components/ui/avatar";
 import { useAuth } from "@/lib/auth-context";
 import { GameCanvas } from "./GameCanvas";
 import { NEWCATROID_EXAMPLE } from "@/lib/newcatroid";
+import { generateGame } from "@/lib/game-ai.functions";
 import {
   listGames,
   saveGame,
@@ -15,6 +17,14 @@ import {
   registerPlay,
   type GameProject,
 } from "@/lib/ugc";
+
+const AI_IDEAS = [
+  "Um jogo de nave que desvia de meteoros",
+  "Pegue as moedas e fuja do inimigo",
+  "Plataforma com gravidade onde pulo com espaço",
+  "Colete estrelas antes do tempo acabar",
+];
+
 
 type View = "list" | "editor" | "play" | "docs";
 
