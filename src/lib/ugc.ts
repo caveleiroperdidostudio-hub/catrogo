@@ -81,7 +81,7 @@ export async function uploadVideo(params: {
   duration?: number | null;
 }): Promise<VideoPost> {
   const ext = params.file.name.split(".").pop() || "mp4";
-  const path = `videos/${params.userId}/${Date.now()}.${ext}`;
+  const path = `${params.userId}/videos/${Date.now()}.${ext}`;
   const { error: upErr } = await supabase.storage.from("status-media").upload(path, params.file, {
     cacheControl: "3600",
     upsert: false,
