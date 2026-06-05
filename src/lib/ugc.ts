@@ -114,6 +114,26 @@ export async function captureVideoThumbnail(file: File): Promise<Blob | null> {
   });
 }
 
+/* ---------------- Perfis / Canais ---------------- */
+
+export type PublicProfile = {
+  id: string;
+  username: string;
+  display_name: string;
+  about: string | null;
+  avatar_url: string | null;
+};
+
+export async function getProfile(userId: string): Promise<PublicProfile | null> {
+  const { data, error } = await supabase
+    .from("profiles")
+    .select("id, username, display_name, about, avatar_url")
+    .eq("id", userId)
+    .maybeSingle();
+  if (error) throw error;
+  return (data as PublicProfile) ?? null;
+}
+
 /* ---------------- Vídeos ---------------- */
 
 
