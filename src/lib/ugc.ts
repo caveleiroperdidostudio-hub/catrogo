@@ -146,7 +146,8 @@ export async function uploadVideo(params: {
   duration?: number | null;
 }): Promise<VideoPost> {
   const ext = params.file.name.split(".").pop() || "mp4";
-  const path = `${params.userId}/videos/${Date.now()}.${ext}`;
+  const base = `${params.userId}/videos/${Date.now()}`;
+  const path = `${base}.${ext}`;
   const { error: upErr } = await supabase.storage.from("status-media").upload(path, params.file, {
     cacheControl: "3600",
     upsert: false,
@@ -154,6 +155,26 @@ export async function uploadVideo(params: {
   });
   if (upErr) throw upErr;
   const { data: pub } = supabase.storage.from("status-media").getPublicUrl(path);
+
+  // Gera a thumbnail automaticamente a partir do vídeo (se não foi informada)
+  let thumbnailUrl = params.thumbnailUrl ?? null;
+  if (!thumbnailUrl) {
+    try {
+      const thumb = await captureVideoThumbnail(params.file);
+      if (thumb) {
+        const thumbPath = `${base}-thumb.jpg`;
+        const { error: thErr } = await supabase.storage
+          .from("status-media")
+          .upload(thumbPath, thumb, { cacheControl: "3600", upsert: false, contentType: "image/jpeg" });
+        if (!thErr) {
+          thumbnailUrl = supabase.storage.from("status-media").getPublicUrl(thumbPath).data.publicUrl;
+        }
+      }
+    } catch {
+      // segue sem thumbnail se falhar
+    }
+  }
+
 
   const { data, error } = await supabase
     .from("posts_video")
