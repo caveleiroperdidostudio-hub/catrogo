@@ -146,6 +146,7 @@ function CommentsSheet({ video, onClose }: { video: VideoPost; onClose: () => vo
 
 function VideoPlayer({ video, onDeleted }: { video: VideoPost; onDeleted: () => void }) {
   const { user } = useAuth();
+  const { openChannel } = useChannel();
   const [like, setLike] = useState({ count: 0, liked: false });
   const [showComments, setShowComments] = useState(false);
   const viewed = useRef(false);
