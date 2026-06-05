@@ -22,14 +22,16 @@ export function AppShell() {
   const [active, setActive] = useState<ModuleId>("chat");
 
   return (
-    <div className="flex h-[100dvh] flex-col overflow-hidden bg-background">
-      <div className="flex-1 min-h-0 overflow-hidden">
-        {active === "chat" && <ChatHome />}
-        {active === "video" && <VideoModule />}
-        {active === "shorts" && <ShortsModule />}
-        {active === "games" && <GamesModule />}
-        {active === "profile" && <ProfileModule />}
-      </div>
+    <ChannelProvider render={(userId, close) => <ChannelView userId={userId} onClose={close} />}>
+      <div className="relative flex h-[100dvh] flex-col overflow-hidden bg-background">
+        <div className="flex-1 min-h-0 overflow-hidden">
+          {active === "chat" && <ChatHome />}
+          {active === "video" && <VideoModule />}
+          {active === "shorts" && <ShortsModule />}
+          {active === "games" && <GamesModule />}
+          {active === "profile" && <ProfileModule />}
+        </div>
+
 
       <nav className="h-16 shrink-0 border-t border-white/10 glass flex items-stretch justify-around px-1 pb-[env(safe-area-inset-bottom)]">
         {TABS.map((t) => {
