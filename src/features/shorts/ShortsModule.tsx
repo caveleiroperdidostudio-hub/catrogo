@@ -57,9 +57,12 @@ function Comments({ video, onClose }: { video: VideoPost; onClose: () => void })
 
 function ShortCard({ short }: { short: VideoPost }) {
   const { user } = useAuth();
+  const { openChannel } = useChannel();
+  const { setBalance } = useWallet();
   const videoRef = useRef<HTMLVideoElement>(null);
   const [like, setLike] = useState({ count: 0, liked: false });
   const [showComments, setShowComments] = useState(false);
+  const [hypeOpen, setHypeOpen] = useState(false);
   const viewed = useRef(false);
 
   useEffect(() => {
@@ -91,11 +94,23 @@ function ShortCard({ short }: { short: VideoPost }) {
     await toggleLike("video", short.id, user.id, like.liked);
   };
 
+  const handleHype = async (amount: number) => {
+    setHypeOpen(false);
+    try {
+      const bal = await sendHype(short.id, amount);
+      setBalance(bal);
+      toast.success(`Hype de ${amount} CatCoins enviado! ⚡`);
+    } catch (e) {
+      toast.error((e as Error).message || "Não foi possível dar hype");
+    }
+  };
+
   const togglePlay = () => {
     const el = videoRef.current;
     if (!el) return;
     el.paused ? el.play() : el.pause();
   };
+
 
   return (
     <div className="relative h-full w-full shrink-0 snap-start snap-always bg-black">
