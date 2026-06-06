@@ -1,10 +1,13 @@
 import { useEffect, useRef, useState } from "react";
-import { Heart, MessageCircle, Send, Loader2, Upload, X } from "lucide-react";
+import { Heart, MessageCircle, Send, Loader2, Upload, X, Zap } from "lucide-react";
 import { toast } from "sonner";
 import { Avatar, AvatarFallback } from "@/components/ui/avatar";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { useAuth } from "@/lib/auth-context";
+import { useChannel } from "@/lib/channel-context";
+import { useWallet } from "@/lib/wallet-context";
+import { sendHype, HYPE_AMOUNTS } from "@/lib/economy";
 import {
   listVideos,
   getLikeState,
@@ -15,6 +18,7 @@ import {
   type VideoPost,
   type Comment,
 } from "@/lib/ugc";
+
 
 function Comments({ video, onClose }: { video: VideoPost; onClose: () => void }) {
   const { user } = useAuth();
@@ -53,9 +57,12 @@ function Comments({ video, onClose }: { video: VideoPost; onClose: () => void })
 
 function ShortCard({ short }: { short: VideoPost }) {
   const { user } = useAuth();
+  const { openChannel } = useChannel();
+  const { setBalance } = useWallet();
   const videoRef = useRef<HTMLVideoElement>(null);
   const [like, setLike] = useState({ count: 0, liked: false });
   const [showComments, setShowComments] = useState(false);
+  const [hypeOpen, setHypeOpen] = useState(false);
   const viewed = useRef(false);
 
   useEffect(() => {
@@ -87,21 +94,36 @@ function ShortCard({ short }: { short: VideoPost }) {
     await toggleLike("video", short.id, user.id, like.liked);
   };
 
+  const handleHype = async (amount: number) => {
+    setHypeOpen(false);
+    try {
+      const bal = await sendHype(short.id, amount);
+      setBalance(bal);
+      toast.success(`Hype de ${amount} CatCoins enviado! ⚡`);
+    } catch (e) {
+      toast.error((e as Error).message || "Não foi possível dar hype");
+    }
+  };
+
   const togglePlay = () => {
     const el = videoRef.current;
     if (!el) return;
     el.paused ? el.play() : el.pause();
   };
 
+
   return (
     <div className="relative h-full w-full shrink-0 snap-start snap-always bg-black">
       <video ref={videoRef} src={short.video_url} loop playsInline onClick={togglePlay} className="h-full w-full object-contain" />
       <div className="absolute bottom-0 left-0 right-0 z-10 flex items-end justify-between p-4 pb-6 bg-gradient-to-t from-black/70 to-transparent">
         <div className="max-w-[75%] space-y-2 text-white">
-          <p className="font-semibold">@{short.author?.username ?? "criador"}</p>
+          <button onClick={() => openChannel(short.user_id)} className="font-semibold hover:underline">@{short.author?.username ?? "criador"}</button>
           <p className="text-sm opacity-90">{short.title}</p>
         </div>
         <div className="flex flex-col items-center gap-5 text-white">
+          <button onClick={() => openChannel(short.user_id)} className="flex flex-col items-center gap-1">
+            <Avatar className="h-9 w-9 border border-white/40"><AvatarFallback>{(short.author?.username ?? "?").charAt(0).toUpperCase()}</AvatarFallback></Avatar>
+          </button>
           <button onClick={handleLike} className="flex flex-col items-center gap-1">
             <Heart className={`h-7 w-7 ${like.liked ? "fill-red-500 text-red-500" : ""}`} />
             <span className="text-xs">{like.count}</span>
@@ -109,9 +131,22 @@ function ShortCard({ short }: { short: VideoPost }) {
           <button onClick={() => setShowComments(true)} className="flex flex-col items-center gap-1">
             <MessageCircle className="h-7 w-7" /><span className="text-xs">Comentar</span>
           </button>
+          <div className="relative flex flex-col items-center gap-1">
+            <button onClick={() => setHypeOpen((v) => !v)} className="flex flex-col items-center gap-1">
+              <Zap className="h-7 w-7 text-amber-400" /><span className="text-xs">Hype</span>
+            </button>
+            {hypeOpen && (
+              <div className="absolute bottom-0 right-9 flex gap-1.5 bg-black/80 rounded-full p-1.5">
+                {HYPE_AMOUNTS.map((a) => (
+                  <button key={a} onClick={() => handleHype(a)} className="rounded-full bg-amber-500/20 text-amber-300 text-xs font-semibold px-2.5 py-1 hover:bg-amber-500/40">{a}</button>
+                ))}
+              </div>
+            )}
+          </div>
         </div>
       </div>
       {showComments && <Comments video={short} onClose={() => setShowComments(false)} />}
+
     </div>
   );
 }

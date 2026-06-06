@@ -1,5 +1,7 @@
 import { useEffect, useMemo, useRef, useState } from "react";
-import { Search, Play, Eye, Upload, Loader2, Heart, MessageCircle, Send, X, Trash2 } from "lucide-react";
+import { Search, Play, Eye, Upload, Loader2, Heart, MessageCircle, Send, X, Trash2, Zap } from "lucide-react";
+import { useWallet } from "@/lib/wallet-context";
+import { sendHype, HYPE_AMOUNTS } from "@/lib/economy";
 import { toast } from "sonner";
 import { Avatar, AvatarFallback } from "@/components/ui/avatar";
 import { Button } from "@/components/ui/button";
