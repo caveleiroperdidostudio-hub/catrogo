@@ -1,10 +1,13 @@
 import { useEffect, useRef, useState } from "react";
-import { Heart, MessageCircle, Send, Loader2, Upload, X } from "lucide-react";
+import { Heart, MessageCircle, Send, Loader2, Upload, X, Zap } from "lucide-react";
 import { toast } from "sonner";
 import { Avatar, AvatarFallback } from "@/components/ui/avatar";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { useAuth } from "@/lib/auth-context";
+import { useChannel } from "@/lib/channel-context";
+import { useWallet } from "@/lib/wallet-context";
+import { sendHype, HYPE_AMOUNTS } from "@/lib/economy";
 import {
   listVideos,
   getLikeState,
@@ -15,6 +18,7 @@ import {
   type VideoPost,
   type Comment,
 } from "@/lib/ugc";
+
 
 function Comments({ video, onClose }: { video: VideoPost; onClose: () => void }) {
   const { user } = useAuth();
