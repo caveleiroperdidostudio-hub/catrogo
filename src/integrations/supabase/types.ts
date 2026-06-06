@@ -14,6 +14,33 @@ export type Database = {
   }
   public: {
     Tables: {
+      coin_transactions: {
+        Row: {
+          amount: number
+          created_at: string
+          id: string
+          kind: string
+          reference: string | null
+          user_id: string
+        }
+        Insert: {
+          amount: number
+          created_at?: string
+          id?: string
+          kind: string
+          reference?: string | null
+          user_id: string
+        }
+        Update: {
+          amount?: number
+          created_at?: string
+          id?: string
+          kind?: string
+          reference?: string | null
+          user_id?: string
+        }
+        Relationships: []
+      }
       conversation_members: {
         Row: {
           conversation_id: string
@@ -90,6 +117,38 @@ export type Database = {
           following_id?: string
         }
         Relationships: []
+      }
+      game_purchases: {
+        Row: {
+          buyer_id: string
+          created_at: string
+          game_id: string
+          id: string
+          price: number
+        }
+        Insert: {
+          buyer_id: string
+          created_at?: string
+          game_id: string
+          id?: string
+          price?: number
+        }
+        Update: {
+          buyer_id?: string
+          created_at?: string
+          game_id?: string
+          id?: string
+          price?: number
+        }
+        Relationships: [
+          {
+            foreignKeyName: "game_purchases_game_id_fkey"
+            columns: ["game_id"]
+            isOneToOne: false
+            referencedRelation: "projects_games"
+            referencedColumns: ["id"]
+          },
+        ]
       }
       interactions: {
         Row: {
@@ -243,6 +302,7 @@ export type Database = {
           description: string | null
           id: string
           plays: number
+          price: number
           source_code: string
           title: string
           updated_at: string
@@ -253,6 +313,7 @@ export type Database = {
           description?: string | null
           id?: string
           plays?: number
+          price?: number
           source_code?: string
           title: string
           updated_at?: string
@@ -263,6 +324,7 @@ export type Database = {
           description?: string | null
           id?: string
           plays?: number
+          price?: number
           source_code?: string
           title?: string
           updated_at?: string
@@ -303,11 +365,105 @@ export type Database = {
         }
         Relationships: []
       }
+      store_items: {
+        Row: {
+          active: boolean
+          attributes: Json
+          created_at: string
+          description: string | null
+          id: string
+          kind: string
+          min_subscribers: number
+          name: string
+          price: number
+          rarity: string
+        }
+        Insert: {
+          active?: boolean
+          attributes?: Json
+          created_at?: string
+          description?: string | null
+          id?: string
+          kind?: string
+          min_subscribers?: number
+          name: string
+          price?: number
+          rarity?: string
+        }
+        Update: {
+          active?: boolean
+          attributes?: Json
+          created_at?: string
+          description?: string | null
+          id?: string
+          kind?: string
+          min_subscribers?: number
+          name?: string
+          price?: number
+          rarity?: string
+        }
+        Relationships: []
+      }
+      user_items: {
+        Row: {
+          acquired_at: string
+          equipped: boolean
+          id: string
+          item_id: string
+          user_id: string
+        }
+        Insert: {
+          acquired_at?: string
+          equipped?: boolean
+          id?: string
+          item_id: string
+          user_id: string
+        }
+        Update: {
+          acquired_at?: string
+          equipped?: boolean
+          id?: string
+          item_id?: string
+          user_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "user_items_item_id_fkey"
+            columns: ["item_id"]
+            isOneToOne: false
+            referencedRelation: "store_items"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      wallets: {
+        Row: {
+          balance: number
+          created_at: string
+          updated_at: string
+          user_id: string
+        }
+        Insert: {
+          balance?: number
+          created_at?: string
+          updated_at?: string
+          user_id: string
+        }
+        Update: {
+          balance?: number
+          created_at?: string
+          updated_at?: string
+          user_id?: string
+        }
+        Relationships: []
+      }
     }
     Views: {
       [_ in never]: never
     }
     Functions: {
+      buy_game: { Args: { _game_id: string }; Returns: Json }
+      buy_store_item: { Args: { _item_id: string }; Returns: Json }
       create_group: {
         Args: { _members: string[]; _name: string }
         Returns: string
@@ -315,6 +471,7 @@ export type Database = {
       increment_game_plays: { Args: { _id: string }; Returns: undefined }
       increment_video_views: { Args: { _id: string }; Returns: undefined }
       is_member: { Args: { _conv: string; _user: string }; Returns: boolean }
+      send_hype: { Args: { _amount: number; _video_id: string }; Returns: Json }
       start_dm: { Args: { _other: string }; Returns: string }
     }
     Enums: {
