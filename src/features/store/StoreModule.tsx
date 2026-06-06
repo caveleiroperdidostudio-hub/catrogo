@@ -10,7 +10,6 @@ import {
   buyStoreItem,
   listInventory,
   equipItem,
-  getFollowCount,
   RARITY_LABEL,
   RARITY_COLOR,
   type StoreItem,
