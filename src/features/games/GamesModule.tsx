@@ -40,13 +40,17 @@ roxo, rosa, branco, preto, laranja, ciano)`;
 
 export function GamesModule() {
   const { user } = useAuth();
+  const { setBalance } = useWallet();
   const [view, setView] = useState<View>("list");
   const [games, setGames] = useState<GameProject[]>([]);
   const [loading, setLoading] = useState(true);
+  const [owned, setOwned] = useState<Set<string>>(new Set());
+  const [buyingId, setBuyingId] = useState<string | null>(null);
 
   const [editing, setEditing] = useState<GameProject | null>(null);
   const [title, setTitle] = useState("");
   const [desc, setDesc] = useState("");
+  const [price, setPrice] = useState(0);
   const [code, setCode] = useState(NEWCATROID_EXAMPLE);
   const [saving, setSaving] = useState(false);
   const [playing, setPlaying] = useState<GameProject | null>(null);
@@ -56,6 +60,8 @@ export function GamesModule() {
     setCode(c);
     setPreviewCode(c);
   };
+
+
 
 
   const load = async () => {
