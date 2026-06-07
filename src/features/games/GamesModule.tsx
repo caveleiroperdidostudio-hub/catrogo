@@ -285,29 +285,44 @@ export function GamesModule() {
           </div>
         ) : (
           <div className="grid grid-cols-2 gap-3">
-            {games.map((g) => (
-              <div key={g.id} className="rounded-2xl overflow-hidden glass border border-white/10 flex flex-col">
-                <button
-                  onClick={() => openPlay(g)}
-                  className="aspect-[4/3] flex items-center justify-center bg-gradient-to-br from-[var(--cosmic)]/30 to-[var(--nebula)]/30"
-                >
-                  <Play className="h-9 w-9 text-white/80" fill="currentColor" />
-                </button>
-                <div className="p-3 flex-1 flex flex-col">
-                  <h3 className="text-sm font-semibold truncate">{g.title}</h3>
-                  <div className="mt-1 flex items-center gap-1.5 text-xs text-muted-foreground">
-                    <Avatar className="h-4 w-4"><AvatarFallback className="text-[8px]">{(g.author?.username ?? "?").charAt(0).toUpperCase()}</AvatarFallback></Avatar>
-                    <span className="truncate">@{g.author?.username ?? "criador"}</span>
+            {games.map((g) => {
+              const locked = !canPlay(g);
+              return (
+                <div key={g.id} className="rounded-2xl overflow-hidden glass border border-white/10 flex flex-col">
+                  <button
+                    onClick={() => (locked ? handleBuy(g) : openPlay(g))}
+                    className="relative aspect-[4/3] flex items-center justify-center bg-gradient-to-br from-[var(--cosmic)]/30 to-[var(--nebula)]/30"
+                  >
+                    {locked ? <Lock className="h-8 w-8 text-white/80" /> : <Play className="h-9 w-9 text-white/80" fill="currentColor" />}
+                  </button>
+                  <div className="p-3 flex-1 flex flex-col">
+                    <h3 className="text-sm font-semibold truncate">{g.title}</h3>
+                    <div className="mt-1 flex items-center gap-1.5 text-xs text-muted-foreground">
+                      <Avatar className="h-4 w-4"><AvatarFallback className="text-[8px]">{(g.author?.username ?? "?").charAt(0).toUpperCase()}</AvatarFallback></Avatar>
+                      <span className="truncate">@{g.author?.username ?? "criador"}</span>
+                    </div>
+                    <div className="mt-1 flex items-center justify-between">
+                      <p className="text-[11px] text-muted-foreground">{g.plays} partidas</p>
+                      {g.price > 0 ? (
+                        <span className="flex items-center gap-1 text-[11px] font-semibold text-amber-400"><Coins className="h-3 w-3" />{g.price}</span>
+                      ) : (
+                        <span className="text-[11px] text-emerald-400">Grátis</span>
+                      )}
+                    </div>
+                    {locked && (
+                      <Button size="sm" className="mt-2 h-7 text-xs" disabled={buyingId === g.id} onClick={() => handleBuy(g)}>
+                        {buyingId === g.id ? <Loader2 className="h-3 w-3 animate-spin" /> : <>Comprar <Coins className="h-3 w-3 ml-1" />{g.price}</>}
+                      </Button>
+                    )}
+                    {g.user_id === user?.id && (
+                      <button onClick={() => handleDelete(g)} className="mt-2 text-[11px] text-red-400 flex items-center gap-1 self-start">
+                        <Trash2 className="h-3 w-3" /> excluir
+                      </button>
+                    )}
                   </div>
-                  <p className="text-[11px] text-muted-foreground mt-1">{g.plays} partidas</p>
-                  {g.user_id === user?.id && (
-                    <button onClick={() => handleDelete(g)} className="mt-2 text-[11px] text-red-400 flex items-center gap-1 self-start">
-                      <Trash2 className="h-3 w-3" /> excluir
-                    </button>
-                  )}
                 </div>
-              </div>
-            ))}
+              );
+            })}
           </div>
         )}
       </div>
