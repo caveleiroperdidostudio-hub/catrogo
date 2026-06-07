@@ -67,7 +67,12 @@ export function GamesModule() {
   const load = async () => {
     setLoading(true);
     try {
-      setGames(await listGames());
+      const [gs, own] = await Promise.all([
+        listGames(),
+        user ? listOwnedGameIds(user.id) : Promise.resolve(new Set<string>()),
+      ]);
+      setGames(gs);
+      setOwned(own);
     } catch {
       toast.error("Erro ao carregar jogos");
     } finally {
@@ -77,12 +82,14 @@ export function GamesModule() {
 
   useEffect(() => {
     load();
-  }, []);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [user]);
 
   const openNew = () => {
     setEditing(null);
     setTitle("");
     setDesc("");
+    setPrice(0);
     setCode(NEWCATROID_EXAMPLE);
     setPreviewCode(NEWCATROID_EXAMPLE);
     setView("editor");
@@ -92,10 +99,29 @@ export function GamesModule() {
     setEditing(g);
     setTitle(g.title);
     setDesc(g.description ?? "");
+    setPrice(g.price ?? 0);
     setCode(g.source_code);
     setPreviewCode(g.source_code);
     setView("editor");
   };
+
+  const handleBuy = async (g: GameProject) => {
+    if (!user) return;
+    setBuyingId(g.id);
+    try {
+      const bal = await buyGame(g.id);
+      setBalance(bal);
+      setOwned((s) => new Set(s).add(g.id));
+      toast.success(`"${g.title}" comprado! 🎮`);
+    } catch (e) {
+      toast.error((e as Error).message || "Não foi possível comprar");
+    } finally {
+      setBuyingId(null);
+    }
+  };
+
+  const canPlay = (g: GameProject) => g.price === 0 || g.user_id === user?.id || owned.has(g.id);
+
 
   const handleSave = async () => {
     if (!user) return;
