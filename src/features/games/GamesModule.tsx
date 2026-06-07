@@ -1,11 +1,13 @@
 import { useEffect, useState } from "react";
-import { ArrowLeft, Gamepad2, Plus, Play, Save, Trash2, Loader2, BookOpen } from "lucide-react";
+import { ArrowLeft, Gamepad2, Plus, Play, Save, Trash2, Loader2, BookOpen, Coins, Lock } from "lucide-react";
 import { toast } from "sonner";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
 import { Avatar, AvatarFallback } from "@/components/ui/avatar";
 import { useAuth } from "@/lib/auth-context";
+import { useWallet } from "@/lib/wallet-context";
+import { buyGame, listOwnedGameIds } from "@/lib/economy";
 import { GameCanvas } from "./GameCanvas";
 import { GameAiChat } from "./GameAiChat";
 import { NEWCATROID_EXAMPLE } from "@/lib/newcatroid";
@@ -38,13 +40,17 @@ roxo, rosa, branco, preto, laranja, ciano)`;
 
 export function GamesModule() {
   const { user } = useAuth();
+  const { setBalance } = useWallet();
   const [view, setView] = useState<View>("list");
   const [games, setGames] = useState<GameProject[]>([]);
   const [loading, setLoading] = useState(true);
+  const [owned, setOwned] = useState<Set<string>>(new Set());
+  const [buyingId, setBuyingId] = useState<string | null>(null);
 
   const [editing, setEditing] = useState<GameProject | null>(null);
   const [title, setTitle] = useState("");
   const [desc, setDesc] = useState("");
+  const [price, setPrice] = useState(0);
   const [code, setCode] = useState(NEWCATROID_EXAMPLE);
   const [saving, setSaving] = useState(false);
   const [playing, setPlaying] = useState<GameProject | null>(null);
@@ -56,10 +62,17 @@ export function GamesModule() {
   };
 
 
+
+
   const load = async () => {
     setLoading(true);
     try {
-      setGames(await listGames());
+      const [gs, own] = await Promise.all([
+        listGames(),
+        user ? listOwnedGameIds(user.id) : Promise.resolve(new Set<string>()),
+      ]);
+      setGames(gs);
+      setOwned(own);
     } catch {
       toast.error("Erro ao carregar jogos");
     } finally {
@@ -69,12 +82,14 @@ export function GamesModule() {
 
   useEffect(() => {
     load();
-  }, []);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [user]);
 
   const openNew = () => {
     setEditing(null);
     setTitle("");
     setDesc("");
+    setPrice(0);
     setCode(NEWCATROID_EXAMPLE);
     setPreviewCode(NEWCATROID_EXAMPLE);
     setView("editor");
@@ -84,10 +99,29 @@ export function GamesModule() {
     setEditing(g);
     setTitle(g.title);
     setDesc(g.description ?? "");
+    setPrice(g.price ?? 0);
     setCode(g.source_code);
     setPreviewCode(g.source_code);
     setView("editor");
   };
+
+  const handleBuy = async (g: GameProject) => {
+    if (!user) return;
+    setBuyingId(g.id);
+    try {
+      const bal = await buyGame(g.id);
+      setBalance(bal);
+      setOwned((s) => new Set(s).add(g.id));
+      toast.success(`"${g.title}" comprado! 🎮`);
+    } catch (e) {
+      toast.error((e as Error).message || "Não foi possível comprar");
+    } finally {
+      setBuyingId(null);
+    }
+  };
+
+  const canPlay = (g: GameProject) => g.price === 0 || g.user_id === user?.id || owned.has(g.id);
+
 
   const handleSave = async () => {
     if (!user) return;
@@ -100,6 +134,7 @@ export function GamesModule() {
         title: title.trim(),
         description: desc.trim(),
         sourceCode: code,
+        price,
       });
       toast.success("Jogo salvo!");
       await load();
@@ -143,6 +178,17 @@ export function GamesModule() {
         </div>
         <div className="flex-1 overflow-y-auto p-4 space-y-4">
           <Input placeholder="Título do jogo" value={title} onChange={(e) => setTitle(e.target.value)} className="bg-white/5 border-white/10" />
+          <div className="flex items-center gap-2 rounded-lg bg-white/5 border border-white/10 px-3 py-2">
+            <Coins className="h-4 w-4 text-amber-400 shrink-0" />
+            <span className="text-sm text-muted-foreground">Preço (0 = grátis)</span>
+            <Input
+              type="number"
+              min={0}
+              value={price}
+              onChange={(e) => setPrice(Math.max(0, parseInt(e.target.value || "0", 10)))}
+              className="ml-auto w-24 h-8 bg-black/30 border-white/10 text-right"
+            />
+          </div>
           <Input placeholder="Descrição (opcional)" value={desc} onChange={(e) => setDesc(e.target.value)} className="bg-white/5 border-white/10" />
 
           {/* Assistente de IA conversacional */}
@@ -239,29 +285,44 @@ export function GamesModule() {
           </div>
         ) : (
           <div className="grid grid-cols-2 gap-3">
-            {games.map((g) => (
-              <div key={g.id} className="rounded-2xl overflow-hidden glass border border-white/10 flex flex-col">
-                <button
-                  onClick={() => openPlay(g)}
-                  className="aspect-[4/3] flex items-center justify-center bg-gradient-to-br from-[var(--cosmic)]/30 to-[var(--nebula)]/30"
-                >
-                  <Play className="h-9 w-9 text-white/80" fill="currentColor" />
-                </button>
-                <div className="p-3 flex-1 flex flex-col">
-                  <h3 className="text-sm font-semibold truncate">{g.title}</h3>
-                  <div className="mt-1 flex items-center gap-1.5 text-xs text-muted-foreground">
-                    <Avatar className="h-4 w-4"><AvatarFallback className="text-[8px]">{(g.author?.username ?? "?").charAt(0).toUpperCase()}</AvatarFallback></Avatar>
-                    <span className="truncate">@{g.author?.username ?? "criador"}</span>
+            {games.map((g) => {
+              const locked = !canPlay(g);
+              return (
+                <div key={g.id} className="rounded-2xl overflow-hidden glass border border-white/10 flex flex-col">
+                  <button
+                    onClick={() => (locked ? handleBuy(g) : openPlay(g))}
+                    className="relative aspect-[4/3] flex items-center justify-center bg-gradient-to-br from-[var(--cosmic)]/30 to-[var(--nebula)]/30"
+                  >
+                    {locked ? <Lock className="h-8 w-8 text-white/80" /> : <Play className="h-9 w-9 text-white/80" fill="currentColor" />}
+                  </button>
+                  <div className="p-3 flex-1 flex flex-col">
+                    <h3 className="text-sm font-semibold truncate">{g.title}</h3>
+                    <div className="mt-1 flex items-center gap-1.5 text-xs text-muted-foreground">
+                      <Avatar className="h-4 w-4"><AvatarFallback className="text-[8px]">{(g.author?.username ?? "?").charAt(0).toUpperCase()}</AvatarFallback></Avatar>
+                      <span className="truncate">@{g.author?.username ?? "criador"}</span>
+                    </div>
+                    <div className="mt-1 flex items-center justify-between">
+                      <p className="text-[11px] text-muted-foreground">{g.plays} partidas</p>
+                      {g.price > 0 ? (
+                        <span className="flex items-center gap-1 text-[11px] font-semibold text-amber-400"><Coins className="h-3 w-3" />{g.price}</span>
+                      ) : (
+                        <span className="text-[11px] text-emerald-400">Grátis</span>
+                      )}
+                    </div>
+                    {locked && (
+                      <Button size="sm" className="mt-2 h-7 text-xs" disabled={buyingId === g.id} onClick={() => handleBuy(g)}>
+                        {buyingId === g.id ? <Loader2 className="h-3 w-3 animate-spin" /> : <>Comprar <Coins className="h-3 w-3 ml-1" />{g.price}</>}
+                      </Button>
+                    )}
+                    {g.user_id === user?.id && (
+                      <button onClick={() => handleDelete(g)} className="mt-2 text-[11px] text-red-400 flex items-center gap-1 self-start">
+                        <Trash2 className="h-3 w-3" /> excluir
+                      </button>
+                    )}
                   </div>
-                  <p className="text-[11px] text-muted-foreground mt-1">{g.plays} partidas</p>
-                  {g.user_id === user?.id && (
-                    <button onClick={() => handleDelete(g)} className="mt-2 text-[11px] text-red-400 flex items-center gap-1 self-start">
-                      <Trash2 className="h-3 w-3" /> excluir
-                    </button>
-                  )}
                 </div>
-              </div>
-            ))}
+              );
+            })}
           </div>
         )}
       </div>
