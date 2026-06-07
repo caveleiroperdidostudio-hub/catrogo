@@ -178,6 +178,17 @@ export function GamesModule() {
         </div>
         <div className="flex-1 overflow-y-auto p-4 space-y-4">
           <Input placeholder="Título do jogo" value={title} onChange={(e) => setTitle(e.target.value)} className="bg-white/5 border-white/10" />
+          <div className="flex items-center gap-2 rounded-lg bg-white/5 border border-white/10 px-3 py-2">
+            <Coins className="h-4 w-4 text-amber-400 shrink-0" />
+            <span className="text-sm text-muted-foreground">Preço (0 = grátis)</span>
+            <Input
+              type="number"
+              min={0}
+              value={price}
+              onChange={(e) => setPrice(Math.max(0, parseInt(e.target.value || "0", 10)))}
+              className="ml-auto w-24 h-8 bg-black/30 border-white/10 text-right"
+            />
+          </div>
           <Input placeholder="Descrição (opcional)" value={desc} onChange={(e) => setDesc(e.target.value)} className="bg-white/5 border-white/10" />
 
           {/* Assistente de IA conversacional */}
