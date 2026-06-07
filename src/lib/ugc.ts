@@ -251,7 +251,9 @@ export async function saveGame(params: {
   title: string;
   description: string;
   sourceCode: string;
+  price?: number;
 }): Promise<GameProject> {
+  const price = Math.max(0, Math.floor(params.price ?? 0));
   if (params.id) {
     const { data, error } = await supabase
       .from("projects_games")
@@ -259,6 +261,7 @@ export async function saveGame(params: {
         title: params.title,
         description: params.description || null,
         source_code: params.sourceCode,
+        price,
         updated_at: new Date().toISOString(),
       })
       .eq("id", params.id)
@@ -274,12 +277,14 @@ export async function saveGame(params: {
       title: params.title,
       description: params.description || null,
       source_code: params.sourceCode,
+      price,
     })
     .select("*")
     .single();
   if (error) throw error;
   return data as GameProject;
 }
+
 
 export async function deleteGame(id: string) {
   const { error } = await supabase.from("projects_games").delete().eq("id", id);
