@@ -203,6 +203,20 @@ function VideoPlayer({ video, onDeleted }: { video: VideoPost; onDeleted: () => 
           <Button size="sm" variant="ghost" onClick={() => setShowComments(true)}>
             <MessageCircle className="h-4 w-4" />
           </Button>
+          {video.user_id !== user?.id && (
+            <div className="relative">
+              <Button size="sm" variant="ghost" onClick={() => setHypeOpen((v) => !v)}>
+                <Zap className="h-4 w-4 mr-1 text-amber-400" /> Hype
+              </Button>
+              {hypeOpen && (
+                <div className="absolute bottom-full mb-1 left-0 flex gap-1.5 bg-black/80 rounded-full p-1.5 z-10">
+                  {HYPE_AMOUNTS.map((a) => (
+                    <button key={a} onClick={() => handleHype(a)} className="rounded-full bg-amber-500/20 text-amber-300 text-xs font-semibold px-2.5 py-1 hover:bg-amber-500/40">{a}</button>
+                  ))}
+                </div>
+              )}
+            </div>
+          )}
           {video.user_id === user?.id && (
             <Button size="icon" variant="ghost" onClick={async () => { await deleteVideo(video.id); toast.success("Vídeo removido"); onDeleted(); }}>
               <Trash2 className="h-4 w-4 text-red-400" />
