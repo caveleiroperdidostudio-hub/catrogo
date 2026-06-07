@@ -24,6 +24,7 @@ export type GameProject = {
   description: string | null;
   source_code: string;
   plays: number;
+  price: number;
   created_at: string;
   updated_at: string;
   author?: { username: string; display_name: string; avatar_url: string | null };
