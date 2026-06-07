@@ -134,6 +134,7 @@ export function GamesModule() {
         title: title.trim(),
         description: desc.trim(),
         sourceCode: code,
+        price,
       });
       toast.success("Jogo salvo!");
       await load();
