@@ -149,13 +149,26 @@ function CommentsSheet({ video, onClose }: { video: VideoPost; onClose: () => vo
 function VideoPlayer({ video, onDeleted }: { video: VideoPost; onDeleted: () => void }) {
   const { user } = useAuth();
   const { openChannel } = useChannel();
+  const { setBalance } = useWallet();
   const [like, setLike] = useState({ count: 0, liked: false });
   const [showComments, setShowComments] = useState(false);
+  const [hypeOpen, setHypeOpen] = useState(false);
   const viewed = useRef(false);
 
   useEffect(() => {
     if (user) getLikeState("video", video.id, user.id).then(setLike);
   }, [video.id, user]);
+
+  const handleHype = async (amount: number) => {
+    setHypeOpen(false);
+    try {
+      const bal = await sendHype(video.id, amount);
+      setBalance(bal);
+      toast.success(`Hype de ${amount} CatCoins enviado! ⚡`);
+    } catch (e) {
+      toast.error((e as Error).message || "Não foi possível dar hype");
+    }
+  };
 
   const onPlay = () => {
     if (!viewed.current) {
