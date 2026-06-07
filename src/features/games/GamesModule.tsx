@@ -1,11 +1,13 @@
 import { useEffect, useState } from "react";
-import { ArrowLeft, Gamepad2, Plus, Play, Save, Trash2, Loader2, BookOpen } from "lucide-react";
+import { ArrowLeft, Gamepad2, Plus, Play, Save, Trash2, Loader2, BookOpen, Coins, Lock } from "lucide-react";
 import { toast } from "sonner";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
 import { Avatar, AvatarFallback } from "@/components/ui/avatar";
 import { useAuth } from "@/lib/auth-context";
+import { useWallet } from "@/lib/wallet-context";
+import { buyGame, listOwnedGameIds } from "@/lib/economy";
 import { GameCanvas } from "./GameCanvas";
 import { GameAiChat } from "./GameAiChat";
 import { NEWCATROID_EXAMPLE } from "@/lib/newcatroid";
