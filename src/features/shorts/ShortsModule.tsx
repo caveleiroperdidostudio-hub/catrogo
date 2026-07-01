@@ -65,11 +65,46 @@ function ShortCard({ short }: { short: VideoPost }) {
   const [like, setLike] = useState({ count: 0, liked: false });
   const [showComments, setShowComments] = useState(false);
   const [hypeOpen, setHypeOpen] = useState(false);
+  const [follow, setFollow] = useState({ isFollowing: false, busy: false });
   const viewed = useRef(false);
+  const isOwn = user?.id === short.user_id;
 
   useEffect(() => {
     if (user) getLikeState("video", short.id, user.id).then(setLike);
   }, [short.id, user]);
+
+  useEffect(() => {
+    if (user && !isOwn) getFollowStats(short.user_id, user.id).then((s) => setFollow((f) => ({ ...f, isFollowing: s.isFollowing })));
+  }, [short.user_id, user, isOwn]);
+
+  const handleFollow = async () => {
+    if (!user || follow.busy) return;
+    const wasFollowing = follow.isFollowing;
+    setFollow({ isFollowing: !wasFollowing, busy: true });
+    try {
+      await toggleFollow(short.user_id, user.id, wasFollowing);
+      toast.success(wasFollowing ? "Inscrição cancelada" : "Inscrito! 🔔");
+    } catch {
+      setFollow({ isFollowing: wasFollowing, busy: false });
+      return;
+    }
+    setFollow({ isFollowing: !wasFollowing, busy: false });
+  };
+
+  const handleShare = async () => {
+    const url = `${window.location.origin}/?short=${short.id}`;
+    try {
+      if (navigator.share) {
+        await navigator.share({ title: short.title, text: `Veja este short no Catrogo: ${short.title}`, url });
+      } else {
+        await navigator.clipboard.writeText(url);
+        toast.success("Link copiado! 🔗");
+      }
+    } catch {
+      /* cancelado */
+    }
+  };
+
 
   useEffect(() => {
     const el = videoRef.current;
