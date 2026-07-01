@@ -1,6 +1,6 @@
 import { useEffect, useRef, useState } from "react";
 import { useServerFn } from "@tanstack/react-start";
-import { Sparkles, Wand2, Loader2, Send, Code2, Lightbulb } from "lucide-react";
+import { Sparkles, Wand2, Loader2, Send, Code2, Lightbulb, History, Save, RotateCcw, X, Trash2 } from "lucide-react";
 import { toast } from "sonner";
 import { Button } from "@/components/ui/button";
 import { Textarea } from "@/components/ui/textarea";
