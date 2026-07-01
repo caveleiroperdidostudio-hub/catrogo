@@ -158,9 +158,20 @@ function ShortCard({ short }: { short: VideoPost }) {
           <p className="text-sm opacity-90">{short.title}</p>
         </div>
         <div className="flex flex-col items-center gap-5 text-white">
-          <button onClick={() => openChannel(short.user_id)} className="flex flex-col items-center gap-1">
-            <Avatar className="h-9 w-9 border border-white/40"><AvatarFallback>{(short.author?.username ?? "?").charAt(0).toUpperCase()}</AvatarFallback></Avatar>
-          </button>
+          <div className="relative flex flex-col items-center">
+            <button onClick={() => openChannel(short.user_id)} className="flex flex-col items-center gap-1">
+              <Avatar className="h-9 w-9 border border-white/40"><AvatarFallback>{(short.author?.username ?? "?").charAt(0).toUpperCase()}</AvatarFallback></Avatar>
+            </button>
+            {!isOwn && (
+              <button
+                onClick={handleFollow}
+                disabled={follow.busy}
+                className={`-mt-1.5 rounded-full p-1 shadow-lg ${follow.isFollowing ? "bg-white/20" : "bg-primary"}`}
+              >
+                {follow.isFollowing ? <UserCheck className="h-3 w-3" /> : <UserPlus className="h-3 w-3" />}
+              </button>
+            )}
+          </div>
           <button onClick={handleLike} className="flex flex-col items-center gap-1">
             <Heart className={`h-7 w-7 ${like.liked ? "fill-red-500 text-red-500" : ""}`} />
             <span className="text-xs">{like.count}</span>
