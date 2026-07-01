@@ -191,6 +191,9 @@ function ShortCard({ short }: { short: VideoPost }) {
               </div>
             )}
           </div>
+          <button onClick={handleShare} className="flex flex-col items-center gap-1">
+            <Share2 className="h-7 w-7" /><span className="text-xs">Enviar</span>
+          </button>
         </div>
       </div>
       {showComments && <Comments video={short} onClose={() => setShowComments(false)} />}
