@@ -192,7 +192,7 @@ export function GamesModule() {
           <Input placeholder="Descrição (opcional)" value={desc} onChange={(e) => setDesc(e.target.value)} className="bg-white/5 border-white/10" />
 
           {/* Assistente de IA conversacional */}
-          <GameAiChat currentCode={code} onUseCode={applyCode} />
+          <GameAiChat currentCode={code} onUseCode={applyCode} sessionId={editing?.id ?? "novo"} />
 
 
           <div className="flex justify-center">

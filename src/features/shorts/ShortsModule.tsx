@@ -1,5 +1,5 @@
 import { useEffect, useRef, useState } from "react";
-import { Heart, MessageCircle, Send, Loader2, Upload, X, Zap } from "lucide-react";
+import { Heart, MessageCircle, Send, Loader2, Upload, X, Zap, Share2, UserPlus, UserCheck } from "lucide-react";
 import { toast } from "sonner";
 import { Avatar, AvatarFallback } from "@/components/ui/avatar";
 import { Button } from "@/components/ui/button";
@@ -15,6 +15,8 @@ import {
   listComments,
   addComment,
   registerView,
+  getFollowStats,
+  toggleFollow,
   type VideoPost,
   type Comment,
 } from "@/lib/ugc";
@@ -63,11 +65,46 @@ function ShortCard({ short }: { short: VideoPost }) {
   const [like, setLike] = useState({ count: 0, liked: false });
   const [showComments, setShowComments] = useState(false);
   const [hypeOpen, setHypeOpen] = useState(false);
+  const [follow, setFollow] = useState({ isFollowing: false, busy: false });
   const viewed = useRef(false);
+  const isOwn = user?.id === short.user_id;
 
   useEffect(() => {
     if (user) getLikeState("video", short.id, user.id).then(setLike);
   }, [short.id, user]);
+
+  useEffect(() => {
+    if (user && !isOwn) getFollowStats(short.user_id, user.id).then((s) => setFollow((f) => ({ ...f, isFollowing: s.isFollowing })));
+  }, [short.user_id, user, isOwn]);
+
+  const handleFollow = async () => {
+    if (!user || follow.busy) return;
+    const wasFollowing = follow.isFollowing;
+    setFollow({ isFollowing: !wasFollowing, busy: true });
+    try {
+      await toggleFollow(short.user_id, user.id, wasFollowing);
+      toast.success(wasFollowing ? "Inscrição cancelada" : "Inscrito! 🔔");
+    } catch {
+      setFollow({ isFollowing: wasFollowing, busy: false });
+      return;
+    }
+    setFollow({ isFollowing: !wasFollowing, busy: false });
+  };
+
+  const handleShare = async () => {
+    const url = `${window.location.origin}/?short=${short.id}`;
+    try {
+      if (navigator.share) {
+        await navigator.share({ title: short.title, text: `Veja este short no Catrogo: ${short.title}`, url });
+      } else {
+        await navigator.clipboard.writeText(url);
+        toast.success("Link copiado! 🔗");
+      }
+    } catch {
+      /* cancelado */
+    }
+  };
+
 
   useEffect(() => {
     const el = videoRef.current;
@@ -121,9 +158,20 @@ function ShortCard({ short }: { short: VideoPost }) {
           <p className="text-sm opacity-90">{short.title}</p>
         </div>
         <div className="flex flex-col items-center gap-5 text-white">
-          <button onClick={() => openChannel(short.user_id)} className="flex flex-col items-center gap-1">
-            <Avatar className="h-9 w-9 border border-white/40"><AvatarFallback>{(short.author?.username ?? "?").charAt(0).toUpperCase()}</AvatarFallback></Avatar>
-          </button>
+          <div className="relative flex flex-col items-center">
+            <button onClick={() => openChannel(short.user_id)} className="flex flex-col items-center gap-1">
+              <Avatar className="h-9 w-9 border border-white/40"><AvatarFallback>{(short.author?.username ?? "?").charAt(0).toUpperCase()}</AvatarFallback></Avatar>
+            </button>
+            {!isOwn && (
+              <button
+                onClick={handleFollow}
+                disabled={follow.busy}
+                className={`-mt-1.5 rounded-full p-1 shadow-lg ${follow.isFollowing ? "bg-white/20" : "bg-primary"}`}
+              >
+                {follow.isFollowing ? <UserCheck className="h-3 w-3" /> : <UserPlus className="h-3 w-3" />}
+              </button>
+            )}
+          </div>
           <button onClick={handleLike} className="flex flex-col items-center gap-1">
             <Heart className={`h-7 w-7 ${like.liked ? "fill-red-500 text-red-500" : ""}`} />
             <span className="text-xs">{like.count}</span>
@@ -143,6 +191,9 @@ function ShortCard({ short }: { short: VideoPost }) {
               </div>
             )}
           </div>
+          <button onClick={handleShare} className="flex flex-col items-center gap-1">
+            <Share2 className="h-7 w-7" /><span className="text-xs">Enviar</span>
+          </button>
         </div>
       </div>
       {showComments && <Comments video={short} onClose={() => setShowComments(false)} />}

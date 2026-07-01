@@ -1,5 +1,5 @@
 import { useEffect, useState } from "react";
-import { Loader2, Coins, ShoppingBag, Sparkles, Check, Lock, Backpack } from "lucide-react";
+import { Loader2, Coins, ShoppingBag, Sparkles, Check, Lock, Backpack, Wallet, ArrowDownLeft, ArrowUpRight } from "lucide-react";
 import { toast } from "sonner";
 import { Button } from "@/components/ui/button";
 import { useAuth } from "@/lib/auth-context";
@@ -10,10 +10,13 @@ import {
   buyStoreItem,
   listInventory,
   equipItem,
+  listTransactions,
+  txLabel,
   RARITY_LABEL,
   RARITY_COLOR,
   type StoreItem,
   type OwnedItem,
+  type CoinTransaction,
 } from "@/lib/economy";
 import { getFollowStats } from "@/lib/ugc";
 
@@ -22,10 +25,11 @@ const KIND_EMOJI: Record<string, string> = { skin: "🎨", badge: "🏷️", efe
 export function StoreModule() {
   const { user } = useAuth();
   const { balance, setBalance } = useWallet();
-  const [tab, setTab] = useState<"loja" | "inventario">("loja");
+  const [tab, setTab] = useState<"loja" | "inventario" | "carteira">("loja");
   const [items, setItems] = useState<StoreItem[]>([]);
   const [owned, setOwned] = useState<Set<string>>(new Set());
   const [inventory, setInventory] = useState<OwnedItem[]>([]);
+  const [transactions, setTransactions] = useState<CoinTransaction[]>([]);
   const [subs, setSubs] = useState(0);
   const [loading, setLoading] = useState(true);
   const [busyId, setBusyId] = useState<string | null>(null);
@@ -34,22 +38,25 @@ export function StoreModule() {
     if (!user) return;
     setLoading(true);
     try {
-      const [its, own, inv, stats] = await Promise.all([
+      const [its, own, inv, stats, txs] = await Promise.all([
         listStoreItems(),
         listOwnedItemIds(user.id),
         listInventory(user.id),
         getFollowStats(user.id),
+        listTransactions(),
       ]);
       setItems(its);
       setOwned(own);
       setInventory(inv);
       setSubs(stats.followers);
+      setTransactions(txs);
     } catch {
       toast.error("Erro ao carregar a loja");
     } finally {
       setLoading(false);
     }
   };
+
 
   useEffect(() => {
     load();
@@ -91,17 +98,18 @@ export function StoreModule() {
       </div>
 
       <div className="flex border-b border-white/5">
-        {(["loja", "inventario"] as const).map((t) => (
+        {(["loja", "inventario", "carteira"] as const).map((t) => (
           <button
             key={t}
             onClick={() => setTab(t)}
             className={`flex-1 py-3 text-sm font-medium flex items-center justify-center gap-1.5 ${tab === t ? "text-primary border-b-2 border-primary" : "text-muted-foreground"}`}
           >
-            {t === "loja" ? <Sparkles className="h-4 w-4" /> : <Backpack className="h-4 w-4" />}
-            {t === "loja" ? "Loja rotativa" : "Meus itens"}
+            {t === "loja" ? <Sparkles className="h-4 w-4" /> : t === "inventario" ? <Backpack className="h-4 w-4" /> : <Wallet className="h-4 w-4" />}
+            {t === "loja" ? "Loja" : t === "inventario" ? "Meus itens" : "Carteira"}
           </button>
         ))}
       </div>
+
 
       {loading ? (
         <div className="flex flex-1 items-center justify-center"><Loader2 className="h-6 w-6 animate-spin text-muted-foreground" /></div>
@@ -147,7 +155,7 @@ export function StoreModule() {
           )}
           <div className="h-2" />
         </div>
-      ) : (
+      ) : tab === "inventario" ? (
         <div className="flex-1 overflow-y-auto p-4 space-y-3">
           {inventory.length === 0 ? (
             <p className="text-center text-sm text-muted-foreground py-10">Você ainda não tem itens. Compre na loja!</p>
@@ -166,6 +174,39 @@ export function StoreModule() {
                 )}
               </div>
             ))
+          )}
+          <div className="h-2" />
+        </div>
+      ) : (
+        <div className="flex-1 overflow-y-auto p-4 space-y-3">
+          <div className="rounded-2xl border border-amber-500/30 bg-gradient-to-br from-amber-500/15 to-fuchsia-500/10 p-5 text-center">
+            <p className="text-xs text-amber-300/80 flex items-center justify-center gap-1"><Wallet className="h-3.5 w-3.5" /> Saldo atual</p>
+            <p className="mt-1 flex items-center justify-center gap-2 text-3xl font-bold text-amber-400">
+              <Coins className="h-7 w-7" /> {balance}
+            </p>
+            <p className="mt-1 text-[11px] text-muted-foreground">CatCoins — use para comprar itens, jogos e dar hype</p>
+          </div>
+          <p className="text-xs text-muted-foreground pt-1">Histórico de transações</p>
+          {transactions.length === 0 ? (
+            <p className="text-center text-sm text-muted-foreground py-10">Nenhuma transação ainda.</p>
+          ) : (
+            transactions.map((tx) => {
+              const meta = txLabel(tx.kind);
+              const positive = tx.amount > 0;
+              return (
+                <div key={tx.id} className="rounded-xl border border-white/10 bg-white/[0.03] p-3 flex items-center gap-3">
+                  <div className="text-xl">{meta.emoji}</div>
+                  <div className="flex-1 min-w-0">
+                    <p className="text-sm font-medium truncate">{meta.label}</p>
+                    <p className="text-[11px] text-muted-foreground">{new Date(tx.created_at).toLocaleString("pt-BR")}</p>
+                  </div>
+                  <span className={`flex items-center gap-1 text-sm font-semibold ${positive ? "text-emerald-400" : "text-red-400"}`}>
+                    {positive ? <ArrowDownLeft className="h-3.5 w-3.5" /> : <ArrowUpRight className="h-3.5 w-3.5" />}
+                    {positive ? "+" : ""}{tx.amount}
+                  </span>
+                </div>
+              );
+            })
           )}
           <div className="h-2" />
         </div>
