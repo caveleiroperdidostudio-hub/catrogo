@@ -155,7 +155,7 @@ export function StoreModule() {
           )}
           <div className="h-2" />
         </div>
-      ) : (
+      ) : tab === "inventario" ? (
         <div className="flex-1 overflow-y-auto p-4 space-y-3">
           {inventory.length === 0 ? (
             <p className="text-center text-sm text-muted-foreground py-10">Você ainda não tem itens. Compre na loja!</p>
