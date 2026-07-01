@@ -98,17 +98,18 @@ export function StoreModule() {
       </div>
 
       <div className="flex border-b border-white/5">
-        {(["loja", "inventario"] as const).map((t) => (
+        {(["loja", "inventario", "carteira"] as const).map((t) => (
           <button
             key={t}
             onClick={() => setTab(t)}
             className={`flex-1 py-3 text-sm font-medium flex items-center justify-center gap-1.5 ${tab === t ? "text-primary border-b-2 border-primary" : "text-muted-foreground"}`}
           >
-            {t === "loja" ? <Sparkles className="h-4 w-4" /> : <Backpack className="h-4 w-4" />}
-            {t === "loja" ? "Loja rotativa" : "Meus itens"}
+            {t === "loja" ? <Sparkles className="h-4 w-4" /> : t === "inventario" ? <Backpack className="h-4 w-4" /> : <Wallet className="h-4 w-4" />}
+            {t === "loja" ? "Loja" : t === "inventario" ? "Meus itens" : "Carteira"}
           </button>
         ))}
       </div>
+
 
       {loading ? (
         <div className="flex flex-1 items-center justify-center"><Loader2 className="h-6 w-6 animate-spin text-muted-foreground" /></div>
