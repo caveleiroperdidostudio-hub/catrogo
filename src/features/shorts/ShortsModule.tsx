@@ -1,5 +1,5 @@
 import { useEffect, useRef, useState } from "react";
-import { Heart, MessageCircle, Send, Loader2, Upload, X, Zap } from "lucide-react";
+import { Heart, MessageCircle, Send, Loader2, Upload, X, Zap, Share2, UserPlus, UserCheck } from "lucide-react";
 import { toast } from "sonner";
 import { Avatar, AvatarFallback } from "@/components/ui/avatar";
 import { Button } from "@/components/ui/button";
@@ -15,6 +15,8 @@ import {
   listComments,
   addComment,
   registerView,
+  getFollowStats,
+  toggleFollow,
   type VideoPost,
   type Comment,
 } from "@/lib/ugc";
