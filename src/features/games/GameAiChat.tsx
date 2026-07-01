@@ -165,8 +165,40 @@ export function GameAiChat({
     <div className="rounded-2xl border border-primary/30 bg-primary/10 overflow-hidden">
       <div className="flex items-center gap-2 px-3 py-2.5 border-b border-primary/20">
         <Sparkles className="h-4 w-4 text-primary" />
-        <span className="text-sm font-semibold">Criar e conversar com a IA</span>
+        <span className="text-sm font-semibold flex-1">Criar e conversar com a IA</span>
+        {messages.length > 0 && (
+          <button onClick={clearMemory} title="Limpar memória" className="text-muted-foreground hover:text-foreground">
+            <Trash2 className="h-3.5 w-3.5" />
+          </button>
+        )}
       </div>
+
+      {/* Pontos de verificação */}
+      <div className="p-3 space-y-2 border-b border-primary/15">
+        <div className="flex items-center justify-between">
+          <p className="text-[11px] text-muted-foreground flex items-center gap-1">
+            <History className="h-3 w-3" /> Pontos de verificação — salve versões do código
+          </p>
+          <button onClick={saveCheckpoint} className="flex items-center gap-1 rounded-full bg-white/5 px-2 py-1 text-[11px] hover:bg-white/10">
+            <Save className="h-3 w-3" /> Salvar
+          </button>
+        </div>
+        {checkpoints.length > 0 && (
+          <div className="flex flex-wrap gap-1.5">
+            {checkpoints.slice().reverse().map((cp) => (
+              <div key={cp.id} className="flex items-center gap-1 rounded-full bg-primary/15 pl-2.5 pr-1 py-0.5 text-[11px]">
+                <button onClick={() => { onUseCode(cp.code); toast.success("Versão restaurada!"); }} className="flex items-center gap-1 hover:text-primary">
+                  <RotateCcw className="h-3 w-3" /> {cp.label}
+                </button>
+                <button onClick={() => setCheckpoints((c) => c.filter((x) => x.id !== cp.id))} className="text-muted-foreground hover:text-red-400">
+                  <X className="h-3 w-3" />
+                </button>
+              </div>
+            ))}
+          </div>
+        )}
+      </div>
+
 
       {/* Templates */}
       <div className="p-3 space-y-2 border-b border-primary/15">
