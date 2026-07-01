@@ -177,6 +177,39 @@ export function StoreModule() {
           )}
           <div className="h-2" />
         </div>
+      ) : (
+        <div className="flex-1 overflow-y-auto p-4 space-y-3">
+          <div className="rounded-2xl border border-amber-500/30 bg-gradient-to-br from-amber-500/15 to-fuchsia-500/10 p-5 text-center">
+            <p className="text-xs text-amber-300/80 flex items-center justify-center gap-1"><Wallet className="h-3.5 w-3.5" /> Saldo atual</p>
+            <p className="mt-1 flex items-center justify-center gap-2 text-3xl font-bold text-amber-400">
+              <Coins className="h-7 w-7" /> {balance}
+            </p>
+            <p className="mt-1 text-[11px] text-muted-foreground">CatCoins — use para comprar itens, jogos e dar hype</p>
+          </div>
+          <p className="text-xs text-muted-foreground pt-1">Histórico de transações</p>
+          {transactions.length === 0 ? (
+            <p className="text-center text-sm text-muted-foreground py-10">Nenhuma transação ainda.</p>
+          ) : (
+            transactions.map((tx) => {
+              const meta = txLabel(tx.kind);
+              const positive = tx.amount > 0;
+              return (
+                <div key={tx.id} className="rounded-xl border border-white/10 bg-white/[0.03] p-3 flex items-center gap-3">
+                  <div className="text-xl">{meta.emoji}</div>
+                  <div className="flex-1 min-w-0">
+                    <p className="text-sm font-medium truncate">{meta.label}</p>
+                    <p className="text-[11px] text-muted-foreground">{new Date(tx.created_at).toLocaleString("pt-BR")}</p>
+                  </div>
+                  <span className={`flex items-center gap-1 text-sm font-semibold ${positive ? "text-emerald-400" : "text-red-400"}`}>
+                    {positive ? <ArrowDownLeft className="h-3.5 w-3.5" /> : <ArrowUpRight className="h-3.5 w-3.5" />}
+                    {positive ? "+" : ""}{tx.amount}
+                  </span>
+                </div>
+              );
+            })
+          )}
+          <div className="h-2" />
+        </div>
       )}
     </div>
   );
