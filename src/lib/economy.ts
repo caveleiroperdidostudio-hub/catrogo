@@ -40,6 +40,20 @@ export const RARITY_COLOR: Record<Rarity, string> = {
 
 export const HYPE_AMOUNTS = [5, 10, 50] as const;
 
+export const TX_LABEL: Record<string, { label: string; emoji: string }> = {
+  buy_item: { label: "Compra na loja", emoji: "🛍️" },
+  buy_game: { label: "Compra de jogo", emoji: "🎮" },
+  hype_sent: { label: "Hype enviado", emoji: "⚡" },
+  hype_received: { label: "Hype recebido", emoji: "💰" },
+  reward: { label: "Recompensa", emoji: "🎁" },
+  daily: { label: "Bônus diário", emoji: "📅" },
+  bonus: { label: "Bônus", emoji: "✨" },
+};
+
+export function txLabel(kind: string) {
+  return TX_LABEL[kind] ?? { label: kind.replace(/_/g, " "), emoji: "🪙" };
+}
+
 /* ---------------- Wallet ---------------- */
 
 export async function getBalance(userId: string): Promise<number> {
