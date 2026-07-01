@@ -83,18 +83,55 @@ function stripCode(text: string): string {
   return text.replace(/```[\s\S]*?```/g, "").replace(/\n{3,}/g, "\n\n").trim();
 }
 
+type Checkpoint = { id: string; label: string; code: string; at: number };
+
 export function GameAiChat({
   currentCode,
   onUseCode,
+  sessionId = "novo",
 }: {
   currentCode: string;
   onUseCode: (code: string) => void;
+  sessionId?: string;
 }) {
-  const [messages, setMessages] = useState<Msg[]>([]);
+  const memKey = `catrogo:ai:${sessionId}`;
+  const ckKey = `catrogo:ck:${sessionId}`;
+  const [messages, setMessages] = useState<Msg[]>(() => {
+    try { return JSON.parse(localStorage.getItem(memKey) || "[]"); } catch { return []; }
+  });
+  const [checkpoints, setCheckpoints] = useState<Checkpoint[]>(() => {
+    try { return JSON.parse(localStorage.getItem(ckKey) || "[]"); } catch { return []; }
+  });
   const [input, setInput] = useState("");
   const [busy, setBusy] = useState(false);
   const callChat = useServerFn(chatAssistant);
   const scrollRef = useRef<HTMLDivElement>(null);
+
+  useEffect(() => {
+    try { localStorage.setItem(memKey, JSON.stringify(messages.slice(-40))); } catch { /* quota */ }
+  }, [messages, memKey]);
+
+  useEffect(() => {
+    try { localStorage.setItem(ckKey, JSON.stringify(checkpoints.slice(-12))); } catch { /* quota */ }
+  }, [checkpoints, ckKey]);
+
+  const saveCheckpoint = () => {
+    if (!currentCode.trim()) { toast.error("Nada para salvar ainda"); return; }
+    const cp: Checkpoint = {
+      id: crypto.randomUUID(),
+      label: new Date().toLocaleTimeString("pt-BR", { hour: "2-digit", minute: "2-digit" }),
+      code: currentCode,
+      at: Date.now(),
+    };
+    setCheckpoints((c) => [...c, cp]);
+    toast.success("Ponto de verificação salvo! ⏱️");
+  };
+
+  const clearMemory = () => {
+    setMessages([]);
+    toast.success("Memória da conversa limpa");
+  };
+
 
   useEffect(() => {
     scrollRef.current?.scrollTo({ top: scrollRef.current.scrollHeight, behavior: "smooth" });
