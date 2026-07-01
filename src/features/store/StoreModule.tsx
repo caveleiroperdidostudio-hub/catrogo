@@ -1,5 +1,5 @@
 import { useEffect, useState } from "react";
-import { Loader2, Coins, ShoppingBag, Sparkles, Check, Lock, Backpack } from "lucide-react";
+import { Loader2, Coins, ShoppingBag, Sparkles, Check, Lock, Backpack, Wallet, ArrowDownLeft, ArrowUpRight } from "lucide-react";
 import { toast } from "sonner";
 import { Button } from "@/components/ui/button";
 import { useAuth } from "@/lib/auth-context";
@@ -10,10 +10,13 @@ import {
   buyStoreItem,
   listInventory,
   equipItem,
+  listTransactions,
+  txLabel,
   RARITY_LABEL,
   RARITY_COLOR,
   type StoreItem,
   type OwnedItem,
+  type CoinTransaction,
 } from "@/lib/economy";
 import { getFollowStats } from "@/lib/ugc";
 
@@ -22,10 +25,11 @@ const KIND_EMOJI: Record<string, string> = { skin: "🎨", badge: "🏷️", efe
 export function StoreModule() {
   const { user } = useAuth();
   const { balance, setBalance } = useWallet();
-  const [tab, setTab] = useState<"loja" | "inventario">("loja");
+  const [tab, setTab] = useState<"loja" | "inventario" | "carteira">("loja");
   const [items, setItems] = useState<StoreItem[]>([]);
   const [owned, setOwned] = useState<Set<string>>(new Set());
   const [inventory, setInventory] = useState<OwnedItem[]>([]);
+  const [transactions, setTransactions] = useState<CoinTransaction[]>([]);
   const [subs, setSubs] = useState(0);
   const [loading, setLoading] = useState(true);
   const [busyId, setBusyId] = useState<string | null>(null);
@@ -34,22 +38,25 @@ export function StoreModule() {
     if (!user) return;
     setLoading(true);
     try {
-      const [its, own, inv, stats] = await Promise.all([
+      const [its, own, inv, stats, txs] = await Promise.all([
         listStoreItems(),
         listOwnedItemIds(user.id),
         listInventory(user.id),
         getFollowStats(user.id),
+        listTransactions(),
       ]);
       setItems(its);
       setOwned(own);
       setInventory(inv);
       setSubs(stats.followers);
+      setTransactions(txs);
     } catch {
       toast.error("Erro ao carregar a loja");
     } finally {
       setLoading(false);
     }
   };
+
 
   useEffect(() => {
     load();
