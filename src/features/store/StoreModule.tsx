@@ -94,7 +94,7 @@ export function StoreModule() {
         <ShoppingBag className="h-5 w-5 text-primary" />
         <span className="font-semibold flex-1">Loja Catrogo</span>
         <span className="flex items-center gap-1.5 rounded-full bg-amber-500/15 text-amber-400 px-3 py-1 text-sm font-semibold">
-          <Coins className="h-4 w-4" /> {balance}
+          <Coins className="h-4 w-4" /> {balanceLabel}
         </span>
       </div>
 
