@@ -23,8 +23,9 @@ import { getFollowStats } from "@/lib/ugc";
 const KIND_EMOJI: Record<string, string> = { skin: "🎨", badge: "🏷️", efeito: "✨" };
 
 export function StoreModule() {
-  const { user } = useAuth();
+  const { user, isOwner } = useAuth();
   const { balance, setBalance } = useWallet();
+  const balanceLabel = isOwner ? "∞" : balance;
   const [tab, setTab] = useState<"loja" | "inventario" | "carteira">("loja");
   const [items, setItems] = useState<StoreItem[]>([]);
   const [owned, setOwned] = useState<Set<string>>(new Set());
