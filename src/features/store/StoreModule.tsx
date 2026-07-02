@@ -145,7 +145,7 @@ export function StoreModule() {
                     {isOwned ? (
                       <span className="text-xs text-emerald-400 flex items-center gap-1"><Check className="h-3.5 w-3.5" /> Adquirido</span>
                     ) : (
-                      <Button size="sm" disabled={busyId === item.id || locked || balance < item.price} onClick={() => handleBuy(item)}>
+                      <Button size="sm" disabled={busyId === item.id || locked || (!isOwner && balance < item.price)} onClick={() => handleBuy(item)}>
                         {busyId === item.id ? <Loader2 className="h-4 w-4 animate-spin" /> : "Comprar"}
                       </Button>
                     )}
