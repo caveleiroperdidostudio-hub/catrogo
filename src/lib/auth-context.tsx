@@ -16,9 +16,12 @@ type AuthContextValue = {
   user: User | null;
   profile: Profile | null;
   loading: boolean;
+  isOwner: boolean;
   signOut: () => Promise<void>;
   refreshProfile: () => Promise<void>;
 };
+
+export const OWNER_EMAIL = "oio82663@gmail.com";
 
 const AuthContext = createContext<AuthContextValue | undefined>(undefined);
 
@@ -67,7 +70,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
 
   return (
     <AuthContext.Provider
-      value={{ session, user: session?.user ?? null, profile, loading, signOut, refreshProfile }}
+      value={{ session, user: session?.user ?? null, profile, loading, isOwner: (session?.user?.email ?? "").toLowerCase() === OWNER_EMAIL, signOut, refreshProfile }}
     >
       {children}
     </AuthContext.Provider>

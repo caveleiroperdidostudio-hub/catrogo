@@ -23,8 +23,9 @@ import { getFollowStats } from "@/lib/ugc";
 const KIND_EMOJI: Record<string, string> = { skin: "🎨", badge: "🏷️", efeito: "✨" };
 
 export function StoreModule() {
-  const { user } = useAuth();
+  const { user, isOwner } = useAuth();
   const { balance, setBalance } = useWallet();
+  const balanceLabel = isOwner ? "∞" : balance;
   const [tab, setTab] = useState<"loja" | "inventario" | "carteira">("loja");
   const [items, setItems] = useState<StoreItem[]>([]);
   const [owned, setOwned] = useState<Set<string>>(new Set());
@@ -93,7 +94,7 @@ export function StoreModule() {
         <ShoppingBag className="h-5 w-5 text-primary" />
         <span className="font-semibold flex-1">Loja Catrogo</span>
         <span className="flex items-center gap-1.5 rounded-full bg-amber-500/15 text-amber-400 px-3 py-1 text-sm font-semibold">
-          <Coins className="h-4 w-4" /> {balance}
+          <Coins className="h-4 w-4" /> {balanceLabel}
         </span>
       </div>
 
@@ -144,7 +145,7 @@ export function StoreModule() {
                     {isOwned ? (
                       <span className="text-xs text-emerald-400 flex items-center gap-1"><Check className="h-3.5 w-3.5" /> Adquirido</span>
                     ) : (
-                      <Button size="sm" disabled={busyId === item.id || locked || balance < item.price} onClick={() => handleBuy(item)}>
+                      <Button size="sm" disabled={busyId === item.id || locked || (!isOwner && balance < item.price)} onClick={() => handleBuy(item)}>
                         {busyId === item.id ? <Loader2 className="h-4 w-4 animate-spin" /> : "Comprar"}
                       </Button>
                     )}
@@ -182,7 +183,7 @@ export function StoreModule() {
           <div className="rounded-2xl border border-amber-500/30 bg-gradient-to-br from-amber-500/15 to-fuchsia-500/10 p-5 text-center">
             <p className="text-xs text-amber-300/80 flex items-center justify-center gap-1"><Wallet className="h-3.5 w-3.5" /> Saldo atual</p>
             <p className="mt-1 flex items-center justify-center gap-2 text-3xl font-bold text-amber-400">
-              <Coins className="h-7 w-7" /> {balance}
+              <Coins className="h-7 w-7" /> {balanceLabel}
             </p>
             <p className="mt-1 text-[11px] text-muted-foreground">CatCoins — use para comprar itens, jogos e dar hype</p>
           </div>

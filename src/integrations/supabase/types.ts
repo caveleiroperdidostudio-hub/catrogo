@@ -100,6 +100,38 @@ export type Database = {
         }
         Relationships: []
       }
+      event_progress: {
+        Row: {
+          completed_at: string
+          event_id: string
+          id: string
+          mission_key: string
+          user_id: string
+        }
+        Insert: {
+          completed_at?: string
+          event_id: string
+          id?: string
+          mission_key: string
+          user_id: string
+        }
+        Update: {
+          completed_at?: string
+          event_id?: string
+          id?: string
+          mission_key?: string
+          user_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "event_progress_event_id_fkey"
+            columns: ["event_id"]
+            isOneToOne: false
+            referencedRelation: "global_events"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       follows: {
         Row: {
           created_at: string
@@ -149,6 +181,39 @@ export type Database = {
             referencedColumns: ["id"]
           },
         ]
+      }
+      global_events: {
+        Row: {
+          active: boolean
+          created_at: string
+          created_by: string | null
+          ends_at: string
+          id: string
+          kind: string
+          started_at: string
+          title: string
+        }
+        Insert: {
+          active?: boolean
+          created_at?: string
+          created_by?: string | null
+          ends_at: string
+          id?: string
+          kind: string
+          started_at?: string
+          title: string
+        }
+        Update: {
+          active?: boolean
+          created_at?: string
+          created_by?: string | null
+          ends_at?: string
+          id?: string
+          kind?: string
+          started_at?: string
+          title?: string
+        }
+        Relationships: []
       }
       interactions: {
         Row: {
@@ -220,6 +285,66 @@ export type Database = {
             referencedColumns: ["id"]
           },
         ]
+      }
+      modpacks: {
+        Row: {
+          created_at: string
+          id: string
+          mod_ids: string[]
+          name: string
+          user_id: string
+        }
+        Insert: {
+          created_at?: string
+          id?: string
+          mod_ids?: string[]
+          name: string
+          user_id: string
+        }
+        Update: {
+          created_at?: string
+          id?: string
+          mod_ids?: string[]
+          name?: string
+          user_id?: string
+        }
+        Relationships: []
+      }
+      mods: {
+        Row: {
+          created_at: string
+          description: string | null
+          id: string
+          installs: number
+          is_exclusive: boolean
+          source_code: string
+          title: string
+          updated_at: string
+          user_id: string | null
+        }
+        Insert: {
+          created_at?: string
+          description?: string | null
+          id?: string
+          installs?: number
+          is_exclusive?: boolean
+          source_code?: string
+          title: string
+          updated_at?: string
+          user_id?: string | null
+        }
+        Update: {
+          created_at?: string
+          description?: string | null
+          id?: string
+          installs?: number
+          is_exclusive?: boolean
+          source_code?: string
+          title?: string
+          updated_at?: string
+          user_id?: string | null
+        }
+        Relationships: []
       }
       posts_video: {
         Row: {
@@ -436,6 +561,59 @@ export type Database = {
           },
         ]
       }
+      user_mods: {
+        Row: {
+          acquired_at: string
+          active: boolean
+          id: string
+          mod_id: string
+          user_id: string
+        }
+        Insert: {
+          acquired_at?: string
+          active?: boolean
+          id?: string
+          mod_id: string
+          user_id: string
+        }
+        Update: {
+          acquired_at?: string
+          active?: boolean
+          id?: string
+          mod_id?: string
+          user_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "user_mods_mod_id_fkey"
+            columns: ["mod_id"]
+            isOneToOne: false
+            referencedRelation: "mods"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      user_roles: {
+        Row: {
+          created_at: string
+          id: string
+          role: Database["public"]["Enums"]["app_role"]
+          user_id: string
+        }
+        Insert: {
+          created_at?: string
+          id?: string
+          role: Database["public"]["Enums"]["app_role"]
+          user_id: string
+        }
+        Update: {
+          created_at?: string
+          id?: string
+          role?: Database["public"]["Enums"]["app_role"]
+          user_id?: string
+        }
+        Relationships: []
+      }
       wallets: {
         Row: {
           balance: number
@@ -464,18 +642,40 @@ export type Database = {
     Functions: {
       buy_game: { Args: { _game_id: string }; Returns: Json }
       buy_store_item: { Args: { _item_id: string }; Returns: Json }
+      claim_event_reward: {
+        Args: {
+          _coins: number
+          _event_id: string
+          _grant_exclusive_mod: boolean
+          _mission_key: string
+        }
+        Returns: Json
+      }
       create_group: {
         Args: { _members: string[]; _name: string }
         Returns: string
       }
+      has_role: {
+        Args: {
+          _role: Database["public"]["Enums"]["app_role"]
+          _user_id: string
+        }
+        Returns: boolean
+      }
       increment_game_plays: { Args: { _id: string }; Returns: undefined }
       increment_video_views: { Args: { _id: string }; Returns: undefined }
       is_member: { Args: { _conv: string; _user: string }; Returns: boolean }
+      is_owner: { Args: { _uid?: string }; Returns: boolean }
       send_hype: { Args: { _amount: number; _video_id: string }; Returns: Json }
       start_dm: { Args: { _other: string }; Returns: string }
+      start_event: {
+        Args: { _duration_seconds: number; _kind: string; _title: string }
+        Returns: string
+      }
+      stop_event: { Args: { _id: string }; Returns: undefined }
     }
     Enums: {
-      [_ in never]: never
+      app_role: "admin" | "moderator" | "user"
     }
     CompositeTypes: {
       [_ in never]: never
@@ -602,6 +802,8 @@ export type CompositeTypes<
 
 export const Constants = {
   public: {
-    Enums: {},
+    Enums: {
+      app_role: ["admin", "moderator", "user"],
+    },
   },
 } as const

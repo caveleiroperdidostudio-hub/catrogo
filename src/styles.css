@@ -149,6 +149,45 @@
   --nebula: oklch(0.65 0.04 280);
 }
 
+/* === EVENTO DE NATAL — tema festivo global aplicado em <html data-event="christmas"> === */
+[data-event="christmas"] {
+  --background: oklch(0.15 0.05 25);
+  --primary: oklch(0.6 0.22 25);          /* vermelho natalino */
+  --primary-foreground: oklch(0.98 0.01 90);
+  --accent: oklch(0.68 0.17 150);         /* verde pinheiro */
+  --accent-foreground: oklch(0.14 0.02 150);
+  --ring: oklch(0.7 0.18 85);             /* dourado */
+  --cosmic: oklch(0.6 0.22 25);
+  --nebula: oklch(0.68 0.17 150);
+  --bubble-out: oklch(0.48 0.18 25 / 0.85);
+}
+[data-event="christmas"] body {
+  background-image:
+    radial-gradient(circle at 15% 10%, oklch(0.55 0.2 25 / 0.25), transparent 45%),
+    radial-gradient(circle at 85% 85%, oklch(0.55 0.16 150 / 0.25), transparent 45%);
+}
+/* neve caindo */
+[data-event="christmas"] body::before {
+  content: "";
+  position: fixed;
+  inset: 0;
+  pointer-events: none;
+  z-index: 9999;
+  background-image:
+    radial-gradient(2px 2px at 20% 30%, #fff, transparent),
+    radial-gradient(2px 2px at 60% 70%, #fff, transparent),
+    radial-gradient(1.5px 1.5px at 40% 50%, #fff, transparent),
+    radial-gradient(2px 2px at 80% 20%, #fff, transparent),
+    radial-gradient(1.5px 1.5px at 10% 80%, #fff, transparent);
+  background-size: 100% 100%;
+  opacity: 0.5;
+  animation: xmas-snow 6s linear infinite;
+}
+@keyframes xmas-snow {
+  0% { background-position: 0 -100%; }
+  100% { background-position: 0 100%; }
+}
+
 @layer base {
   * { border-color: var(--color-border); }
 
