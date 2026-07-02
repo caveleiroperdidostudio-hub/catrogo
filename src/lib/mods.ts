@@ -43,12 +43,19 @@ ao_abrir_chat mostrar "✨ Mod ativo!"
 `;
 
 export async function listMods(): Promise<Mod[]> {
-  const { data, error } = await supabase
-    .from("mods")
-    .select("*, author:profiles(username, display_name, avatar_url)")
-    .order("created_at", { ascending: false });
+  const { data, error } = await supabase.from("mods").select("*").order("created_at", { ascending: false });
   if (error) throw error;
-  return (data ?? []) as Mod[];
+  const mods = (data ?? []) as Mod[];
+  const ids = [...new Set(mods.map((m) => m.user_id).filter(Boolean))] as string[];
+  if (ids.length) {
+    const { data: profs } = await supabase
+      .from("profiles")
+      .select("id, username, display_name, avatar_url")
+      .in("id", ids);
+    const map = new Map((profs ?? []).map((p) => [p.id, p]));
+    for (const m of mods) m.author = m.user_id ? (map.get(m.user_id) as Mod["author"]) ?? null : null;
+  }
+  return mods;
 }
 
 export async function saveMod(input: {
