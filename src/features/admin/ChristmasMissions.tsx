@@ -32,7 +32,7 @@ export function ChristmasMissions() {
   }
 
   const claim = async (key: string, coins: number, grants: boolean, cost?: number) => {
-    if (cost && balance < cost) return toast.error("Saldo insuficiente para este pacote");
+    if (cost && !isOwner && balance < cost) return toast.error("Saldo insuficiente para este pacote");
     setBusy(key);
     try {
       // pacote pago: cobra o custo (recompensa líquida = coins - cost)
