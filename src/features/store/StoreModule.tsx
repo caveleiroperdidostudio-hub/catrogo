@@ -183,7 +183,7 @@ export function StoreModule() {
           <div className="rounded-2xl border border-amber-500/30 bg-gradient-to-br from-amber-500/15 to-fuchsia-500/10 p-5 text-center">
             <p className="text-xs text-amber-300/80 flex items-center justify-center gap-1"><Wallet className="h-3.5 w-3.5" /> Saldo atual</p>
             <p className="mt-1 flex items-center justify-center gap-2 text-3xl font-bold text-amber-400">
-              <Coins className="h-7 w-7" /> {balance}
+              <Coins className="h-7 w-7" /> {balanceLabel}
             </p>
             <p className="mt-1 text-[11px] text-muted-foreground">CatCoins — use para comprar itens, jogos e dar hype</p>
           </div>
