@@ -8,6 +8,7 @@ import { useGlobalEvent, claimEventReward, listCompletedMissions, formatCountdow
 import { CHRISTMAS_MISSIONS } from "@/lib/christmas";
 
 export function ChristmasMissions() {
+  const { isOwner } = useAuth();
   const { event, remainingMs } = useGlobalEvent();
   const { balance, setBalance } = useWallet();
   const [done, setDone] = useState<Set<string>>(new Set());
