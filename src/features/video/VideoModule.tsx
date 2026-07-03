@@ -15,6 +15,7 @@ import {
 } from "@/components/ui/dialog";
 import { useAuth } from "@/lib/auth-context";
 import { useChannel } from "@/lib/channel-context";
+import { AdminCommandConsole } from "@/features/admin/AdminCommandConsole";
 import {
   listVideos,
   uploadVideo,
