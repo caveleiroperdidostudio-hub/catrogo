@@ -141,3 +141,10 @@ export async function listCompletedMissions(eventId: string): Promise<Set<string
   const { data } = await supabase.from("event_progress").select("mission_key").eq("event_id", eventId);
   return new Set((data ?? []).map((r) => r.mission_key as string));
 }
+
+export async function adminGiveHype(username: string, amount: number): Promise<{ username: string; balance: number }> {
+  const { data, error } = await supabase.rpc("admin_give_hype", { _username: username, _amount: amount });
+  if (error) throw new Error(error.message);
+  const r = data as { username: string; balance: number };
+  return r;
+}

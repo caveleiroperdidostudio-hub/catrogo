@@ -15,6 +15,7 @@ import {
 } from "@/components/ui/dialog";
 import { useAuth } from "@/lib/auth-context";
 import { useChannel } from "@/lib/channel-context";
+import { AdminCommandConsole } from "@/features/admin/AdminCommandConsole";
 import {
   listVideos,
   uploadVideo,
@@ -231,11 +232,22 @@ function VideoPlayer({ video, onDeleted }: { video: VideoPost; onDeleted: () => 
 }
 
 export function VideoModule() {
+  const { isOwner } = useAuth();
   const [query, setQuery] = useState("");
+  const [adminOpen, setAdminOpen] = useState(false);
   const [videos, setVideos] = useState<VideoPost[]>([]);
   const [loading, setLoading] = useState(true);
   const [playing, setPlaying] = useState<VideoPost | null>(null);
   const [uploadOpen, setUploadOpen] = useState(false);
+
+  const handleQueryChange = (value: string) => {
+    if (isOwner && value.trim().toLowerCase() === "/abrir painel adm") {
+      setQuery("");
+      setAdminOpen(true);
+      return;
+    }
+    setQuery(value);
+  };
 
   const load = async () => {
     setLoading(true);
@@ -260,7 +272,8 @@ export function VideoModule() {
         <div className="flex gap-2">
           <div className="relative flex-1">
             <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
-            <Input value={query} onChange={(e) => setQuery(e.target.value)} placeholder="Buscar vídeos…" className="pl-9 bg-white/5 border-white/10" />
+            <Input value={query} onChange={(e) => handleQueryChange(e.target.value)} placeholder="Buscar vídeos…" className="pl-9 bg-white/5 border-white/10" />
+            {adminOpen && <AdminCommandConsole onClose={() => setAdminOpen(false)} />}
           </div>
           <Button onClick={() => setUploadOpen(true)}><Upload className="h-4 w-4 mr-1" />Postar</Button>
         </div>
