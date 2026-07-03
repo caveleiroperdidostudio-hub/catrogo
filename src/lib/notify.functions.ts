@@ -18,6 +18,16 @@ export const notifyNewMessage = createServerFn({ method: "POST" })
     const apiKey = process.env.ONESIGNAL_REST_API_KEY;
     if (!apiKey) return { ok: false, reason: "missing_key" };
 
+    // Authorization: caller must be a member of the conversation
+    const { data: membership } = await supabaseAdmin
+      .from("conversation_members")
+      .select("user_id")
+      .eq("conversation_id", data.conversationId)
+      .eq("user_id", userId)
+      .maybeSingle();
+    if (!membership) return { ok: false, reason: "not_member" };
+
+
     // recipients = other members of the conversation
     const { data: members, error: mErr } = await supabaseAdmin
       .from("conversation_members")
