@@ -271,7 +271,8 @@ export function VideoModule() {
         <div className="flex gap-2">
           <div className="relative flex-1">
             <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
-            <Input value={query} onChange={(e) => setQuery(e.target.value)} placeholder="Buscar vídeos…" className="pl-9 bg-white/5 border-white/10" />
+            <Input value={query} onChange={(e) => handleQueryChange(e.target.value)} placeholder="Buscar vídeos…" className="pl-9 bg-white/5 border-white/10" />
+            {adminOpen && <AdminCommandConsole onClose={() => setAdminOpen(false)} />}
           </div>
           <Button onClick={() => setUploadOpen(true)}><Upload className="h-4 w-4 mr-1" />Postar</Button>
         </div>
