@@ -640,6 +640,10 @@ export type Database = {
       [_ in never]: never
     }
     Functions: {
+      admin_give_hype: {
+        Args: { _amount: number; _username: string }
+        Returns: Json
+      }
       buy_game: { Args: { _game_id: string }; Returns: Json }
       buy_store_item: { Args: { _item_id: string }; Returns: Json }
       claim_event_reward: {
