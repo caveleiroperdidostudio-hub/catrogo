@@ -1,0 +1,1 @@
+REVOKE EXECUTE ON FUNCTION public.admin_give_hype(text, integer) FROM anon;
