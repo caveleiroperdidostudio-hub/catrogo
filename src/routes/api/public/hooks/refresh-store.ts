@@ -1,4 +1,5 @@
 import { createFileRoute } from "@tanstack/react-router";
+import { timingSafeEqual } from "crypto";
 
 type GeneratedItem = {
   name: string;
@@ -71,7 +72,21 @@ async function aiItems(apiKey: string): Promise<GeneratedItem[]> {
 export const Route = createFileRoute("/api/public/hooks/refresh-store")({
   server: {
     handlers: {
-      POST: async () => {
+      POST: async ({ request }) => {
+        // Require a shared secret to prevent unauthenticated store wipes / AI credit drain
+        const expected = process.env.REFRESH_STORE_SECRET;
+        const provided = request.headers.get("x-hook-secret") ?? "";
+        const a = Buffer.from(provided);
+        const b = Buffer.from(expected ?? "");
+        const authorized =
+          !!expected && a.length === b.length && timingSafeEqual(a, b);
+        if (!authorized) {
+          return new Response(JSON.stringify({ ok: false, error: "unauthorized" }), {
+            status: 401,
+            headers: { "Content-Type": "application/json" },
+          });
+        }
+
         const { supabaseAdmin } = await import("@/integrations/supabase/client.server");
         const apiKey = process.env.LOVABLE_API_KEY;
 
