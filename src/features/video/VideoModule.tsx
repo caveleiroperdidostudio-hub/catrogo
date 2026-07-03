@@ -231,11 +231,22 @@ function VideoPlayer({ video, onDeleted }: { video: VideoPost; onDeleted: () => 
 }
 
 export function VideoModule() {
+  const { isOwner } = useAuth();
   const [query, setQuery] = useState("");
+  const [adminOpen, setAdminOpen] = useState(false);
   const [videos, setVideos] = useState<VideoPost[]>([]);
   const [loading, setLoading] = useState(true);
   const [playing, setPlaying] = useState<VideoPost | null>(null);
   const [uploadOpen, setUploadOpen] = useState(false);
+
+  const handleQueryChange = (value: string) => {
+    if (isOwner && value.trim().toLowerCase() === "/abrir painel adm") {
+      setQuery("");
+      setAdminOpen(true);
+      return;
+    }
+    setQuery(value);
+  };
 
   const load = async () => {
     setLoading(true);
