@@ -1,5 +1,6 @@
 import { createServerFn } from "@tanstack/react-start";
 import { z } from "zod";
+import { requireSupabaseAuth } from "@/integrations/supabase/auth-middleware";
 
 const Input = z.object({
   prompt: z.string().min(1).max(500),
@@ -46,6 +47,7 @@ async function callGateway(messages: { role: string; content: string }[]) {
 }
 
 export const generateGame = createServerFn({ method: "POST" })
+  .middleware([requireSupabaseAuth])
   .inputValidator((input: unknown) => Input.parse(input))
   .handler(async ({ data }) => {
     let code = await callGateway([
@@ -94,6 +96,7 @@ const ChatInput = z.object({
 });
 
 export const chatAssistant = createServerFn({ method: "POST" })
+  .middleware([requireSupabaseAuth])
   .inputValidator((input: unknown) => ChatInput.parse(input))
   .handler(async ({ data }) => {
     const context = data.currentCode
