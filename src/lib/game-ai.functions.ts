@@ -114,3 +114,56 @@ export const chatAssistant = createServerFn({ method: "POST" })
     ]);
     return { reply };
   });
+
+/* ---------------- Gerador de jogos completos em HTML ---------------- */
+
+const HTML_GAME_SYSTEM = `Você é um engenheiro de jogos sênior. Gere um JOGO COMPLETO em um ÚNICO arquivo HTML.
+REGRAS OBRIGATÓRIAS:
+- Responda APENAS com o código HTML puro, começando em <!DOCTYPE html> e terminando em </html>. Sem markdown, sem cercas de código, sem explicações.
+- Todo o CSS e JavaScript devem estar embutidos (inline) no mesmo arquivo.
+- O jogo deve ser TOTALMENTE responsivo e funcionar tanto em MOBILE quanto em PC.
+- Suporte a controles de TOQUE (botões na tela / gestos) para celular E controles de TECLADO (setas, WASD, espaço) para PC.
+- Use <canvas> quando fizer sentido, com requestAnimationFrame para o loop.
+- Inclua: tela inicial, pontuação, condição de vitória/derrota e botão de reiniciar.
+- Código LIMPO, comentado em português, sem dependências externas nem CDNs (100% offline).
+- Layout deve ocupar 100% da viewport e escalar corretamente (viewport meta tag incluída).`;
+
+export const generateHtmlGame = createServerFn({ method: "POST" })
+  .middleware([requireSupabaseAuth])
+  .inputValidator((input: unknown) => Input.parse(input))
+  .handler(async ({ data }) => {
+    let html = await callGateway([
+      { role: "system", content: HTML_GAME_SYSTEM },
+      { role: "user", content: data.prompt },
+    ]);
+    html = html.replace(/```[a-z]*\n?/gi, "").replace(/```/g, "").trim();
+    const idx = html.toLowerCase().indexOf("<!doctype");
+    if (idx > 0) html = html.slice(idx);
+    return { html };
+  });
+
+/* ---------------- Assistente geral da plataforma (Catrogo IA) ---------------- */
+
+const PLATFORM_SYSTEM = `Você é a "Catrogo IA", a inteligência artificial nativa e oficial do app Catrogo — uma plataforma brasileira que reúne: chat em tempo real (com chamadas de voz e vídeo), vídeos longos, shorts, jogos criados por IA, mods e modpacks, uma loja com a moeda "CatCoins" (hype), perfis/canais e eventos globais.
+
+Seu papel:
+- Responder QUALQUER dúvida do usuário de forma clara, rápida e amigável, em português do Brasil.
+- Explicar como usar os recursos do Catrogo (postar vídeos, criar jogos, comprar na loja, dar hype, chamadas, mods, etc.).
+- Ajudar com ideias criativas: roteiros de vídeos/shorts, conceitos de jogos, nomes de canais, estratégias de crescimento.
+- Ajudar com programação, texto, resumos, traduções e brainstorming em geral.
+
+Estilo:
+- Seja direto e prático. Use listas e markdown quando ajudar na leitura.
+- Seja acolhedor e motivador, mas sem enrolação.
+- Quando gerar código, use blocos de código markdown com a linguagem correta.`;
+
+export const platformAssistant = createServerFn({ method: "POST" })
+  .middleware([requireSupabaseAuth])
+  .inputValidator((input: unknown) => ChatInput.parse(input))
+  .handler(async ({ data }) => {
+    const reply = await callGateway([
+      { role: "system", content: PLATFORM_SYSTEM },
+      ...data.messages,
+    ]);
+    return { reply };
+  });
