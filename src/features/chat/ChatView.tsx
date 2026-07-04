@@ -347,9 +347,14 @@ export function ChatView({ conversationId, onBack }: { conversationId: string; o
         </Button>
 
         {!appearance.hideCallButton && (
-          <Button size="icon" variant="ghost" className="h-9 w-9 hidden sm:inline-flex" onClick={() => startCall("voice")} title="Chamada de voz">
-            <Phone className="h-4 w-4" />
-          </Button>
+          <>
+            <Button size="icon" variant="ghost" className="h-9 w-9 hidden sm:inline-flex" onClick={() => startCall("voice")} title="Chamada de voz">
+              <Phone className="h-4 w-4" />
+            </Button>
+            <Button size="icon" variant="ghost" className="h-9 w-9 hidden sm:inline-flex" onClick={() => startCall("video")} title="Chamada de vídeo">
+              <Video className="h-4 w-4" />
+            </Button>
+          </>
         )}
 
         <DropdownMenu>
