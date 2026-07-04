@@ -186,9 +186,16 @@ export function CallScreen({
     setMuted(next);
   };
 
+  const toggleCam = () => {
+    const stream = localStreamRef.current;
+    if (!stream) return;
+    const next = !camOff;
+    stream.getVideoTracks().forEach((t) => (t.enabled = !next));
+    setCamOff(next);
+  };
+
   const fmt = (s: number) => `${Math.floor(s / 60).toString().padStart(2, "0")}:${(s % 60).toString().padStart(2, "0")}`;
   void peerUserId; // reserved
-  void mode;
 
   return (
     <div className="fixed inset-0 z-[100] flex flex-col items-center justify-between overflow-hidden text-white">
@@ -201,24 +208,47 @@ export function CallScreen({
       />
       <div className="absolute inset-0 -z-10 opacity-50 [background-image:radial-gradient(white_1px,transparent_1px)] [background-size:30px_30px] animate-[pulse_4s_ease-in-out_infinite]" />
 
+      {/* Remote video fills the screen when connected */}
+      {isVideo && (
+        <video
+          ref={remoteVideoRef}
+          autoPlay
+          playsInline
+          className={`absolute inset-0 -z-[5] h-full w-full object-cover ${status === "conectada" ? "opacity-100" : "opacity-0"}`}
+        />
+      )}
+
+      {/* Local picture-in-picture */}
+      {isVideo && (
+        <video
+          ref={localVideoRef}
+          autoPlay
+          playsInline
+          muted
+          className="absolute top-4 right-4 z-20 h-40 w-28 rounded-2xl object-cover border border-white/20 shadow-xl bg-black/50"
+        />
+      )}
+
       <div className="pt-12 pb-4 px-6 w-full text-center z-10">
-        <div className="mb-8 flex justify-center">
-          <div className="relative">
-            <div className={`absolute inset-0 rounded-full blur-3xl bg-[var(--cosmic)]/40 ${status === "conectada" ? "animate-pulse" : ""}`} />
-            <Avatar className="h-40 w-40 ring-4 ring-white/20 relative carlos-avatar">
-              {avatarUrl && <AvatarImage src={avatarUrl} />}
-              <AvatarFallback className="bg-white/10 text-white text-5xl backdrop-blur-md">
-                {name.charAt(0).toUpperCase()}
-              </AvatarFallback>
-            </Avatar>
+        {!(isVideo && status === "conectada") && (
+          <div className="mb-8 flex justify-center">
+            <div className="relative">
+              <div className={`absolute inset-0 rounded-full blur-3xl bg-[var(--cosmic)]/40 ${status === "conectada" ? "animate-pulse" : ""}`} />
+              <Avatar className="h-40 w-40 ring-4 ring-white/20 relative carlos-avatar">
+                {avatarUrl && <AvatarImage src={avatarUrl} />}
+                <AvatarFallback className="bg-white/10 text-white text-5xl backdrop-blur-md">
+                  {name.charAt(0).toUpperCase()}
+                </AvatarFallback>
+              </Avatar>
+            </div>
           </div>
-        </div>
+        )}
         <h2 className="text-3xl font-semibold drop-shadow">{name}</h2>
         <p className="text-sm opacity-80 mt-1 flex items-center justify-center gap-1.5">
           {status === "conectada" ? (
             <>
               <span className="h-1.5 w-1.5 rounded-full bg-green-400" />
-              Em chamada · {fmt(seconds)}
+              {isVideo ? "Chamada de vídeo" : "Em chamada"} · {fmt(seconds)}
             </>
           ) : (
             <>
