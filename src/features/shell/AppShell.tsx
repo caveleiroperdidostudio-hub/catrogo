@@ -54,8 +54,10 @@ function ShellInner() {
         {active === "video" && <VideoModule />}
         {active === "shorts" && <ShortsModule />}
         {active === "games" && <GamesModule />}
+        {active === "ia" && <AiChatModule />}
         {active === "mods" && <ModsModule />}
         {active === "store" && <StoreModule />}
+        {active === "updates" && <UpdatesModule />}
         {active === "profile" && <ProfileModule />}
         {active === "missions" && <ChristmasMissions />}
         {active === "admin" && <AdminPanel />}
