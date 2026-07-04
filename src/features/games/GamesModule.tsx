@@ -270,10 +270,14 @@ export function GamesModule() {
       <div className="h-12 flex items-center gap-2 px-4 border-b border-white/5">
         <Gamepad2 className="h-5 w-5 text-[var(--nebula)]" />
         <span className="font-semibold flex-1">Catrogo Game Engine</span>
+        <Button size="sm" variant="secondary" onClick={() => setHtmlStudio(true)}>
+          <Wand2 className="h-4 w-4 mr-1" /> IA HTML
+        </Button>
         <Button size="sm" onClick={openNew}>
           <Plus className="h-4 w-4 mr-1" /> Criar
         </Button>
       </div>
+      {htmlStudio && <HtmlGameStudio onClose={() => setHtmlStudio(false)} />}
       <div className="flex-1 overflow-y-auto p-4">
         {loading ? (
           <div className="flex justify-center py-10"><Loader2 className="h-6 w-6 animate-spin text-muted-foreground" /></div>
