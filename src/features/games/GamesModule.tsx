@@ -1,5 +1,5 @@
 import { useEffect, useState } from "react";
-import { ArrowLeft, Gamepad2, Plus, Play, Save, Trash2, Loader2, BookOpen, Coins, Lock } from "lucide-react";
+import { ArrowLeft, Gamepad2, Plus, Play, Save, Trash2, Loader2, BookOpen, Coins, Lock, Wand2 } from "lucide-react";
 import { toast } from "sonner";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -10,6 +10,7 @@ import { useWallet } from "@/lib/wallet-context";
 import { buyGame, listOwnedGameIds } from "@/lib/economy";
 import { GameCanvas } from "./GameCanvas";
 import { GameAiChat } from "./GameAiChat";
+import { HtmlGameStudio } from "./HtmlGameStudio";
 import { NEWCATROID_EXAMPLE } from "@/lib/newcatroid";
 import {
   listGames,
@@ -42,6 +43,7 @@ export function GamesModule() {
   const { user } = useAuth();
   const { setBalance } = useWallet();
   const [view, setView] = useState<View>("list");
+  const [htmlStudio, setHtmlStudio] = useState(false);
   const [games, setGames] = useState<GameProject[]>([]);
   const [loading, setLoading] = useState(true);
   const [owned, setOwned] = useState<Set<string>>(new Set());
@@ -270,10 +272,14 @@ export function GamesModule() {
       <div className="h-12 flex items-center gap-2 px-4 border-b border-white/5">
         <Gamepad2 className="h-5 w-5 text-[var(--nebula)]" />
         <span className="font-semibold flex-1">Catrogo Game Engine</span>
+        <Button size="sm" variant="secondary" onClick={() => setHtmlStudio(true)}>
+          <Wand2 className="h-4 w-4 mr-1" /> IA HTML
+        </Button>
         <Button size="sm" onClick={openNew}>
           <Plus className="h-4 w-4 mr-1" /> Criar
         </Button>
       </div>
+      {htmlStudio && <HtmlGameStudio onClose={() => setHtmlStudio(false)} />}
       <div className="flex-1 overflow-y-auto p-4">
         {loading ? (
           <div className="flex justify-center py-10"><Loader2 className="h-6 w-6 animate-spin text-muted-foreground" /></div>

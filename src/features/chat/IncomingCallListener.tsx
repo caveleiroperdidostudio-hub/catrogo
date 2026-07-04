@@ -6,12 +6,15 @@ import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/lib/auth-context";
 import { CallScreen } from "./CallScreen";
 
+type CallMode = "voice" | "video";
+
 type Invite = {
   sessionId: string;
   fromUserId: string;
   fromName: string;
   fromAvatar: string | null;
   conversationId: string;
+  mode: CallMode;
 };
 
 /**
@@ -69,7 +72,7 @@ export function IncomingCallListener() {
             </Avatar>
             <div className="flex-1 min-w-0">
               <div className="font-semibold truncate">{invite.fromName}</div>
-              <div className="text-xs text-muted-foreground">Chamada de voz recebida…</div>
+              <div className="text-xs text-muted-foreground">{invite.mode === "video" ? "Chamada de vídeo recebida…" : "Chamada de voz recebida…"}</div>
             </div>
             <Button size="icon" className="h-11 w-11 rounded-full bg-red-600 hover:bg-red-700" onClick={reject}>
               <PhoneOff className="h-5 w-5" />
@@ -82,7 +85,7 @@ export function IncomingCallListener() {
       )}
       {active && (
         <CallScreen
-          mode="voice"
+          mode={active.mode}
           sessionId={active.sessionId}
           isCaller={false}
           myUserId={user.id}
@@ -103,6 +106,7 @@ export async function sendCallInvite(params: {
   fromName: string;
   fromAvatar: string | null;
   conversationId: string;
+  mode: CallMode;
 }): Promise<string> {
   const sessionId = `${params.fromUserId}-${params.peerUserId}-${Date.now()}`;
   const ch = supabase.channel(`inbox-${params.peerUserId}`);
@@ -118,6 +122,7 @@ export async function sendCallInvite(params: {
       fromName: params.fromName,
       fromAvatar: params.fromAvatar,
       conversationId: params.conversationId,
+      mode: params.mode,
     },
   });
   supabase.removeChannel(ch);
