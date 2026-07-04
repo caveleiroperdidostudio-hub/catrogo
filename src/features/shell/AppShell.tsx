@@ -1,5 +1,5 @@
 import { useState, useEffect } from "react";
-import { MessageCircle, Play, Clapperboard, Gamepad2, User, ShoppingBag, Package, Gift, ShieldCheck } from "lucide-react";
+import { MessageCircle, Play, Clapperboard, Gamepad2, User, ShoppingBag, Package, Gift, ShieldCheck, Sparkles, Rocket } from "lucide-react";
 import { ChatHome } from "@/features/chat/ChatHome";
 import { VideoModule } from "@/features/video/VideoModule";
 import { ShortsModule } from "@/features/shorts/ShortsModule";
@@ -7,6 +7,8 @@ import { GamesModule } from "@/features/games/GamesModule";
 import { ProfileModule } from "@/features/profile/ProfileModule";
 import { StoreModule } from "@/features/store/StoreModule";
 import { ModsModule } from "@/features/mods/ModsModule";
+import { AiChatModule } from "@/features/ai/AiChatModule";
+import { UpdatesModule } from "@/features/updates/UpdatesModule";
 import { AdminPanel } from "@/features/admin/AdminPanel";
 import { ChristmasMissions, EventCountdownBanner } from "@/features/admin/ChristmasMissions";
 import { ChannelView } from "@/features/profile/ChannelView";
@@ -15,15 +17,17 @@ import { WalletProvider } from "@/lib/wallet-context";
 import { EventsProvider, useGlobalEvent } from "@/lib/events-context";
 import { useAuth } from "@/lib/auth-context";
 
-type ModuleId = "chat" | "video" | "shorts" | "games" | "store" | "mods" | "profile" | "admin" | "missions";
+type ModuleId = "chat" | "video" | "shorts" | "games" | "ia" | "store" | "mods" | "updates" | "profile" | "admin" | "missions";
 
 const BASE_TABS: { id: ModuleId; label: string; icon: typeof MessageCircle }[] = [
   { id: "chat", label: "Chat", icon: MessageCircle },
   { id: "video", label: "Vídeos", icon: Play },
   { id: "shorts", label: "Shorts", icon: Clapperboard },
   { id: "games", label: "Games", icon: Gamepad2 },
+  { id: "ia", label: "IA", icon: Sparkles },
   { id: "mods", label: "Mods", icon: Package },
   { id: "store", label: "Loja", icon: ShoppingBag },
+  { id: "updates", label: "Novidades", icon: Rocket },
   { id: "profile", label: "Perfil", icon: User },
 ];
 
