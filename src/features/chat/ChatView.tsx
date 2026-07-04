@@ -258,6 +258,7 @@ export function ChatView({ conversationId, onBack }: { conversationId: string; o
         fromName: header.displayName,
         fromAvatar: header.avatar_url,
         conversationId,
+        mode,
       });
       setCall({ mode, sessionId, isCaller: true });
     } catch (e) {
