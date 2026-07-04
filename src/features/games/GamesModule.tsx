@@ -10,6 +10,7 @@ import { useWallet } from "@/lib/wallet-context";
 import { buyGame, listOwnedGameIds } from "@/lib/economy";
 import { GameCanvas } from "./GameCanvas";
 import { GameAiChat } from "./GameAiChat";
+import { HtmlGameStudio } from "./HtmlGameStudio";
 import { NEWCATROID_EXAMPLE } from "@/lib/newcatroid";
 import {
   listGames,
