@@ -68,12 +68,18 @@ export function CallScreen({
       pcRef.current = pc;
 
       try {
-        const stream = await navigator.mediaDevices.getUserMedia({ audio: true });
+        const stream = await navigator.mediaDevices.getUserMedia(
+          isVideo ? { audio: true, video: { facingMode: "user" } } : { audio: true },
+        );
         if (cleaned) { stream.getTracks().forEach((t) => t.stop()); return; }
         localStreamRef.current = stream;
         stream.getTracks().forEach((t) => pc.addTrack(t, stream));
+        if (isVideo && localVideoRef.current) {
+          localVideoRef.current.srcObject = stream;
+          localVideoRef.current.play().catch(() => {});
+        }
       } catch {
-        toast.error("Permissão de microfone negada");
+        toast.error(isVideo ? "Permissão de câmera/microfone negada" : "Permissão de microfone negada");
         endCall();
         return;
       }
@@ -83,6 +89,10 @@ export function CallScreen({
         if (remoteAudioRef.current) {
           remoteAudioRef.current.srcObject = remote;
           remoteAudioRef.current.play().catch(() => { /* user gesture already happened */ });
+        }
+        if (isVideo && remoteVideoRef.current) {
+          remoteVideoRef.current.srcObject = remote;
+          remoteVideoRef.current.play().catch(() => {});
         }
       };
 
