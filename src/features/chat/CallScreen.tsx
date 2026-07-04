@@ -271,9 +271,20 @@ export function CallScreen({
           {muted ? <MicOff className="h-6 w-6" /> : <Mic className="h-6 w-6" />}
         </Button>
 
-        <Button size="icon" variant="ghost" className="h-14 w-14 rounded-full bg-white/10 hover:bg-white/20 backdrop-blur-md">
-          <Volume2 className="h-6 w-6" />
-        </Button>
+        {isVideo ? (
+          <Button
+            size="icon"
+            variant="ghost"
+            className={`h-14 w-14 rounded-full backdrop-blur-md ${camOff ? "bg-white/30" : "bg-white/10"} hover:bg-white/20`}
+            onClick={toggleCam}
+          >
+            {camOff ? <VideoOff className="h-6 w-6" /> : <Video className="h-6 w-6" />}
+          </Button>
+        ) : (
+          <Button size="icon" variant="ghost" className="h-14 w-14 rounded-full bg-white/10 hover:bg-white/20 backdrop-blur-md">
+            <Volume2 className="h-6 w-6" />
+          </Button>
+        )}
 
         <Button size="icon" className="h-16 w-16 rounded-full bg-red-600 hover:bg-red-700 shadow-2xl" onClick={endCall}>
           <PhoneOff className="h-7 w-7" />
