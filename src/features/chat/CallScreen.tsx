@@ -32,11 +32,15 @@ export function CallScreen({
   const [status, setStatus] = useState<"conectando" | "tocando" | "conectada" | "encerrada">(isCaller ? "tocando" : "conectando");
   const [seconds, setSeconds] = useState(0);
   const [muted, setMuted] = useState(false);
+  const [camOff, setCamOff] = useState(false);
+  const isVideo = mode === "video";
 
   const pcRef = useRef<RTCPeerConnection | null>(null);
   const localStreamRef = useRef<MediaStream | null>(null);
   const channelRef = useRef<ReturnType<typeof supabase.channel> | null>(null);
   const remoteAudioRef = useRef<HTMLAudioElement | null>(null);
+  const localVideoRef = useRef<HTMLVideoElement | null>(null);
+  const remoteVideoRef = useRef<HTMLVideoElement | null>(null);
   const pendingIceRef = useRef<RTCIceCandidateInit[]>([]);
   const remoteDescSetRef = useRef(false);
 
