@@ -4,46 +4,46 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { useAuth } from "@/lib/auth-context";
 import { useGlobalEvent, startEvent, stopEvent, adminGiveHype, formatCountdown } from "@/lib/events-context";
+import { EventDesignModal, type EventDraft } from "./EventDesignModal";
 
 type Line = { id: number; kind: "in" | "out" | "err" | "sys"; text: string };
 
-type GenCommand = { name: string; usage: string; desc: string };
+/** Command created by the admin at runtime. */
+type CustomCommand = { name: string; usage: string; desc: string };
 
-/* Pool the "IA" draws from to invent new admin commands over time */
-const AI_POOL: GenCommand[] = [
-  { name: "/broadcast", usage: "/broadcast <mensagem>", desc: "Envia um aviso global para todos os usuários online." },
-  { name: "/mute", usage: "/mute <usuario> <minutos>", desc: "Silencia temporariamente um usuário no chat." },
-  { name: "/ban", usage: "/ban <usuario>", desc: "Bane um usuário do app." },
-  { name: "/unban", usage: "/unban <usuario>", desc: "Remove o banimento de um usuário." },
-  { name: "/promo", usage: "/promo <item> <desconto%>", desc: "Cria uma promoção relâmpago na loja." },
-  { name: "/reset-loja", usage: "/reset-loja", desc: "Renova imediatamente os itens da loja." },
-  { name: "/destaque", usage: "/destaque <video_id>", desc: "Fixa um vídeo em destaque na página inicial." },
-  { name: "/moeda", usage: "/moeda x<multiplicador>", desc: "Ativa evento de CatCoins em dobro por tempo limitado." },
-  { name: "/sorteio", usage: "/sorteio <premio>", desc: "Inicia um sorteio entre usuários ativos." },
-  { name: "/manutencao", usage: "/manutencao on|off", desc: "Ativa ou desativa o modo de manutenção." },
-  { name: "/limpar-cache", usage: "/limpar-cache", desc: "Limpa caches temporários do servidor." },
-  { name: "/status", usage: "/status", desc: "Mostra métricas em tempo real do app." },
-  { name: "/xp", usage: "/xp <usuario> <quantidade>", desc: "Concede pontos de experiência a um usuário." },
-  { name: "/tema", usage: "/tema <nome>", desc: "Aplica um tema visual global temporário." },
-  { name: "/nivel", usage: "/nivel <usuario> <nivel>", desc: "Define o nível de um usuário." },
-];
+type HelpCommand = { name: string; usage: string; desc: string };
 
-const STATIC_HELP: GenCommand[] = [
-  { name: "/evento", usage: "/evento <nome> <todos|id>", desc: "Dispara um evento global (ex: /evento Natal todos)." },
+const STORAGE_KEY = "catrogo-admin-commands";
+
+const STATIC_HELP: HelpCommand[] = [
+  { name: "/criar evento", usage: "/criar evento [missões] [tempo] [nome]", desc: "Abre o painel de design para criar um evento visual." },
+  { name: "/criar commando", usage: "/criar commando [o que faz] [/sintaxe]", desc: "Registra um novo comando personalizado no terminal." },
+  { name: "/evento", usage: "/evento <nome> <todos|id> [horas]", desc: "Dispara um evento global rápido (ex: /evento Natal todos)." },
   { name: "/give hype to", usage: "/give hype to <conta> <qtd>", desc: "Adiciona hype (CatCoins) ao saldo de um usuário." },
   { name: "/encerrar", usage: "/encerrar", desc: "Encerra o evento global ativo agora." },
   { name: "/help", usage: "/help", desc: "Lista todos os comandos disponíveis." },
-  { name: "/ia", usage: "/ia", desc: "Lista os comandos gerados pela IA em tempo real." },
+  { name: "/ia", usage: "/ia", desc: "Lista os comandos personalizados criados por você." },
   { name: "/limpar", usage: "/limpar", desc: "Limpa o terminal." },
 ];
+
+function loadCustom(): CustomCommand[] {
+  if (typeof window === "undefined") return [];
+  try {
+    const raw = localStorage.getItem(STORAGE_KEY);
+    return raw ? (JSON.parse(raw) as CustomCommand[]) : [];
+  } catch {
+    return [];
+  }
+}
 
 export function AdminCommandConsole({ onClose }: { onClose: () => void }) {
   const { isOwner } = useAuth();
   const { event, remainingMs, refresh } = useGlobalEvent();
   const [lines, setLines] = useState<Line[]>([]);
   const [input, setInput] = useState("");
-  const [aiCommands, setAiCommands] = useState<GenCommand[]>([]);
+  const [customCommands, setCustomCommands] = useState<CustomCommand[]>(() => loadCustom());
   const [busy, setBusy] = useState(false);
+  const [designer, setDesigner] = useState<Partial<EventDraft> | null>(null);
   const idRef = useRef(0);
   const endRef = useRef<HTMLDivElement>(null);
   const inputRef = useRef<HTMLInputElement>(null);
@@ -51,42 +51,31 @@ export function AdminCommandConsole({ onClose }: { onClose: () => void }) {
   const push = (kind: Line["kind"], text: string) =>
     setLines((prev) => [...prev, { id: ++idRef.current, kind, text }]);
 
+  // persist custom commands
+  useEffect(() => {
+    try {
+      localStorage.setItem(STORAGE_KEY, JSON.stringify(customCommands));
+    } catch {
+      /* ignore */
+    }
+  }, [customCommands]);
+
   // boot banner
   useEffect(() => {
     push("sys", "╔══════════════════════════════════════╗");
     push("sys", "  CATROGO • PAINEL DE COMANDOS (DONO)");
     push("sys", "╚══════════════════════════════════════╝");
     push("out", 'Digite "/help" para ver todos os comandos.');
-    push("out", "A IA cria um novo comando útil a cada 1 minuto. Use /ia para acompanhar.");
+    push("out", "Use /criar evento ou /criar commando para criar os seus próprios.");
     setTimeout(() => inputRef.current?.focus(), 100);
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, []);
-
-  // AI generates a new command every minute
-  useEffect(() => {
-    const gen = () => {
-      setAiCommands((prev) => {
-        const available = AI_POOL.filter((c) => !prev.some((p) => p.name === c.name));
-        if (available.length === 0) return prev;
-        const pick = available[Math.floor(Math.random() * available.length)];
-        push("sys", `🤖 IA gerou um novo comando: ${pick.usage} — ${pick.desc}`);
-        return [...prev, pick];
-      });
-    };
-    // first one shortly after opening, then every 60s
-    const first = setTimeout(gen, 4000);
-    const interval = setInterval(gen, 60000);
-    return () => {
-      clearTimeout(first);
-      clearInterval(interval);
-    };
   }, []);
 
   useEffect(() => {
     endRef.current?.scrollIntoView({ behavior: "smooth" });
   }, [lines]);
 
-  const allCommands = useMemo(() => [...STATIC_HELP, ...aiCommands], [aiCommands]);
+  const allCommands = useMemo(() => [...STATIC_HELP, ...customCommands], [customCommands]);
 
   const run = async (raw: string) => {
     const cmd = raw.trim();
@@ -101,17 +90,60 @@ export function AdminCommandConsole({ onClose }: { onClose: () => void }) {
 
     if (lower === "/help") {
       push("out", "Comandos disponíveis:");
-      allCommands.forEach((c) => push("out", `  ${c.usage.padEnd(28)} ${c.desc}`));
+      allCommands.forEach((c) => push("out", `  ${c.usage.padEnd(34)} ${c.desc}`));
       return;
     }
 
     if (lower === "/ia") {
-      if (aiCommands.length === 0) {
-        push("out", "Nenhum comando gerado pela IA ainda. Aguarde (novo a cada minuto).");
+      if (customCommands.length === 0) {
+        push("out", "Nenhum comando personalizado ainda. Crie com /criar commando.");
       } else {
-        push("out", `Comandos gerados pela IA (${aiCommands.length}):`);
-        aiCommands.forEach((c) => push("out", `  ${c.usage.padEnd(28)} ${c.desc}`));
+        push("out", `Comandos personalizados (${customCommands.length}):`);
+        customCommands.forEach((c) => push("out", `  ${c.usage.padEnd(34)} ${c.desc}`));
       }
+      return;
+    }
+
+    // /criar evento [missões] [tempo] [nome]  -> abre painel de design
+    if (/^\/criar\s+evento/i.test(cmd)) {
+      const rest = cmd.replace(/^\/criar\s+evento/i, "").trim();
+      const m = rest.match(/\[([^\]]*)\]/g)?.map((s) => s.slice(1, -1).trim()) ?? [];
+      const missionsCount = parseInt(m[0] ?? "", 10);
+      const hours = parseInt((m[1] ?? "").replace(/[^0-9]/g, ""), 10);
+      const name = m[2] || rest.replace(/\[[^\]]*\]/g, "").trim() || "Novo Evento";
+      const missions =
+        !isNaN(missionsCount) && missionsCount > 0
+          ? Array.from({ length: Math.min(missionsCount, 10) }, (_, i) => ({
+              key: `missao-${i + 1}`,
+              label: `Complete a missão ${i + 1}`,
+              coins: 500,
+            }))
+          : undefined;
+      push("out", "🎨 Abrindo painel de design de eventos…");
+      setDesigner({ name, durationHours: !isNaN(hours) && hours > 0 ? hours : 24, missions });
+      return;
+    }
+
+    // /criar commando [o que faz] [/sintaxe]
+    if (/^\/criar\s+comm?ando/i.test(cmd)) {
+      const rest = cmd.replace(/^\/criar\s+comm?ando/i, "").trim();
+      const brackets = rest.match(/\[([^\]]*)\]/g)?.map((s) => s.slice(1, -1).trim()) ?? [];
+      const desc = brackets[0];
+      let syntax = brackets[1] ?? "";
+      if (!desc || !syntax) {
+        return push("err", "Uso: /criar commando [o que o comando faz] [/exemplo [param]]");
+      }
+      if (!syntax.startsWith("/")) syntax = "/" + syntax;
+      const name = syntax.split(/\s+/)[0].toLowerCase();
+      if (STATIC_HELP.some((c) => name.startsWith(c.name))) {
+        return push("err", `"${name}" é um comando reservado do sistema.`);
+      }
+      setCustomCommands((prev) => {
+        const filtered = prev.filter((c) => c.name !== name);
+        return [...filtered, { name, usage: syntax, desc }];
+      });
+      push("out", `✅ Comando ${name} registrado: ${syntax} — ${desc}`);
+      push("out", `Agora você pode usar ${name} aqui no terminal.`);
       return;
     }
 
@@ -174,11 +206,11 @@ export function AdminCommandConsole({ onClose }: { onClose: () => void }) {
       return;
     }
 
-    // AI-generated commands: simulated execution
-    const aiMatch = aiCommands.find((c) => lower.startsWith(c.name));
-    if (aiMatch) {
-      push("out", `⚙️ Executando ${aiMatch.name}… (${aiMatch.desc})`);
-      push("out", "✅ Comando simulado executado com sucesso.");
+    // custom commands
+    const match = customCommands.find((c) => lower.startsWith(c.name));
+    if (match) {
+      push("out", `⚙️ Executando ${match.name} — ${match.desc}`);
+      push("out", "✅ Comando personalizado executado com sucesso.");
       return;
     }
 
@@ -249,6 +281,17 @@ export function AdminCommandConsole({ onClose }: { onClose: () => void }) {
           </Button>
         </div>
       </div>
+
+      {designer && (
+        <EventDesignModal
+          initial={designer}
+          onClose={() => setDesigner(null)}
+          onCreated={async (msg) => {
+            push("out", msg);
+            await refresh();
+          }}
+        />
+      )}
     </div>
   );
 }
