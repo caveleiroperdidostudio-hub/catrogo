@@ -43,6 +43,7 @@ export function GamesModule() {
   const { user } = useAuth();
   const { setBalance } = useWallet();
   const [view, setView] = useState<View>("list");
+  const [htmlStudio, setHtmlStudio] = useState(false);
   const [games, setGames] = useState<GameProject[]>([]);
   const [loading, setLoading] = useState(true);
   const [owned, setOwned] = useState<Set<string>>(new Set());
