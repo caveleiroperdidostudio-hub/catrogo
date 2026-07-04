@@ -1,5 +1,5 @@
 import { useEffect, useRef, useState } from "react";
-import { Phone, Video, Mic, MicOff, PhoneOff, Volume2 } from "lucide-react";
+import { Phone, Video, VideoOff, Mic, MicOff, PhoneOff, Volume2 } from "lucide-react";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { Button } from "@/components/ui/button";
 import { supabase } from "@/integrations/supabase/client";
