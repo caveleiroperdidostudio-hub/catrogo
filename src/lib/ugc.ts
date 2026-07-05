@@ -232,21 +232,29 @@ export async function registerView(videoId: string) {
 export async function listGames(): Promise<GameProject[]> {
   const { data, error } = await supabase
     .from("projects_games")
-    .select("*")
+    .select(GAME_COLUMNS)
     .order("created_at", { ascending: false });
   if (error) throw error;
-  return attachAuthors((data ?? []) as GameProject[]);
+  return attachAuthors(((data ?? []) as unknown as GameProject[]).map((g) => ({ ...g, source_code: "" })));
 }
 
 export async function listUserGames(userId: string): Promise<GameProject[]> {
   const { data, error } = await supabase
     .from("projects_games")
-    .select("*")
+    .select(GAME_COLUMNS)
     .eq("user_id", userId)
     .order("created_at", { ascending: false });
   if (error) throw error;
-  return (data ?? []) as GameProject[];
+  return ((data ?? []) as unknown as GameProject[]).map((g) => ({ ...g, source_code: "" }));
 }
+
+/** Busca o código-fonte de um jogo; o servidor valida propriedade/compra. */
+export async function getGameSource(gameId: string): Promise<string> {
+  const { data, error } = await supabase.rpc("get_game_source", { _game_id: gameId });
+  if (error) throw new Error(error.message);
+  return (data as string) ?? "";
+}
+
 
 export async function saveGame(params: {
   id?: string;
