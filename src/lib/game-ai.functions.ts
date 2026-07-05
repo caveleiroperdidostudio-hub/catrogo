@@ -33,7 +33,7 @@ async function callGateway(messages: { role: string; content: string }[]) {
       "Lovable-API-Key": key,
     },
     body: JSON.stringify({
-      model: "google/gemini-3-flash-preview",
+      model: "openai/gpt-5-mini",
       messages,
     }),
   });
