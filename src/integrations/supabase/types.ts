@@ -100,6 +100,27 @@ export type Database = {
         }
         Relationships: []
       }
+      event_missions: {
+        Row: {
+          coins: number
+          created_at: string
+          grants_mod: boolean
+          mission_key: string
+        }
+        Insert: {
+          coins?: number
+          created_at?: string
+          grants_mod?: boolean
+          mission_key: string
+        }
+        Update: {
+          coins?: number
+          created_at?: string
+          grants_mod?: boolean
+          mission_key?: string
+        }
+        Relationships: []
+      }
       event_progress: {
         Row: {
           completed_at: string
@@ -317,6 +338,7 @@ export type Database = {
           id: string
           installs: number
           is_exclusive: boolean
+          is_published: boolean
           source_code: string
           title: string
           updated_at: string
@@ -328,6 +350,7 @@ export type Database = {
           id?: string
           installs?: number
           is_exclusive?: boolean
+          is_published?: boolean
           source_code?: string
           title: string
           updated_at?: string
@@ -339,6 +362,7 @@ export type Database = {
           id?: string
           installs?: number
           is_exclusive?: boolean
+          is_published?: boolean
           source_code?: string
           title?: string
           updated_at?: string
@@ -647,18 +671,14 @@ export type Database = {
       buy_game: { Args: { _game_id: string }; Returns: Json }
       buy_store_item: { Args: { _item_id: string }; Returns: Json }
       claim_event_reward: {
-        Args: {
-          _coins: number
-          _event_id: string
-          _grant_exclusive_mod: boolean
-          _mission_key: string
-        }
+        Args: { _event_id: string; _mission_key: string }
         Returns: Json
       }
       create_group: {
         Args: { _members: string[]; _name: string }
         Returns: string
       }
+      get_game_source: { Args: { _game_id: string }; Returns: string }
       has_role: {
         Args: {
           _role: Database["public"]["Enums"]["app_role"]
