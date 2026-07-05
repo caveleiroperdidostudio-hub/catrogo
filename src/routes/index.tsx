@@ -1,6 +1,7 @@
 import { createFileRoute, Navigate } from "@tanstack/react-router";
 import { useAuth } from "@/lib/auth-context";
 import { AppShell } from "@/features/shell/AppShell";
+import { AppPhoneGate } from "@/features/onboarding/AppPhoneGate";
 
 export const Route = createFileRoute("/")({
   component: Index,
@@ -16,5 +17,9 @@ function Index() {
     );
   }
   if (!session) return <Navigate to="/auth" />;
-  return <AppShell />;
+  return (
+    <AppPhoneGate>
+      <AppShell />
+    </AppPhoneGate>
+  );
 }

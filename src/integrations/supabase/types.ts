@@ -415,6 +415,8 @@ export type Database = {
       profiles: {
         Row: {
           about: string | null
+          app_phone: string | null
+          app_phone_confirmed: boolean
           avatar_url: string | null
           created_at: string
           display_name: string
@@ -425,6 +427,8 @@ export type Database = {
         }
         Insert: {
           about?: string | null
+          app_phone?: string | null
+          app_phone_confirmed?: boolean
           avatar_url?: string | null
           created_at?: string
           display_name: string
@@ -435,6 +439,8 @@ export type Database = {
         }
         Update: {
           about?: string | null
+          app_phone?: string | null
+          app_phone_confirmed?: boolean
           avatar_url?: string | null
           created_at?: string
           display_name?: string
@@ -668,6 +674,7 @@ export type Database = {
         Args: { _amount: number; _username: string }
         Returns: Json
       }
+      assign_app_phone: { Args: never; Returns: string }
       buy_game: { Args: { _game_id: string }; Returns: Json }
       buy_store_item: { Args: { _item_id: string }; Returns: Json }
       claim_event_reward: {
@@ -678,6 +685,7 @@ export type Database = {
         Args: { _members: string[]; _name: string }
         Returns: string
       }
+      generate_app_phone: { Args: never; Returns: string }
       get_game_source: { Args: { _game_id: string }; Returns: string }
       has_role: {
         Args: {
