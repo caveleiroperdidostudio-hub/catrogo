@@ -9,6 +9,8 @@ type Profile = {
   display_name: string;
   avatar_url: string | null;
   about: string | null;
+  app_phone: string | null;
+  app_phone_confirmed: boolean;
 };
 
 type AuthContextValue = {
