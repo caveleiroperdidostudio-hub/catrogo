@@ -22,7 +22,7 @@ function json(body: unknown, status = 200) {
 }
 
 async function aiCall(messages: Array<{ role: string; content: string }>, jsonMode = false) {
-  const body: Record<string, unknown> = { model: "google/gemini-2.5-flash", messages };
+  const body: Record<string, unknown> = { model: "openai/gpt-5-mini", messages };
   if (jsonMode) body.response_format = { type: "json_object" };
   const res = await fetch("https://ai.gateway.lovable.dev/v1/chat/completions", {
     method: "POST",
