@@ -98,13 +98,18 @@ export function GamesModule() {
     setView("editor");
   };
 
-  const openEdit = (g: GameProject) => {
+  const openEdit = async (g: GameProject) => {
     setEditing(g);
     setTitle(g.title);
     setDesc(g.description ?? "");
     setPrice(g.price ?? 0);
-    setCode(g.source_code);
-    setPreviewCode(g.source_code);
+    try {
+      const src = g.source_code || (await getGameSource(g.id));
+      setCode(src);
+      setPreviewCode(src);
+    } catch (e) {
+      return toast.error((e as Error).message || "Não foi possível abrir o código");
+    }
     setView("editor");
   };
 
