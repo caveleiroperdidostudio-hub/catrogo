@@ -35,9 +35,9 @@ export function ChristmasMissions() {
     if (cost && !isOwner && balance < cost) return toast.error("Saldo insuficiente para este pacote");
     setBusy(key);
     try {
-      // pacote pago: cobra o custo (recompensa líquida = coins - cost)
-      const net = cost ? coins - cost : coins;
-      const bal = await claimEventReward(event.id, key, net, grants);
+      // recompensa é definida no servidor a partir da chave da missão
+      void coins;
+      const bal = await claimEventReward(event.id, key);
       setBalance(bal);
       setDone((s) => new Set(s).add(key));
       toast.success(grants ? "Mod Exclusivo de Natal desbloqueado! 🎄" : "Recompensa resgatada! 🎁");
