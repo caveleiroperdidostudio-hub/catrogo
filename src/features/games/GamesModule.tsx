@@ -164,10 +164,15 @@ export function GamesModule() {
     }
   };
 
-  const openPlay = (g: GameProject) => {
-    setPlaying(g);
-    setView("play");
-    registerPlay(g.id);
+  const openPlay = async (g: GameProject) => {
+    try {
+      const src = g.source_code || (await getGameSource(g.id));
+      setPlaying({ ...g, source_code: src });
+      setView("play");
+      registerPlay(g.id);
+    } catch (e) {
+      toast.error((e as Error).message || "Não foi possível abrir o jogo");
+    }
   };
 
   /* ---------- EDITOR ---------- */
