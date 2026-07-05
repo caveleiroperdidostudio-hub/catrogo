@@ -124,14 +124,10 @@ export async function stopEvent(id: string): Promise<void> {
 export async function claimEventReward(
   eventId: string,
   missionKey: string,
-  coins: number,
-  grantExclusiveMod: boolean,
 ): Promise<number> {
   const { data, error } = await supabase.rpc("claim_event_reward", {
     _event_id: eventId,
     _mission_key: missionKey,
-    _coins: coins,
-    _grant_exclusive_mod: grantExclusiveMod,
   });
   if (error) throw new Error(error.message);
   return (data as { balance: number }).balance;
