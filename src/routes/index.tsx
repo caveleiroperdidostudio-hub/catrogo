@@ -17,5 +17,9 @@ function Index() {
     );
   }
   if (!session) return <Navigate to="/auth" />;
-  return <AppShell />;
+  return (
+    <AppPhoneGate>
+      <AppShell />
+    </AppPhoneGate>
+  );
 }
