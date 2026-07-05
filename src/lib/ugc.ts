@@ -30,6 +30,9 @@ export type GameProject = {
   author?: { username: string; display_name: string; avatar_url: string | null };
 };
 
+// Colunas seguras (sem source_code) legíveis por qualquer usuário autenticado.
+const GAME_COLUMNS = "id, user_id, title, description, plays, price, created_at, updated_at";
+
 export type Comment = {
   id: string;
   user_id: string;
