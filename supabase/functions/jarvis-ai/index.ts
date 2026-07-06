@@ -22,11 +22,11 @@ function json(body: unknown, status = 200) {
 }
 
 async function aiCall(messages: Array<{ role: string; content: string }>, jsonMode = false) {
-  const body: Record<string, unknown> = { model: "openai/gpt-5-mini", messages };
+  const body: Record<string, unknown> = { model: "gpt-4o-mini", messages };
   if (jsonMode) body.response_format = { type: "json_object" };
-  const res = await fetch("https://ai.gateway.lovable.dev/v1/chat/completions", {
+  const res = await fetch("https://api.openai.com/v1/chat/completions", {
     method: "POST",
-    headers: { "Content-Type": "application/json", Authorization: `Bearer ${LOVABLE_API_KEY}` },
+    headers: { "Content-Type": "application/json", Authorization: `Bearer ${OPENAI_API_KEY}` },
     body: JSON.stringify(body),
   });
   if (!res.ok) throw new Error(`AI ${res.status}: ${await res.text()}`);
