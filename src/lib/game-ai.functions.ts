@@ -23,23 +23,23 @@ A área do jogo tem 320x320. Posicione objetos dentro dessa área.
 Sempre inclua pelo menos um objeto controlado pelo jogador, uma forma de ganhar pontos e/ou de perder.`;
 
 async function callGateway(messages: { role: string; content: string }[]) {
-  const key = process.env.LOVABLE_API_KEY;
-  if (!key) throw new Error("Missing LOVABLE_API_KEY");
+  const key = process.env.OPENAI_API_KEY;
+  if (!key) throw new Error("Missing OPENAI_API_KEY");
 
-  const res = await fetch("https://ai.gateway.lovable.dev/v1/chat/completions", {
+  const res = await fetch("https://api.openai.com/v1/chat/completions", {
     method: "POST",
     headers: {
       "Content-Type": "application/json",
-      "Lovable-API-Key": key,
+      Authorization: `Bearer ${key}`,
     },
     body: JSON.stringify({
-      model: "openai/gpt-5-mini",
+      model: "gpt-4o-mini",
       messages,
     }),
   });
 
   if (res.status === 429) throw new Error("Muitas requisições. Tente novamente em instantes.");
-  if (res.status === 402) throw new Error("Créditos de IA esgotados. Adicione créditos para continuar.");
+  if (res.status === 401) throw new Error("Chave da OpenAI inválida. Verifique a configuração.");
   if (!res.ok) throw new Error("Falha ao falar com a IA. Tente novamente.");
 
   const json = await res.json();
