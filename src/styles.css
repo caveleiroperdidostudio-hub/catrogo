@@ -197,8 +197,19 @@
 
   html, body, #root { height: 100%; }
 
-  /* Fonte personalizada da interface (estilo GB/Lite) */
-  body { font-family: var(--app-font, inherit); }
+  /* Fonte personalizada da interface (padrão: Figtree) */
+  body {
+    font-family: var(--app-font, var(--font-sans));
+    -webkit-font-smoothing: antialiased;
+    text-rendering: optimizeLegibility;
+    font-feature-settings: "cv02", "cv03", "cv04";
+  }
+
+  /* Títulos com a display font (Outfit) e tracking apertado */
+  h1, h2, h3, h4, .font-display {
+    font-family: var(--font-display);
+    letter-spacing: -0.02em;
+  }
 
   /* Estilos de balão de mensagem */
   [data-bubble="sharp"] .chat-bubble { border-radius: 0.25rem !important; }
