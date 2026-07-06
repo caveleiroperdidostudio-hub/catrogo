@@ -287,3 +287,77 @@ a[href*="lovable.dev"] { display: none !important; }
 ::-webkit-scrollbar-track { background: transparent; }
 ::-webkit-scrollbar-thumb { background: color-mix(in oklab, var(--cosmic) 30%, transparent); border-radius: 8px; }
 ::-webkit-scrollbar-thumb:hover { background: color-mix(in oklab, var(--cosmic) 50%, transparent); }
+
+/* ===== Design premium híbrido: sombras, cards e animações ===== */
+:root {
+  --shadow-soft: 0 1px 2px oklch(0 0 0 / 0.2), 0 4px 12px -4px oklch(0 0 0 / 0.25);
+  --shadow-elevated: 0 4px 24px -6px oklch(0 0 0 / 0.4), 0 2px 6px -2px oklch(0 0 0 / 0.3);
+  --shadow-glow: 0 0 32px -8px color-mix(in oklab, var(--cosmic) 45%, transparent);
+}
+
+@utility card-premium {
+  background: color-mix(in oklab, var(--card) 92%, transparent);
+  border: 1px solid color-mix(in oklab, white 7%, transparent);
+  border-radius: var(--radius-lg);
+  box-shadow: var(--shadow-soft);
+  transition: transform 0.2s ease, box-shadow 0.2s ease, border-color 0.2s ease;
+}
+@utility card-interactive {
+  cursor: pointer;
+  &:hover {
+    transform: translateY(-2px);
+    box-shadow: var(--shadow-elevated);
+    border-color: color-mix(in oklab, var(--cosmic) 35%, transparent);
+  }
+  &:active { transform: translateY(0); }
+}
+
+/* Transição suave ao trocar de módulo/página */
+@keyframes page-enter {
+  from { opacity: 0; transform: translateY(8px); }
+  to { opacity: 1; transform: translateY(0); }
+}
+@utility page-transition {
+  animation: page-enter 0.28s cubic-bezier(0.22, 1, 0.36, 1);
+}
+
+/* Shimmer para skeletons */
+@keyframes shimmer {
+  100% { transform: translateX(100%); }
+}
+@utility skeleton-shimmer {
+  position: relative;
+  overflow: hidden;
+  &::after {
+    content: "";
+    position: absolute;
+    inset: 0;
+    transform: translateX(-100%);
+    background: linear-gradient(90deg, transparent, color-mix(in oklab, white 8%, transparent), transparent);
+    animation: shimmer 1.6s infinite;
+  }
+}
+
+/* Press feedback universal em elementos tocáveis */
+@utility tap-press {
+  transition: transform 0.12s ease;
+  &:active { transform: scale(0.95); }
+}
+
+/* Foco acessível consistente (WCAG) */
+@layer base {
+  :where(button, a, [role="button"], input, textarea, select):focus-visible {
+    outline: 2px solid var(--ring);
+    outline-offset: 2px;
+    border-radius: var(--radius-sm);
+  }
+}
+
+/* Respeita usuários que preferem menos movimento */
+@media (prefers-reduced-motion: reduce) {
+  *, *::before, *::after {
+    animation-duration: 0.01ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: 0.01ms !important;
+  }
+}
