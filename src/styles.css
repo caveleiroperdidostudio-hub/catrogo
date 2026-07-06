@@ -51,6 +51,8 @@
   --color-brand-foreground: var(--brand-foreground);
   --color-nebula: var(--nebula);
   --color-cosmic: var(--cosmic);
+  --font-sans: "Figtree Variable", ui-sans-serif, system-ui, sans-serif;
+  --font-display: "Outfit Variable", ui-sans-serif, system-ui, sans-serif;
 }
 
 /* === COSMOS CHAT — Tema minimalista galáctico (dark-first) === */
