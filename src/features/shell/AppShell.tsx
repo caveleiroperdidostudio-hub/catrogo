@@ -49,7 +49,7 @@ function ShellInner() {
   return (
     <div className="relative flex h-[100dvh] flex-col overflow-hidden bg-background">
       <EventCountdownBanner />
-      <div className="flex-1 min-h-0 overflow-hidden">
+      <div key={active} className="page-transition flex-1 min-h-0 overflow-hidden">
         {active === "chat" && <ChatHome />}
         {active === "video" && <VideoModule />}
         {active === "shorts" && <ShortsModule />}
@@ -63,7 +63,10 @@ function ShellInner() {
         {active === "admin" && <AdminPanel />}
       </div>
 
-      <nav className="h-16 shrink-0 border-t border-white/10 glass flex items-stretch justify-around px-1 pb-[env(safe-area-inset-bottom)] overflow-x-auto">
+      <nav
+        aria-label="Navegação principal"
+        className="h-16 shrink-0 border-t border-white/10 glass flex items-stretch justify-around px-1 pb-[env(safe-area-inset-bottom)] overflow-x-auto"
+      >
         {tabs.map((t) => {
           const Icon = t.icon;
           const isActive = active === t.id;
@@ -71,10 +74,25 @@ function ShellInner() {
             <button
               key={t.id}
               onClick={() => setActive(t.id)}
-              className="flex flex-1 min-w-[52px] flex-col items-center justify-center gap-0.5 transition"
+              aria-label={t.label}
+              aria-current={isActive ? "page" : undefined}
+              className="tap-press group relative flex flex-1 min-w-[52px] flex-col items-center justify-center gap-0.5 transition"
             >
-              <Icon className={`h-5 w-5 transition ${isActive ? "text-primary scale-110" : "text-muted-foreground"}`} />
-              <span className={`text-[10px] font-medium ${isActive ? "text-primary" : "text-muted-foreground"}`}>{t.label}</span>
+              {isActive && (
+                <span className="absolute top-0 h-0.5 w-8 rounded-full bg-primary cosmic-glow" aria-hidden="true" />
+              )}
+              <Icon
+                className={`h-5 w-5 transition-all duration-200 ${
+                  isActive ? "text-primary scale-110" : "text-muted-foreground group-hover:text-foreground"
+                }`}
+              />
+              <span
+                className={`text-[10px] font-medium transition-colors ${
+                  isActive ? "text-primary" : "text-muted-foreground group-hover:text-foreground"
+                }`}
+              >
+                {t.label}
+              </span>
             </button>
           );
         })}
