@@ -10,6 +10,7 @@ import { NewChatDialog } from "./NewChatDialog";
 import { SettingsSheet } from "./SettingsSheet";
 import { IncomingCallListener } from "./IncomingCallListener";
 import { useSettings } from "@/lib/settings-context";
+import { NotificationCenter } from "@/features/notifications/NotificationCenter";
 import { Tabs, TabsList, TabsTrigger, TabsContent } from "@/components/ui/tabs";
 import { Button } from "@/components/ui/button";
 import { MessageCircle, Users, Circle, Phone, MoreVertical, LogOut, User as UserIcon, Sparkles, Orbit, ShieldHalf } from "lucide-react";
