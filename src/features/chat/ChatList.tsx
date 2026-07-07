@@ -4,6 +4,7 @@ import { useAuth } from "@/lib/auth-context";
 import { useSettings } from "@/lib/settings-context";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { Sparkles, Users, Lock, Pin } from "lucide-react";
+import { ListSkeleton } from "@/components/ui/list-skeleton";
 import { formatRelative } from "date-fns";
 import { ptBR } from "date-fns/locale";
 
