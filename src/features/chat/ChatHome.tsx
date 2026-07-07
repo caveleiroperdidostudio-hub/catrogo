@@ -10,6 +10,7 @@ import { NewChatDialog } from "./NewChatDialog";
 import { SettingsSheet } from "./SettingsSheet";
 import { IncomingCallListener } from "./IncomingCallListener";
 import { useSettings } from "@/lib/settings-context";
+import { NotificationCenter } from "@/features/notifications/NotificationCenter";
 import { Tabs, TabsList, TabsTrigger, TabsContent } from "@/components/ui/tabs";
 import { Button } from "@/components/ui/button";
 import { MessageCircle, Users, Circle, Phone, MoreVertical, LogOut, User as UserIcon, Sparkles, Orbit, ShieldHalf } from "lucide-react";
@@ -88,6 +89,7 @@ export function ChatHome() {
             </span>
           </div>
           <div className="flex items-center gap-1">
+            <NotificationCenter />
             <Button size="icon" variant="ghost" className="h-9 w-9" onClick={() => setSettingsOpen(true)} title="Privacidade & temas">
               <ShieldHalf className="h-4 w-4 text-[var(--nebula)]" />
             </Button>
