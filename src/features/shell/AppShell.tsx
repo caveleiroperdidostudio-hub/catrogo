@@ -15,6 +15,7 @@ import { ChannelView } from "@/features/profile/ChannelView";
 import { ChannelProvider } from "@/lib/channel-context";
 import { WalletProvider } from "@/lib/wallet-context";
 import { EventsProvider, useGlobalEvent } from "@/lib/events-context";
+import { NotificationsProvider } from "@/lib/notifications-context";
 import { useAuth } from "@/lib/auth-context";
 
 type ModuleId = "chat" | "video" | "shorts" | "games" | "ia" | "store" | "mods" | "updates" | "profile" | "admin" | "missions";
