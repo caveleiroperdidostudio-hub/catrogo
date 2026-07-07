@@ -106,9 +106,11 @@ export function AppShell() {
   return (
     <WalletProvider>
       <EventsProvider>
-        <ChannelProvider render={(userId, close) => <ChannelView userId={userId} onClose={close} />}>
-          <ShellInner />
-        </ChannelProvider>
+        <NotificationsProvider>
+          <ChannelProvider render={(userId, close) => <ChannelView userId={userId} onClose={close} />}>
+            <ShellInner />
+          </ChannelProvider>
+        </NotificationsProvider>
       </EventsProvider>
     </WalletProvider>
   );
