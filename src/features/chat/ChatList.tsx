@@ -109,7 +109,7 @@ export function ChatList({ activeId, onSelect, filter = "all" }: { activeId: str
     return () => { supabase.removeChannel(ch); };
   }, [user]);
 
-  if (loading) return <div className="p-4 text-sm text-muted-foreground">Calibrando órbitas…</div>;
+  if (loading) return <ListSkeleton rows={7} />;
   if (items.length === 0) return <div className="p-6 text-sm text-muted-foreground text-center">Nenhuma órbita ainda. Toque em <Users className="inline h-3.5 w-3.5" /> acima para iniciar.</div>;
 
   return (
