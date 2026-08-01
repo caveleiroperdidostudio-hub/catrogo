@@ -8,6 +8,7 @@ import { useAuth } from "@/lib/auth-context";
 import { useChannel } from "@/lib/channel-context";
 import { useWallet } from "@/lib/wallet-context";
 import { sendHype, HYPE_AMOUNTS } from "@/lib/economy";
+import { notifyFollow, notifyHype } from "@/lib/notify-inapp";
 import {
   listVideos,
   getLikeState,
@@ -83,6 +84,7 @@ function ShortCard({ short }: { short: VideoPost }) {
     setFollow({ isFollowing: !wasFollowing, busy: true });
     try {
       await toggleFollow(short.user_id, user.id, wasFollowing);
+      if (!wasFollowing) notifyFollow(short.user_id).catch(() => {});
       toast.success(wasFollowing ? "Inscrição cancelada" : "Inscrito! 🔔");
     } catch {
       setFollow({ isFollowing: wasFollowing, busy: false });
@@ -135,6 +137,7 @@ function ShortCard({ short }: { short: VideoPost }) {
     setHypeOpen(false);
     try {
       const bal = await sendHype(short.id, amount);
+      notifyHype(short.user_id, amount).catch(() => {});
       setBalance(bal);
       toast.success(`Hype de ${amount} CatCoins enviado! ⚡`);
     } catch (e) {

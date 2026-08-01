@@ -5,6 +5,7 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
 import { useAuth } from "@/lib/auth-context";
+import { CardListSkeleton } from "@/components/ui/list-skeleton";
 import {
   listMods,
   saveMod,
@@ -207,7 +208,7 @@ export function ModsModule() {
 
       <div className="flex-1 overflow-y-auto p-4 space-y-3">
         {loading ? (
-          <div className="flex justify-center py-10"><Loader2 className="h-6 w-6 animate-spin text-muted-foreground" /></div>
+          <CardListSkeleton rows={5} />
         ) : tab === "explorar" ? (
           mods.length === 0 ? (
             <Empty onNew={openNew} />

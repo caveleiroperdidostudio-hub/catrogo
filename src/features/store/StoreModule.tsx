@@ -19,6 +19,8 @@ import {
   type CoinTransaction,
 } from "@/lib/economy";
 import { getFollowStats } from "@/lib/ugc";
+import { CardListSkeleton } from "@/components/ui/list-skeleton";
+import { notifySelf } from "@/lib/notify-inapp";
 
 const KIND_EMOJI: Record<string, string> = { skin: "🎨", badge: "🏷️", efeito: "✨" };
 
@@ -73,6 +75,13 @@ export function StoreModule() {
       const newBal = await buyStoreItem(item.id);
       setBalance(newBal);
       toast.success(`"${item.name}" comprado! 🎉`);
+      notifySelf({
+        userId: user.id,
+        type: "purchase",
+        title: "Compra concluída",
+        body: `"${item.name}" foi adicionado ao seu inventário por ${item.price} CatCoins.`,
+        icon: "🛍️",
+      }).catch(() => {});
       await load();
     } catch (e) {
       toast.error((e as Error).message || "Não foi possível comprar");
@@ -113,7 +122,7 @@ export function StoreModule() {
 
 
       {loading ? (
-        <div className="flex flex-1 items-center justify-center"><Loader2 className="h-6 w-6 animate-spin text-muted-foreground" /></div>
+        <div className="flex-1 overflow-y-auto p-4"><CardListSkeleton rows={6} /></div>
       ) : tab === "loja" ? (
         <div className="flex-1 overflow-y-auto p-4 space-y-3">
           <p className="text-xs text-muted-foreground flex items-center gap-1">

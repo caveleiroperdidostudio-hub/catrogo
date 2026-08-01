@@ -734,6 +734,15 @@ export type Database = {
       increment_video_views: { Args: { _id: string }; Returns: undefined }
       is_member: { Args: { _conv: string; _user: string }; Returns: boolean }
       is_owner: { Args: { _uid?: string }; Returns: boolean }
+      notify_follow: { Args: { _target: string }; Returns: undefined }
+      notify_hype: {
+        Args: { _amount: number; _target: string }
+        Returns: undefined
+      }
+      notify_message: {
+        Args: { _conversation_id: string; _preview: string }
+        Returns: undefined
+      }
       send_hype: { Args: { _amount: number; _video_id: string }; Returns: Json }
       start_dm: { Args: { _other: string }; Returns: string }
       start_event: {
