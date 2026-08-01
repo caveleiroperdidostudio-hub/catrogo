@@ -8,7 +8,9 @@ import {
   Scripts,
 } from "@tanstack/react-router";
 import { Toaster } from "sonner";
+import { useEffect } from "react";
 import { AuthProvider } from "@/lib/auth-context";
+import { registerAppServiceWorker } from "@/lib/pwa";
 import { SettingsProvider } from "@/lib/settings-context";
 
 import appCss from "../styles.css?url";
@@ -80,6 +82,9 @@ export const Route = createRootRouteWithContext<{ queryClient: QueryClient }>()(
       { charSet: "utf-8" },
       { name: "viewport", content: "width=device-width, initial-scale=1, viewport-fit=cover" },
       { name: "theme-color", content: "#0B0B1E" },
+      { name: "apple-mobile-web-app-capable", content: "yes" },
+      { name: "apple-mobile-web-app-status-bar-style", content: "black-translucent" },
+      { name: "apple-mobile-web-app-title", content: "Catrogo" },
       { title: "Catrogo — Chat, Vídeos, Shorts, Games e IA em um só app" },
       { name: "description", content: "Catrogo é a plataforma brasileira que reúne chat em tempo real com chamadas, vídeos, shorts, jogos criados por IA, mods, loja com CatCoins e muito mais." },
       { property: "og:title", content: "Catrogo — Sua plataforma social completa" },
@@ -92,6 +97,8 @@ export const Route = createRootRouteWithContext<{ queryClient: QueryClient }>()(
     links: [
       { rel: "stylesheet", href: appCss },
       { rel: "manifest", href: "/manifest.webmanifest" },
+      { rel: "icon", type: "image/png", href: "/favicon.png" },
+      { rel: "apple-touch-icon", href: "/apple-touch-icon.png" },
     ],
   }),
   shellComponent: RootShell,
@@ -114,6 +121,9 @@ function RootShell({ children }: { children: React.ReactNode }) {
 
 function RootComponent() {
   const { queryClient } = Route.useRouteContext();
+  useEffect(() => {
+    registerAppServiceWorker();
+  }, []);
   return (
     <QueryClientProvider client={queryClient}>
       <AuthProvider>
