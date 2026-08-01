@@ -14,6 +14,8 @@ import {
   DialogTitle,
 } from "@/components/ui/dialog";
 import { useAuth } from "@/lib/auth-context";
+import { VideoGridSkeleton } from "@/components/ui/list-skeleton";
+import { notifyHype } from "@/lib/notify-inapp";
 import { useChannel } from "@/lib/channel-context";
 import { AdminCommandConsole } from "@/features/admin/AdminCommandConsole";
 import {
@@ -165,6 +167,7 @@ function VideoPlayer({ video, onDeleted }: { video: VideoPost; onDeleted: () => 
     try {
       const bal = await sendHype(video.id, amount);
       setBalance(bal);
+      notifyHype(video.user_id, amount).catch(() => {});
       toast.success(`Hype de ${amount} CatCoins enviado! ⚡`);
     } catch (e) {
       toast.error((e as Error).message || "Não foi possível dar hype");
@@ -283,7 +286,7 @@ export function VideoModule() {
         {playing && <VideoPlayer video={playing} onDeleted={() => { setPlaying(null); load(); }} />}
 
         {loading ? (
-          <div className="flex justify-center py-10"><Loader2 className="h-6 w-6 animate-spin text-muted-foreground" /></div>
+          <VideoGridSkeleton rows={4} />
         ) : filtered.length === 0 ? (
           <div className="text-center py-12 space-y-3">
             <Play className="h-10 w-10 mx-auto text-muted-foreground" />
