@@ -1,17 +1,17 @@
 {
-  "name": "Cosmos Chat",
-  "short_name": "Cosmos",
-  "description": "Cosmos Chat — mensagens com a IA Carlos integrada, privacidade extrema e tema galáctico.",
+  "name": "Catrogo — Chat, Vídeos, Shorts, Games e IA",
+  "short_name": "Catrogo",
+  "description": "Catrogo: chat em tempo real com chamadas, vídeos, shorts, jogos criados por IA, mods e loja com CatCoins.",
   "start_url": "/",
   "scope": "/",
   "display": "standalone",
+  "orientation": "portrait",
+  "lang": "pt-BR",
   "background_color": "#0B0B1E",
   "theme_color": "#7C3AED",
   "icons": [
-    {
-      "src": "/favicon.ico",
-      "sizes": "any",
-      "type": "image/x-icon"
-    }
+    { "src": "/icons/icon-192.png", "sizes": "192x192", "type": "image/png", "purpose": "any" },
+    { "src": "/icons/icon-512.png", "sizes": "512x512", "type": "image/png", "purpose": "any" },
+    { "src": "/icons/icon-512.png", "sizes": "512x512", "type": "image/png", "purpose": "maskable" }
   ]
 }
