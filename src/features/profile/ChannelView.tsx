@@ -1,5 +1,5 @@
 import { useEffect, useState } from "react";
-import { ArrowLeft, Loader2, Play, Gamepad2, Eye, UserPlus, UserCheck } from "lucide-react";
+import { ArrowLeft, Play, Gamepad2, Eye, UserPlus, UserCheck } from "lucide-react";
 import { notifyFollow } from "@/lib/notify-inapp";
 import { ListSkeleton } from "@/components/ui/list-skeleton";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
