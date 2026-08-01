@@ -21,6 +21,7 @@ import { CallScreen, type CallMode } from "./CallScreen";
 import { VoiceRecorder, AudioBubble, uploadAudio, type RecordingHandle } from "./VoiceRecorder";
 import { sendCallInvite } from "./IncomingCallListener";
 import { notifyNewMessage } from "@/lib/notify.functions";
+import { notifyConversation } from "@/lib/notify-inapp";
 
 type Message = {
   id: string;
@@ -199,6 +200,7 @@ export function ChatView({ conversationId, onBack }: { conversationId: string; o
     if (error) { toast.error(error.message); setText(content); return; }
     if (!header?.isAi) {
       notifyNewMessage({ data: { conversationId, preview: content.slice(0, 180) } }).catch(() => {});
+      notifyConversation(conversationId, content.slice(0, 140)).catch(() => {});
     }
 
     const mentionsCarlos = /(^|\s)@carlos\b/i.test(content);
@@ -231,7 +233,10 @@ export function ChatView({ conversationId, onBack }: { conversationId: string; o
         to_ai: false,
       });
       if (error) toast.error(error.message);
-      else notifyNewMessage({ data: { conversationId, preview: `🎤 Áudio (${result.seconds}s)` } }).catch(() => {});
+      else {
+        notifyNewMessage({ data: { conversationId, preview: `🎤 Áudio (${result.seconds}s)` } }).catch(() => {});
+        notifyConversation(conversationId, `🎤 Áudio (${result.seconds}s)`).catch(() => {});
+      }
     } catch (e) {
       toast.error((e as Error).message ?? "Falha ao enviar áudio");
     } finally {

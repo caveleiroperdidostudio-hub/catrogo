@@ -1,5 +1,7 @@
 import { useEffect, useState } from "react";
 import { ArrowLeft, Loader2, Play, Gamepad2, Eye, UserPlus, UserCheck } from "lucide-react";
+import { notifyFollow } from "@/lib/notify-inapp";
+import { ListSkeleton } from "@/components/ui/list-skeleton";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { Button } from "@/components/ui/button";
 import { useAuth } from "@/lib/auth-context";
@@ -46,6 +48,7 @@ export function ChannelView({ userId, onClose }: { userId: string; onClose: () =
     const wasFollowing = stats.isFollowing;
     setStats((s) => ({ ...s, isFollowing: !wasFollowing, followers: s.followers + (wasFollowing ? -1 : 1) }));
     await toggleFollow(userId, user.id, wasFollowing);
+    if (!wasFollowing) notifyFollow(userId).catch(() => {});
   };
 
   return (
@@ -56,7 +59,7 @@ export function ChannelView({ userId, onClose }: { userId: string; onClose: () =
       </div>
 
       {loading ? (
-        <div className="flex flex-1 items-center justify-center"><Loader2 className="h-6 w-6 animate-spin text-muted-foreground" /></div>
+        <div className="flex-1 overflow-y-auto"><ListSkeleton rows={4} /></div>
       ) : !profile ? (
         <p className="text-center text-sm text-muted-foreground py-10">Canal não encontrado.</p>
       ) : (
