@@ -8,6 +8,7 @@ import { Input } from "@/components/ui/input";
 import {
   ArrowLeft, Sparkles, Send, Phone, Video, MoreVertical, Users, Wand2, Loader2,
   Languages, BrainCircuit, Timer, Lock, OrbitIcon, ShieldHalf, ShieldCheck, MailOpen, Mic, Image as ImageIcon,
+  Reply, Pencil, Trash2, Star, Forward, Search, Copy, SmilePlus, X, Clock, CheckCheck,
 } from "lucide-react";
 import {
   DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger,
@@ -23,6 +24,8 @@ import { sendCallInvite } from "./IncomingCallListener";
 import { notifyNewMessage } from "@/lib/notify.functions";
 import { notifyConversation } from "@/lib/notify-inapp";
 
+const QUICK_REACTIONS = ["❤️", "😂", "😮", "😢", "🙏", "👍", "🚀"];
+
 type Message = {
   id: string;
   conversation_id: string;
@@ -31,7 +34,13 @@ type Message = {
   is_ai: boolean;
   to_ai: boolean;
   created_at: string;
+  reply_to?: string | null;
+  edited_at?: string | null;
+  deleted_at?: string | null;
 };
+
+type Reaction = { message_id: string; user_id: string; emoji: string };
+
 
 type ConvHeader = {
   id: string;
@@ -80,6 +89,21 @@ export function ChatView({ conversationId, onBack }: { conversationId: string; o
   const [summary, setSummary] = useState<string | null>(null);
   const [summarizing, setSummarizing] = useState(false);
   const [now, setNow] = useState(Date.now());
+
+  // Novos recursos de mensagem
+  const [replyTo, setReplyTo] = useState<Message | null>(null);
+  const [editing, setEditing] = useState<Message | null>(null);
+  const [editText, setEditText] = useState("");
+  const [reactions, setReactions] = useState<Reaction[]>([]);
+  const [starredIds, setStarredIds] = useState<string[]>([]);
+  const [starredOpen, setStarredOpen] = useState(false);
+  const [searchOpen, setSearchOpen] = useState(false);
+  const [searchQuery, setSearchQuery] = useState("");
+  const [forwarding, setForwarding] = useState<Message | null>(null);
+  const [forwardTargets, setForwardTargets] = useState<{ id: string; label: string }[]>([]);
+  const [scheduleOpen, setScheduleOpen] = useState(false);
+  const [scheduleAt, setScheduleAt] = useState("");
+
 
   const senderNames = useRef<Record<string, string>>({});
   const scrollRef = useRef<HTMLDivElement>(null);
@@ -133,7 +157,7 @@ export function ChatView({ conversationId, onBack }: { conversationId: string; o
   }, [conversationId, user, privacy.ghostOnline]);
 
   // mensagens
-  const loadMessages = async () => {
+  const loadMessages = async (): Promise<string[]> => {
     const { data } = await supabase.from("messages").select("*").eq("conversation_id", conversationId).order("created_at", { ascending: true });
     setMessages(data ?? []);
     const ids = Array.from(new Set((data ?? []).map((m) => m.sender_id).filter((x): x is string => !!x && !senderNames.current[x])));
@@ -141,10 +165,31 @@ export function ChatView({ conversationId, onBack }: { conversationId: string; o
       const { data: profs } = await supabase.from("profiles").select("id, display_name").in("id", ids);
       profs?.forEach((p) => { senderNames.current[p.id] = p.display_name; });
     }
+    return (data ?? []).map((m) => m.id);
+  };
+
+  const loadReactions = async (ids?: string[]) => {
+    const messageIds = ids ?? messages.map((m) => m.id);
+
+    if (messageIds.length === 0) { setReactions([]); return; }
+    const { data } = await supabase
+      .from("message_reactions").select("message_id, user_id, emoji")
+      .in("message_id", messageIds);
+    setReactions((data ?? []) as Reaction[]);
+  };
+
+  const loadStarred = async () => {
+    if (!user) return;
+    const { data } = await supabase.from("starred_messages").select("message_id").eq("user_id", user.id);
+    setStarredIds((data ?? []).map((r: { message_id: string }) => r.message_id));
   };
 
   useEffect(() => {
-    loadMessages();
+    (async () => {
+      const ids = await loadMessages();
+      await loadReactions(ids);
+    })();
+    loadStarred();
     const ch = supabase
       .channel(`conv-${conversationId}`)
       .on("postgres_changes",
@@ -158,16 +203,37 @@ export function ChatView({ conversationId, onBack }: { conversationId: string; o
           setMessages((prev) => prev.some((x) => x.id === m.id) ? prev : [...prev, m]);
           if (m.is_ai) setAiThinking(false);
         })
+      .on("postgres_changes",
+        { event: "UPDATE", schema: "public", table: "messages", filter: `conversation_id=eq.${conversationId}` },
+        (payload) => {
+          const m = payload.new as Message;
+          setMessages((prev) => prev.map((x) => (x.id === m.id ? { ...x, ...m } : x)));
+        })
+      .on("postgres_changes",
+        { event: "*", schema: "public", table: "message_reactions" },
+        () => { loadReactions(); })
       .subscribe();
-    return () => { supabase.removeChannel(ch); };
-  }, [conversationId]);
 
-  // filtro efêmero (visual)
+    return () => { supabase.removeChannel(ch); };
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [conversationId, user]);
+
+  // filtro efêmero (visual) + busca dentro da conversa
   const ephemeralSeconds = ephemeral[conversationId] ?? 0;
   const visibleMessages = useMemo(() => {
-    if (!ephemeralSeconds) return messages;
-    return messages.filter((m) => (now - new Date(m.created_at).getTime()) < ephemeralSeconds * 1000);
-  }, [messages, ephemeralSeconds, now]);
+    let list = messages;
+    if (ephemeralSeconds) list = list.filter((m) => (now - new Date(m.created_at).getTime()) < ephemeralSeconds * 1000);
+    const q = searchQuery.trim().toLowerCase();
+    if (q) list = list.filter((m) => m.content.toLowerCase().includes(q));
+    return list;
+  }, [messages, ephemeralSeconds, now, searchQuery]);
+
+  const messageById = useMemo(() => {
+    const map: Record<string, Message> = {};
+    messages.forEach((m) => { map[m.id] = m; });
+    return map;
+  }, [messages]);
+
 
   useEffect(() => {
     scrollRef.current?.scrollTo({ top: scrollRef.current.scrollHeight, behavior: "smooth" });
@@ -195,7 +261,10 @@ export function ChatView({ conversationId, onBack }: { conversationId: string; o
       sender_id: user.id,
       content,
       to_ai: header?.isAi ?? false,
+      reply_to: replyTo?.id ?? null,
     });
+    setReplyTo(null);
+
     setSending(false);
     if (error) { toast.error(error.message); setText(content); return; }
     if (!header?.isAi) {
@@ -294,7 +363,88 @@ export function ChatView({ conversationId, onBack }: { conversationId: string; o
     finally { setTranslatingId(null); }
   };
 
+
+  // --- Ações de mensagem (responder, editar, apagar, reagir, favoritar, copiar)
+  const react = async (m: Message, emoji: string) => {
+    if (!user) return;
+    const mine = reactions.find((r) => r.message_id === m.id && r.user_id === user.id && r.emoji === emoji);
+    if (mine) {
+      await supabase.from("message_reactions").delete().eq("message_id", m.id).eq("user_id", user.id).eq("emoji", emoji);
+    } else {
+      await supabase.from("message_reactions").insert({ message_id: m.id, user_id: user.id, emoji });
+    }
+    loadReactions();
+  };
+
+  const toggleStar = async (m: Message) => {
+    if (!user) return;
+    if (starredIds.includes(m.id)) {
+      await supabase.from("starred_messages").delete().eq("message_id", m.id).eq("user_id", user.id);
+      setStarredIds((s) => s.filter((x) => x !== m.id));
+    } else {
+      await supabase.from("starred_messages").insert({ message_id: m.id, user_id: user.id });
+      setStarredIds((s) => [...s, m.id]);
+      toast.success("Mensagem favoritada");
+    }
+  };
+
+  const saveEdit = async () => {
+    if (!editing) return;
+    const content = editText.trim();
+    if (!content) return;
+    const { error } = await supabase.from("messages")
+      .update({ content, edited_at: new Date().toISOString() }).eq("id", editing.id);
+    if (error) toast.error(error.message);
+    else toast.success("Mensagem editada");
+    setEditing(null);
+  };
+
+  const deleteForEveryone = async (m: Message) => {
+    const { error } = await supabase.from("messages")
+      .update({ deleted_at: new Date().toISOString(), content: "" }).eq("id", m.id);
+    if (error) toast.error(error.message);
+    else toast.success("Mensagem apagada para todos");
+  };
+
+  const openForward = async (m: Message) => {
+    if (!user) return;
+    setForwarding(m);
+    const { data: mem } = await supabase.from("conversation_members").select("conversation_id").eq("user_id", user.id);
+    const ids = (mem ?? []).map((x: { conversation_id: string }) => x.conversation_id).filter((id) => id !== conversationId);
+    if (ids.length === 0) { setForwardTargets([]); return; }
+    const { data: convs } = await supabase.from("conversations").select("id, name, is_group").in("id", ids);
+    setForwardTargets((convs ?? []).map((c: { id: string; name: string | null; is_group: boolean }) => ({
+      id: c.id, label: c.name ?? (c.is_group ? "Grupo" : "Conversa"),
+    })));
+  };
+
+  const doForward = async (targetId: string) => {
+    if (!forwarding || !user) return;
+    const { error } = await supabase.from("messages").insert({
+      conversation_id: targetId,
+      sender_id: user.id,
+      content: `↪️ ${forwarding.content}`,
+      to_ai: false,
+    });
+    if (error) toast.error(error.message);
+    else toast.success("Mensagem encaminhada");
+    setForwarding(null);
+  };
+
+  const scheduleMessage = async () => {
+    if (!user || !scheduleAt || !text.trim()) { toast.info("Escreva a mensagem e escolha a data"); return; }
+    const { error } = await supabase.from("scheduled_messages").insert({
+      conversation_id: conversationId,
+      user_id: user.id,
+      content: text.trim(),
+      send_at: new Date(scheduleAt).toISOString(),
+    });
+    if (error) toast.error(error.message);
+    else { toast.success("Mensagem agendada"); setText(""); setScheduleOpen(false); }
+  };
+
   // PIN
+
   const tryUnlock = () => {
     const ok = verifyPin(locks[conversationId] ?? "", pinValue);
     if (!ok) { toast.error("PIN incorreto"); return; }
@@ -367,7 +517,18 @@ export function ChatView({ conversationId, onBack }: { conversationId: string; o
             <Button size="icon" variant="ghost" className="h-9 w-9"><MoreVertical className="h-4 w-4" /></Button>
           </DropdownMenuTrigger>
           <DropdownMenuContent align="end" className="w-56">
+            <DropdownMenuItem onClick={() => setSearchOpen(true)}>
+              <Search className="mr-2 h-4 w-4" /> Buscar nesta conversa
+            </DropdownMenuItem>
+            <DropdownMenuItem onClick={() => setStarredOpen(true)}>
+              <Star className="mr-2 h-4 w-4" /> Mensagens favoritas
+            </DropdownMenuItem>
+            <DropdownMenuItem onClick={() => setScheduleOpen(true)}>
+              <Clock className="mr-2 h-4 w-4" /> Agendar mensagem
+            </DropdownMenuItem>
+            <DropdownMenuSeparator />
             <DropdownMenuLabel>Chat efêmero</DropdownMenuLabel>
+
             {EPHEMERAL_OPTIONS.map((o) => (
               <DropdownMenuItem key={o.seconds} onClick={() => { setEphemeral(conversationId, o.seconds); toast.success(`Modo efêmero: ${o.label}`); }}>
                 <Timer className="mr-2 h-4 w-4" /> {o.label}
@@ -456,11 +617,40 @@ export function ChatView({ conversationId, onBack }: { conversationId: string; o
                 {showSender && m.sender_id && (
                   <div className="text-xs font-semibold text-[var(--cosmic)] mb-0.5">{senderNames.current[m.sender_id] ?? "..."}</div>
                 )}
+                {m.reply_to && messageById[m.reply_to] && (
+                  <div className="mb-1 border-l-2 border-[var(--nebula)] pl-2 text-[12px] text-muted-foreground line-clamp-2">
+                    {messageById[m.reply_to].content || "mensagem apagada"}
+                  </div>
+                )}
                 {(() => {
+                  if (m.deleted_at) return <div className="italic text-[13px] text-muted-foreground">🚫 Mensagem apagada</div>;
                   const am = /^\[audio:(\d+)(?:\|(.+))?\]$/.exec(m.content);
                   if (am) return <AudioBubble duration={parseInt(am[1], 10)} url={am[2]} />;
-                  return <div className="whitespace-pre-wrap break-words text-[15px]">{m.content}</div>;
+                  return (
+                    <div className="whitespace-pre-wrap break-words text-[15px]">
+                      {m.content}
+                      {m.edited_at && <span className="ml-1 text-[10px] text-muted-foreground">(editada)</span>}
+                    </div>
+                  );
                 })()}
+                {(() => {
+                  const mine2 = reactions.filter((r) => r.message_id === m.id);
+                  if (mine2.length === 0) return null;
+                  const counts: Record<string, number> = {};
+                  mine2.forEach((r) => { counts[r.emoji] = (counts[r.emoji] ?? 0) + 1; });
+                  return (
+                    <div className="mt-1 flex gap-1 flex-wrap">
+                      {Object.entries(counts).map(([e, n]) => (
+                        <button key={e} onClick={() => react(m, e)}
+                          className="text-[11px] px-1.5 py-0.5 rounded-full bg-secondary/60 border border-white/10">
+                          {e} {n > 1 ? n : ""}
+                        </button>
+                      ))}
+                    </div>
+                  );
+                })()}
+                {starredIds.includes(m.id) && <Star className="h-3 w-3 text-yellow-400 mt-1" />}
+
                 {unreadMarks[m.id] && (
                   <div className="text-[10px] mt-0.5 inline-flex items-center gap-1 text-[var(--nebula)]">
                     <MailOpen className="h-3 w-3" /> Marcada como não lida
@@ -509,6 +699,36 @@ export function ChatView({ conversationId, onBack }: { conversationId: string; o
                           )}
                         </DropdownMenuSubContent>
                       </DropdownMenuSub>
+                      <DropdownMenuSeparator />
+                      <div className="flex gap-1 px-2 py-1.5">
+                        {QUICK_REACTIONS.map((e) => (
+                          <button key={e} className="text-lg leading-none hover:scale-125 transition-transform" onClick={() => react(m, e)}>{e}</button>
+                        ))}
+                      </div>
+                      <DropdownMenuItem onClick={() => setReplyTo(m)}>
+                        <Reply className="mr-2 h-4 w-4" /> Responder
+                      </DropdownMenuItem>
+                      <DropdownMenuItem onClick={() => openForward(m)}>
+                        <Forward className="mr-2 h-4 w-4" /> Encaminhar
+                      </DropdownMenuItem>
+                      <DropdownMenuItem onClick={() => { navigator.clipboard.writeText(m.content).catch(() => {}); toast.success("Copiada"); }}>
+                        <Copy className="mr-2 h-4 w-4" /> Copiar
+                      </DropdownMenuItem>
+                      <DropdownMenuItem onClick={() => toggleStar(m)}>
+                        <Star className={`mr-2 h-4 w-4 ${starredIds.includes(m.id) ? "text-yellow-400" : ""}`} /> {starredIds.includes(m.id) ? "Remover dos favoritos" : "Favoritar"}
+                      </DropdownMenuItem>
+                      {mine && !m.is_ai && !m.deleted_at && (
+                        <>
+                          <DropdownMenuItem onClick={() => { setEditing(m); setEditText(m.content); }}>
+                            <Pencil className="mr-2 h-4 w-4" /> Editar
+                          </DropdownMenuItem>
+                          <DropdownMenuItem className="text-red-400" onClick={() => deleteForEveryone(m)}>
+                            <Trash2 className="mr-2 h-4 w-4" /> Apagar para todos
+                          </DropdownMenuItem>
+                        </>
+                      )}
+                      <DropdownMenuSeparator />
+
                       <DropdownMenuItem onClick={() => setUnreadMarks((u) => ({ ...u, [m.id]: !u[m.id] }))}>
                         <MailOpen className="mr-2 h-4 w-4" /> {unreadMarks[m.id] ? "Desmarcar não lida" : "Marcar como não lida"}
                       </DropdownMenuItem>
@@ -548,7 +768,26 @@ export function ChatView({ conversationId, onBack }: { conversationId: string; o
         </div>
       )}
 
+      {/* Responder a */}
+      {replyTo && (
+        <div className="px-3 py-2 border-t border-white/5 glass flex items-center gap-2">
+          <Reply className="h-4 w-4 text-[var(--nebula)]" />
+          <div className="flex-1 min-w-0 text-xs truncate text-muted-foreground">{replyTo.content || "mensagem"}</div>
+          <button onClick={() => setReplyTo(null)}><X className="h-4 w-4" /></button>
+        </div>
+      )}
+
+      {/* Busca na conversa */}
+      {searchOpen && (
+        <div className="px-3 py-2 border-t border-white/5 glass flex items-center gap-2">
+          <Search className="h-4 w-4 text-[var(--nebula)]" />
+          <Input value={searchQuery} onChange={(e) => setSearchQuery(e.target.value)} placeholder="Buscar nesta conversa…" className="h-8 rounded-full bg-secondary/40 border-white/10" />
+          <button onClick={() => { setSearchOpen(false); setSearchQuery(""); }}><X className="h-4 w-4" /></button>
+        </div>
+      )}
+
       {/* Composer */}
+
       <div className="p-2 sm:p-3 border-t border-white/5 glass flex items-center gap-2">
         {recording ? (
           <>
@@ -606,7 +845,74 @@ export function ChatView({ conversationId, onBack }: { conversationId: string; o
         />
       )}
 
+      {/* Editar mensagem */}
+      <Dialog open={!!editing} onOpenChange={(o) => { if (!o) setEditing(null); }}>
+        <DialogContent>
+          <DialogHeader><DialogTitle>Editar mensagem</DialogTitle></DialogHeader>
+          <Input value={editText} onChange={(e) => setEditText(e.target.value)} onKeyDown={(e) => { if (e.key === "Enter") saveEdit(); }} />
+          <DialogFooter>
+            <Button variant="ghost" onClick={() => setEditing(null)}>Cancelar</Button>
+            <Button onClick={saveEdit}>Salvar</Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
+
+      {/* Encaminhar */}
+      <Dialog open={!!forwarding} onOpenChange={(o) => { if (!o) setForwarding(null); }}>
+        <DialogContent>
+          <DialogHeader>
+            <DialogTitle>Encaminhar para</DialogTitle>
+            <DialogDescription>Escolha uma conversa.</DialogDescription>
+          </DialogHeader>
+          <div className="max-h-64 overflow-y-auto space-y-1">
+            {forwardTargets.length === 0 && <p className="text-sm text-muted-foreground">Nenhuma outra conversa.</p>}
+            {forwardTargets.map((t) => (
+              <button key={t.id} onClick={() => doForward(t.id)} className="w-full text-left px-3 py-2 rounded-lg hover:bg-secondary/60">
+                {t.label}
+              </button>
+            ))}
+          </div>
+        </DialogContent>
+      </Dialog>
+
+      {/* Favoritas */}
+      <Dialog open={starredOpen} onOpenChange={setStarredOpen}>
+        <DialogContent>
+          <DialogHeader><DialogTitle className="flex items-center gap-2"><Star className="h-4 w-4 text-yellow-400" /> Mensagens favoritas</DialogTitle></DialogHeader>
+          <div className="max-h-72 overflow-y-auto space-y-2">
+            {messages.filter((m) => starredIds.includes(m.id)).map((m) => (
+              <div key={m.id} className="text-sm p-2 rounded-lg bg-secondary/40">
+                <div className="text-[10px] text-muted-foreground">{format(new Date(m.created_at), "dd/MM HH:mm")}</div>
+                {m.content || "(vazia)"}
+              </div>
+            ))}
+            {messages.filter((m) => starredIds.includes(m.id)).length === 0 && (
+              <p className="text-sm text-muted-foreground">Nenhuma mensagem favoritada nesta conversa.</p>
+            )}
+          </div>
+        </DialogContent>
+      </Dialog>
+
+      {/* Agendar mensagem */}
+      <Dialog open={scheduleOpen} onOpenChange={setScheduleOpen}>
+        <DialogContent>
+          <DialogHeader>
+            <DialogTitle className="flex items-center gap-2"><Clock className="h-4 w-4" /> Agendar mensagem</DialogTitle>
+            <DialogDescription>A mensagem no campo será enviada na data escolhida.</DialogDescription>
+          </DialogHeader>
+          <div className="space-y-2">
+            <Label>Data e hora</Label>
+            <Input type="datetime-local" value={scheduleAt} onChange={(e) => setScheduleAt(e.target.value)} />
+          </div>
+          <DialogFooter>
+            <Button variant="ghost" onClick={() => setScheduleOpen(false)}>Cancelar</Button>
+            <Button onClick={scheduleMessage}>Agendar</Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
+
       {/* PIN dialogs */}
+
       <PinDialog open={pinOpen} setOpen={setPinOpen} pinValue={pinValue} setPinValue={setPinValue} onSubmit={tryUnlock} />
       <Dialog open={setPinDialogOpen} onOpenChange={setSetPinDialogOpen}>
         <DialogContent>
