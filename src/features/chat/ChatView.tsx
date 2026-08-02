@@ -659,6 +659,36 @@ export function ChatView({ conversationId, onBack }: { conversationId: string; o
                           )}
                         </DropdownMenuSubContent>
                       </DropdownMenuSub>
+                      <DropdownMenuSeparator />
+                      <div className="flex gap-1 px-2 py-1.5">
+                        {QUICK_REACTIONS.map((e) => (
+                          <button key={e} className="text-lg leading-none hover:scale-125 transition-transform" onClick={() => react(m, e)}>{e}</button>
+                        ))}
+                      </div>
+                      <DropdownMenuItem onClick={() => setReplyTo(m)}>
+                        <Reply className="mr-2 h-4 w-4" /> Responder
+                      </DropdownMenuItem>
+                      <DropdownMenuItem onClick={() => openForward(m)}>
+                        <Forward className="mr-2 h-4 w-4" /> Encaminhar
+                      </DropdownMenuItem>
+                      <DropdownMenuItem onClick={() => { navigator.clipboard.writeText(m.content).catch(() => {}); toast.success("Copiada"); }}>
+                        <Copy className="mr-2 h-4 w-4" /> Copiar
+                      </DropdownMenuItem>
+                      <DropdownMenuItem onClick={() => toggleStar(m)}>
+                        <Star className={`mr-2 h-4 w-4 ${starredIds.includes(m.id) ? "text-yellow-400" : ""}`} /> {starredIds.includes(m.id) ? "Remover dos favoritos" : "Favoritar"}
+                      </DropdownMenuItem>
+                      {mine && !m.is_ai && !m.deleted_at && (
+                        <>
+                          <DropdownMenuItem onClick={() => { setEditing(m); setEditText(m.content); }}>
+                            <Pencil className="mr-2 h-4 w-4" /> Editar
+                          </DropdownMenuItem>
+                          <DropdownMenuItem className="text-red-400" onClick={() => deleteForEveryone(m)}>
+                            <Trash2 className="mr-2 h-4 w-4" /> Apagar para todos
+                          </DropdownMenuItem>
+                        </>
+                      )}
+                      <DropdownMenuSeparator />
+
                       <DropdownMenuItem onClick={() => setUnreadMarks((u) => ({ ...u, [m.id]: !u[m.id] }))}>
                         <MailOpen className="mr-2 h-4 w-4" /> {unreadMarks[m.id] ? "Desmarcar não lida" : "Marcar como não lida"}
                       </DropdownMenuItem>
