@@ -606,11 +606,40 @@ export function ChatView({ conversationId, onBack }: { conversationId: string; o
                 {showSender && m.sender_id && (
                   <div className="text-xs font-semibold text-[var(--cosmic)] mb-0.5">{senderNames.current[m.sender_id] ?? "..."}</div>
                 )}
+                {m.reply_to && messageById[m.reply_to] && (
+                  <div className="mb-1 border-l-2 border-[var(--nebula)] pl-2 text-[12px] text-muted-foreground line-clamp-2">
+                    {messageById[m.reply_to].content || "mensagem apagada"}
+                  </div>
+                )}
                 {(() => {
+                  if (m.deleted_at) return <div className="italic text-[13px] text-muted-foreground">🚫 Mensagem apagada</div>;
                   const am = /^\[audio:(\d+)(?:\|(.+))?\]$/.exec(m.content);
                   if (am) return <AudioBubble duration={parseInt(am[1], 10)} url={am[2]} />;
-                  return <div className="whitespace-pre-wrap break-words text-[15px]">{m.content}</div>;
+                  return (
+                    <div className="whitespace-pre-wrap break-words text-[15px]">
+                      {m.content}
+                      {m.edited_at && <span className="ml-1 text-[10px] text-muted-foreground">(editada)</span>}
+                    </div>
+                  );
                 })()}
+                {(() => {
+                  const mine2 = reactions.filter((r) => r.message_id === m.id);
+                  if (mine2.length === 0) return null;
+                  const counts: Record<string, number> = {};
+                  mine2.forEach((r) => { counts[r.emoji] = (counts[r.emoji] ?? 0) + 1; });
+                  return (
+                    <div className="mt-1 flex gap-1 flex-wrap">
+                      {Object.entries(counts).map(([e, n]) => (
+                        <button key={e} onClick={() => react(m, e)}
+                          className="text-[11px] px-1.5 py-0.5 rounded-full bg-secondary/60 border border-white/10">
+                          {e} {n > 1 ? n : ""}
+                        </button>
+                      ))}
+                    </div>
+                  );
+                })()}
+                {starredIds.includes(m.id) && <Star className="h-3 w-3 text-yellow-400 mt-1" />}
+
                 {unreadMarks[m.id] && (
                   <div className="text-[10px] mt-0.5 inline-flex items-center gap-1 text-[var(--nebula)]">
                     <MailOpen className="h-3 w-3" /> Marcada como não lida
