@@ -22,28 +22,42 @@ CORES: hex (#ff0) ou nomes: vermelho, verde, azul, amarelo, roxo, rosa, branco, 
 A área do jogo tem 320x320. Posicione objetos dentro dessa área.
 Sempre inclua pelo menos um objeto controlado pelo jogador, uma forma de ganhar pontos e/ou de perder.`;
 
-async function callGateway(messages: { role: string; content: string }[]) {
-  const key = process.env.OPENAI_API_KEY;
-  if (!key) throw new Error("Missing OPENAI_API_KEY");
-
-  const res = await fetch("https://api.openai.com/v1/chat/completions", {
+async function callLovable(messages: { role: string; content: string }[]) {
+  const key = process.env.LOVABLE_API_KEY;
+  if (!key) return null;
+  const res = await fetch("https://ai.gateway.lovable.dev/v1/chat/completions", {
     method: "POST",
-    headers: {
-      "Content-Type": "application/json",
-      Authorization: `Bearer ${key}`,
-    },
+    headers: { "Content-Type": "application/json", "Lovable-API-Key": key },
     body: JSON.stringify({
-      model: "gpt-4o-mini",
+      model: "openai/gpt-5.6-sol",
+      reasoning_effort: "none",
       messages,
     }),
   });
-
-  if (res.status === 429) throw new Error("Muitas requisições. Tente novamente em instantes.");
-  if (res.status === 401) throw new Error("Chave da OpenAI inválida. Verifique a configuração.");
-  if (!res.ok) throw new Error("Falha ao falar com a IA. Tente novamente.");
-
+  if (!res.ok) return null;
   const json = await res.json();
-  return (json?.choices?.[0]?.message?.content ?? "") as string;
+  const text = (json?.choices?.[0]?.message?.content ?? "") as string;
+  return text.trim() ? text : null;
+}
+
+async function callOpenAi(messages: { role: string; content: string }[]) {
+  const key = process.env.OPENAI_API_KEY;
+  if (!key) return null;
+  const res = await fetch("https://api.openai.com/v1/chat/completions", {
+    method: "POST",
+    headers: { "Content-Type": "application/json", Authorization: `Bearer ${key}` },
+    body: JSON.stringify({ model: "gpt-4o-mini", messages }),
+  });
+  if (!res.ok) return null;
+  const json = await res.json();
+  const text = (json?.choices?.[0]?.message?.content ?? "") as string;
+  return text.trim() ? text : null;
+}
+
+async function callGateway(messages: { role: string; content: string }[]) {
+  const out = (await callLovable(messages)) ?? (await callOpenAi(messages));
+  if (!out) throw new Error("A IA está indisponível agora. Tente novamente em instantes.");
+  return out;
 }
 
 export const generateGame = createServerFn({ method: "POST" })

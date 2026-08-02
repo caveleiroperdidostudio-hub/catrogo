@@ -21,7 +21,31 @@ function json(body: unknown, status = 200) {
   });
 }
 
+const LOVABLE_API_KEY = Deno.env.get("LOVABLE_API_KEY") ?? "";
+
 async function aiCall(messages: Array<{ role: string; content: string }>, jsonMode = false) {
+  // 1) Lovable AI Gateway
+  if (LOVABLE_API_KEY) {
+    const body: Record<string, unknown> = {
+      model: "openai/gpt-5.6-sol",
+      reasoning_effort: "none",
+      messages,
+    };
+    if (jsonMode) body.response_format = { type: "json_object" };
+    const res = await fetch("https://ai.gateway.lovable.dev/v1/chat/completions", {
+      method: "POST",
+      headers: { "Content-Type": "application/json", "Lovable-API-Key": LOVABLE_API_KEY },
+      body: JSON.stringify(body),
+    });
+    if (res.ok) {
+      const data = await res.json();
+      const out = data.choices?.[0]?.message?.content?.trim() ?? "";
+      if (out) return out;
+    }
+  }
+
+  // 2) Fallback: OpenAI direto
+  if (!OPENAI_API_KEY) throw new Error("IA indisponível agora. Tente novamente em instantes.");
   const body: Record<string, unknown> = { model: "gpt-4o-mini", messages };
   if (jsonMode) body.response_format = { type: "json_object" };
   const res = await fetch("https://api.openai.com/v1/chat/completions", {
@@ -29,7 +53,7 @@ async function aiCall(messages: Array<{ role: string; content: string }>, jsonMo
     headers: { "Content-Type": "application/json", Authorization: `Bearer ${OPENAI_API_KEY}` },
     body: JSON.stringify(body),
   });
-  if (!res.ok) throw new Error(`AI ${res.status}: ${await res.text()}`);
+  if (!res.ok) throw new Error("IA indisponível agora. Tente novamente em instantes.");
   const data = await res.json();
   return data.choices?.[0]?.message?.content?.trim() ?? "";
 }
