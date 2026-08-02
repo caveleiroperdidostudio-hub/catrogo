@@ -167,8 +167,23 @@ export function ChatView({ conversationId, onBack }: { conversationId: string; o
     }
   };
 
+  const loadReactions = async () => {
+    const { data } = await supabase
+      .from("message_reactions").select("message_id, user_id, emoji")
+      .eq("conversation_id", conversationId);
+    setReactions((data ?? []) as Reaction[]);
+  };
+
+  const loadStarred = async () => {
+    if (!user) return;
+    const { data } = await supabase.from("starred_messages").select("message_id").eq("user_id", user.id);
+    setStarredIds((data ?? []).map((r: { message_id: string }) => r.message_id));
+  };
+
   useEffect(() => {
     loadMessages();
+    loadReactions();
+    loadStarred();
     const ch = supabase
       .channel(`conv-${conversationId}`)
       .on("postgres_changes",
@@ -182,16 +197,36 @@ export function ChatView({ conversationId, onBack }: { conversationId: string; o
           setMessages((prev) => prev.some((x) => x.id === m.id) ? prev : [...prev, m]);
           if (m.is_ai) setAiThinking(false);
         })
+      .on("postgres_changes",
+        { event: "UPDATE", schema: "public", table: "messages", filter: `conversation_id=eq.${conversationId}` },
+        (payload) => {
+          const m = payload.new as Message;
+          setMessages((prev) => prev.map((x) => (x.id === m.id ? { ...x, ...m } : x)));
+        })
+      .on("postgres_changes",
+        { event: "*", schema: "public", table: "message_reactions", filter: `conversation_id=eq.${conversationId}` },
+        () => { loadReactions(); })
       .subscribe();
     return () => { supabase.removeChannel(ch); };
-  }, [conversationId]);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [conversationId, user]);
 
-  // filtro efêmero (visual)
+  // filtro efêmero (visual) + busca dentro da conversa
   const ephemeralSeconds = ephemeral[conversationId] ?? 0;
   const visibleMessages = useMemo(() => {
-    if (!ephemeralSeconds) return messages;
-    return messages.filter((m) => (now - new Date(m.created_at).getTime()) < ephemeralSeconds * 1000);
-  }, [messages, ephemeralSeconds, now]);
+    let list = messages;
+    if (ephemeralSeconds) list = list.filter((m) => (now - new Date(m.created_at).getTime()) < ephemeralSeconds * 1000);
+    const q = searchQuery.trim().toLowerCase();
+    if (q) list = list.filter((m) => m.content.toLowerCase().includes(q));
+    return list;
+  }, [messages, ephemeralSeconds, now, searchQuery]);
+
+  const messageById = useMemo(() => {
+    const map: Record<string, Message> = {};
+    messages.forEach((m) => { map[m.id] = m; });
+    return map;
+  }, [messages]);
+
 
   useEffect(() => {
     scrollRef.current?.scrollTo({ top: scrollRef.current.scrollHeight, behavior: "smooth" });
