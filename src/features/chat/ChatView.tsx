@@ -8,6 +8,7 @@ import { Input } from "@/components/ui/input";
 import {
   ArrowLeft, Sparkles, Send, Phone, Video, MoreVertical, Users, Wand2, Loader2,
   Languages, BrainCircuit, Timer, Lock, OrbitIcon, ShieldHalf, ShieldCheck, MailOpen, Mic, Image as ImageIcon,
+  Reply, Pencil, Trash2, Star, Forward, Search, Copy, SmilePlus, X, Clock, CheckCheck,
 } from "lucide-react";
 import {
   DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger,
@@ -23,6 +24,8 @@ import { sendCallInvite } from "./IncomingCallListener";
 import { notifyNewMessage } from "@/lib/notify.functions";
 import { notifyConversation } from "@/lib/notify-inapp";
 
+const QUICK_REACTIONS = ["❤️", "😂", "😮", "😢", "🙏", "👍", "🚀"];
+
 type Message = {
   id: string;
   conversation_id: string;
@@ -31,7 +34,13 @@ type Message = {
   is_ai: boolean;
   to_ai: boolean;
   created_at: string;
+  reply_to?: string | null;
+  edited_at?: string | null;
+  deleted_at?: string | null;
 };
+
+type Reaction = { message_id: string; user_id: string; emoji: string };
+
 
 type ConvHeader = {
   id: string;
