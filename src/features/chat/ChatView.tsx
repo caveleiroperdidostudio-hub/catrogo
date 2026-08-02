@@ -834,7 +834,74 @@ export function ChatView({ conversationId, onBack }: { conversationId: string; o
         />
       )}
 
+      {/* Editar mensagem */}
+      <Dialog open={!!editing} onOpenChange={(o) => { if (!o) setEditing(null); }}>
+        <DialogContent>
+          <DialogHeader><DialogTitle>Editar mensagem</DialogTitle></DialogHeader>
+          <Input value={editText} onChange={(e) => setEditText(e.target.value)} onKeyDown={(e) => { if (e.key === "Enter") saveEdit(); }} />
+          <DialogFooter>
+            <Button variant="ghost" onClick={() => setEditing(null)}>Cancelar</Button>
+            <Button onClick={saveEdit}>Salvar</Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
+
+      {/* Encaminhar */}
+      <Dialog open={!!forwarding} onOpenChange={(o) => { if (!o) setForwarding(null); }}>
+        <DialogContent>
+          <DialogHeader>
+            <DialogTitle>Encaminhar para</DialogTitle>
+            <DialogDescription>Escolha uma conversa.</DialogDescription>
+          </DialogHeader>
+          <div className="max-h-64 overflow-y-auto space-y-1">
+            {forwardTargets.length === 0 && <p className="text-sm text-muted-foreground">Nenhuma outra conversa.</p>}
+            {forwardTargets.map((t) => (
+              <button key={t.id} onClick={() => doForward(t.id)} className="w-full text-left px-3 py-2 rounded-lg hover:bg-secondary/60">
+                {t.label}
+              </button>
+            ))}
+          </div>
+        </DialogContent>
+      </Dialog>
+
+      {/* Favoritas */}
+      <Dialog open={starredOpen} onOpenChange={setStarredOpen}>
+        <DialogContent>
+          <DialogHeader><DialogTitle className="flex items-center gap-2"><Star className="h-4 w-4 text-yellow-400" /> Mensagens favoritas</DialogTitle></DialogHeader>
+          <div className="max-h-72 overflow-y-auto space-y-2">
+            {messages.filter((m) => starredIds.includes(m.id)).map((m) => (
+              <div key={m.id} className="text-sm p-2 rounded-lg bg-secondary/40">
+                <div className="text-[10px] text-muted-foreground">{format(new Date(m.created_at), "dd/MM HH:mm")}</div>
+                {m.content || "(vazia)"}
+              </div>
+            ))}
+            {messages.filter((m) => starredIds.includes(m.id)).length === 0 && (
+              <p className="text-sm text-muted-foreground">Nenhuma mensagem favoritada nesta conversa.</p>
+            )}
+          </div>
+        </DialogContent>
+      </Dialog>
+
+      {/* Agendar mensagem */}
+      <Dialog open={scheduleOpen} onOpenChange={setScheduleOpen}>
+        <DialogContent>
+          <DialogHeader>
+            <DialogTitle className="flex items-center gap-2"><Clock className="h-4 w-4" /> Agendar mensagem</DialogTitle>
+            <DialogDescription>A mensagem no campo será enviada na data escolhida.</DialogDescription>
+          </DialogHeader>
+          <div className="space-y-2">
+            <Label>Data e hora</Label>
+            <Input type="datetime-local" value={scheduleAt} onChange={(e) => setScheduleAt(e.target.value)} />
+          </div>
+          <DialogFooter>
+            <Button variant="ghost" onClick={() => setScheduleOpen(false)}>Cancelar</Button>
+            <Button onClick={scheduleMessage}>Agendar</Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
+
       {/* PIN dialogs */}
+
       <PinDialog open={pinOpen} setOpen={setPinOpen} pinValue={pinValue} setPinValue={setPinValue} onSubmit={tryUnlock} />
       <Dialog open={setPinDialogOpen} onOpenChange={setSetPinDialogOpen}>
         <DialogContent>
