@@ -261,7 +261,10 @@ export function ChatView({ conversationId, onBack }: { conversationId: string; o
       sender_id: user.id,
       content,
       to_ai: header?.isAi ?? false,
+      reply_to: replyTo?.id ?? null,
     });
+    setReplyTo(null);
+
     setSending(false);
     if (error) { toast.error(error.message); setText(content); return; }
     if (!header?.isAi) {
