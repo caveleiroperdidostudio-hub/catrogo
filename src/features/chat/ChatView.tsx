@@ -157,7 +157,7 @@ export function ChatView({ conversationId, onBack }: { conversationId: string; o
   }, [conversationId, user, privacy.ghostOnline]);
 
   // mensagens
-  const loadMessages = async () => {
+  const loadMessages = async (): Promise<string[]> => {
     const { data } = await supabase.from("messages").select("*").eq("conversation_id", conversationId).order("created_at", { ascending: true });
     setMessages(data ?? []);
     const ids = Array.from(new Set((data ?? []).map((m) => m.sender_id).filter((x): x is string => !!x && !senderNames.current[x])));
@@ -165,10 +165,12 @@ export function ChatView({ conversationId, onBack }: { conversationId: string; o
       const { data: profs } = await supabase.from("profiles").select("id, display_name").in("id", ids);
       profs?.forEach((p) => { senderNames.current[p.id] = p.display_name; });
     }
+    return (data ?? []).map((m) => m.id);
   };
 
   const loadReactions = async (ids?: string[]) => {
-    const messageIds = ids ?? messagesRef.current.map((m) => m.id);
+    const messageIds = ids ?? messages.map((m) => m.id);
+
     if (messageIds.length === 0) { setReactions([]); return; }
     const { data } = await supabase
       .from("message_reactions").select("message_id, user_id, emoji")
