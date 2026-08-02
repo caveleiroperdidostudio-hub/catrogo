@@ -167,10 +167,12 @@ export function ChatView({ conversationId, onBack }: { conversationId: string; o
     }
   };
 
-  const loadReactions = async () => {
+  const loadReactions = async (ids?: string[]) => {
+    const messageIds = ids ?? messagesRef.current.map((m) => m.id);
+    if (messageIds.length === 0) { setReactions([]); return; }
     const { data } = await supabase
       .from("message_reactions").select("message_id, user_id, emoji")
-      .eq("conversation_id", conversationId);
+      .in("message_id", messageIds);
     setReactions((data ?? []) as Reaction[]);
   };
 
@@ -181,8 +183,10 @@ export function ChatView({ conversationId, onBack }: { conversationId: string; o
   };
 
   useEffect(() => {
-    loadMessages();
-    loadReactions();
+    (async () => {
+      const ids = await loadMessages();
+      await loadReactions(ids);
+    })();
     loadStarred();
     const ch = supabase
       .channel(`conv-${conversationId}`)
@@ -204,9 +208,10 @@ export function ChatView({ conversationId, onBack }: { conversationId: string; o
           setMessages((prev) => prev.map((x) => (x.id === m.id ? { ...x, ...m } : x)));
         })
       .on("postgres_changes",
-        { event: "*", schema: "public", table: "message_reactions", filter: `conversation_id=eq.${conversationId}` },
+        { event: "*", schema: "public", table: "message_reactions" },
         () => { loadReactions(); })
       .subscribe();
+
     return () => { supabase.removeChannel(ch); };
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [conversationId, user]);
