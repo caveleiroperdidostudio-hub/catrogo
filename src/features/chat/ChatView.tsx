@@ -90,6 +90,21 @@ export function ChatView({ conversationId, onBack }: { conversationId: string; o
   const [summarizing, setSummarizing] = useState(false);
   const [now, setNow] = useState(Date.now());
 
+  // Novos recursos de mensagem
+  const [replyTo, setReplyTo] = useState<Message | null>(null);
+  const [editing, setEditing] = useState<Message | null>(null);
+  const [editText, setEditText] = useState("");
+  const [reactions, setReactions] = useState<Reaction[]>([]);
+  const [starredIds, setStarredIds] = useState<string[]>([]);
+  const [starredOpen, setStarredOpen] = useState(false);
+  const [searchOpen, setSearchOpen] = useState(false);
+  const [searchQuery, setSearchQuery] = useState("");
+  const [forwarding, setForwarding] = useState<Message | null>(null);
+  const [forwardTargets, setForwardTargets] = useState<{ id: string; label: string }[]>([]);
+  const [scheduleOpen, setScheduleOpen] = useState(false);
+  const [scheduleAt, setScheduleAt] = useState("");
+
+
   const senderNames = useRef<Record<string, string>>({});
   const scrollRef = useRef<HTMLDivElement>(null);
 
