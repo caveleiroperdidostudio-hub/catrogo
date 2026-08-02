@@ -517,7 +517,18 @@ export function ChatView({ conversationId, onBack }: { conversationId: string; o
             <Button size="icon" variant="ghost" className="h-9 w-9"><MoreVertical className="h-4 w-4" /></Button>
           </DropdownMenuTrigger>
           <DropdownMenuContent align="end" className="w-56">
+            <DropdownMenuItem onClick={() => setSearchOpen(true)}>
+              <Search className="mr-2 h-4 w-4" /> Buscar nesta conversa
+            </DropdownMenuItem>
+            <DropdownMenuItem onClick={() => setStarredOpen(true)}>
+              <Star className="mr-2 h-4 w-4" /> Mensagens favoritas
+            </DropdownMenuItem>
+            <DropdownMenuItem onClick={() => setScheduleOpen(true)}>
+              <Clock className="mr-2 h-4 w-4" /> Agendar mensagem
+            </DropdownMenuItem>
+            <DropdownMenuSeparator />
             <DropdownMenuLabel>Chat efêmero</DropdownMenuLabel>
+
             {EPHEMERAL_OPTIONS.map((o) => (
               <DropdownMenuItem key={o.seconds} onClick={() => { setEphemeral(conversationId, o.seconds); toast.success(`Modo efêmero: ${o.label}`); }}>
                 <Timer className="mr-2 h-4 w-4" /> {o.label}
