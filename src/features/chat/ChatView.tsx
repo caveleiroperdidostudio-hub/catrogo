@@ -757,7 +757,26 @@ export function ChatView({ conversationId, onBack }: { conversationId: string; o
         </div>
       )}
 
+      {/* Responder a */}
+      {replyTo && (
+        <div className="px-3 py-2 border-t border-white/5 glass flex items-center gap-2">
+          <Reply className="h-4 w-4 text-[var(--nebula)]" />
+          <div className="flex-1 min-w-0 text-xs truncate text-muted-foreground">{replyTo.content || "mensagem"}</div>
+          <button onClick={() => setReplyTo(null)}><X className="h-4 w-4" /></button>
+        </div>
+      )}
+
+      {/* Busca na conversa */}
+      {searchOpen && (
+        <div className="px-3 py-2 border-t border-white/5 glass flex items-center gap-2">
+          <Search className="h-4 w-4 text-[var(--nebula)]" />
+          <Input value={searchQuery} onChange={(e) => setSearchQuery(e.target.value)} placeholder="Buscar nesta conversa…" className="h-8 rounded-full bg-secondary/40 border-white/10" />
+          <button onClick={() => { setSearchOpen(false); setSearchQuery(""); }}><X className="h-4 w-4" /></button>
+        </div>
+      )}
+
       {/* Composer */}
+
       <div className="p-2 sm:p-3 border-t border-white/5 glass flex items-center gap-2">
         {recording ? (
           <>
