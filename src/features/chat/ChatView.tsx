@@ -363,7 +363,88 @@ export function ChatView({ conversationId, onBack }: { conversationId: string; o
     finally { setTranslatingId(null); }
   };
 
+
+  // --- Ações de mensagem (responder, editar, apagar, reagir, favoritar, copiar)
+  const react = async (m: Message, emoji: string) => {
+    if (!user) return;
+    const mine = reactions.find((r) => r.message_id === m.id && r.user_id === user.id && r.emoji === emoji);
+    if (mine) {
+      await supabase.from("message_reactions").delete().eq("message_id", m.id).eq("user_id", user.id).eq("emoji", emoji);
+    } else {
+      await supabase.from("message_reactions").insert({ message_id: m.id, user_id: user.id, emoji });
+    }
+    loadReactions();
+  };
+
+  const toggleStar = async (m: Message) => {
+    if (!user) return;
+    if (starredIds.includes(m.id)) {
+      await supabase.from("starred_messages").delete().eq("message_id", m.id).eq("user_id", user.id);
+      setStarredIds((s) => s.filter((x) => x !== m.id));
+    } else {
+      await supabase.from("starred_messages").insert({ message_id: m.id, user_id: user.id });
+      setStarredIds((s) => [...s, m.id]);
+      toast.success("Mensagem favoritada");
+    }
+  };
+
+  const saveEdit = async () => {
+    if (!editing) return;
+    const content = editText.trim();
+    if (!content) return;
+    const { error } = await supabase.from("messages")
+      .update({ content, edited_at: new Date().toISOString() }).eq("id", editing.id);
+    if (error) toast.error(error.message);
+    else toast.success("Mensagem editada");
+    setEditing(null);
+  };
+
+  const deleteForEveryone = async (m: Message) => {
+    const { error } = await supabase.from("messages")
+      .update({ deleted_at: new Date().toISOString(), content: "" }).eq("id", m.id);
+    if (error) toast.error(error.message);
+    else toast.success("Mensagem apagada para todos");
+  };
+
+  const openForward = async (m: Message) => {
+    if (!user) return;
+    setForwarding(m);
+    const { data: mem } = await supabase.from("conversation_members").select("conversation_id").eq("user_id", user.id);
+    const ids = (mem ?? []).map((x: { conversation_id: string }) => x.conversation_id).filter((id) => id !== conversationId);
+    if (ids.length === 0) { setForwardTargets([]); return; }
+    const { data: convs } = await supabase.from("conversations").select("id, name, is_group").in("id", ids);
+    setForwardTargets((convs ?? []).map((c: { id: string; name: string | null; is_group: boolean }) => ({
+      id: c.id, label: c.name ?? (c.is_group ? "Grupo" : "Conversa"),
+    })));
+  };
+
+  const doForward = async (targetId: string) => {
+    if (!forwarding || !user) return;
+    const { error } = await supabase.from("messages").insert({
+      conversation_id: targetId,
+      sender_id: user.id,
+      content: `↪️ ${forwarding.content}`,
+      to_ai: false,
+    });
+    if (error) toast.error(error.message);
+    else toast.success("Mensagem encaminhada");
+    setForwarding(null);
+  };
+
+  const scheduleMessage = async () => {
+    if (!user || !scheduleAt || !text.trim()) { toast.info("Escreva a mensagem e escolha a data"); return; }
+    const { error } = await supabase.from("scheduled_messages").insert({
+      conversation_id: conversationId,
+      user_id: user.id,
+      content: text.trim(),
+      send_at: new Date(scheduleAt).toISOString(),
+    });
+    if (error) toast.error(error.message);
+    else { toast.success("Mensagem agendada"); setText(""); setScheduleOpen(false); }
+  };
+
   // PIN
+
   const tryUnlock = () => {
     const ok = verifyPin(locks[conversationId] ?? "", pinValue);
     if (!ok) { toast.error("PIN incorreto"); return; }
