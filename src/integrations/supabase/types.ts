@@ -14,6 +14,50 @@ export type Database = {
   }
   public: {
     Tables: {
+      call_logs: {
+        Row: {
+          callee_id: string
+          caller_id: string
+          conversation_id: string | null
+          created_at: string
+          duration_seconds: number
+          id: string
+          mode: string
+          session_id: string
+          status: string
+        }
+        Insert: {
+          callee_id: string
+          caller_id: string
+          conversation_id?: string | null
+          created_at?: string
+          duration_seconds?: number
+          id?: string
+          mode?: string
+          session_id: string
+          status?: string
+        }
+        Update: {
+          callee_id?: string
+          caller_id?: string
+          conversation_id?: string | null
+          created_at?: string
+          duration_seconds?: number
+          id?: string
+          mode?: string
+          session_id?: string
+          status?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "call_logs_conversation_id_fkey"
+            columns: ["conversation_id"]
+            isOneToOne: false
+            referencedRelation: "conversations"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       coin_transactions: {
         Row: {
           amount: number
@@ -43,21 +87,33 @@ export type Database = {
       }
       conversation_members: {
         Row: {
+          archived: boolean
           conversation_id: string
           is_admin: boolean
           joined_at: string
+          muted_until: string | null
+          nickname: string | null
+          pinned: boolean
           user_id: string
         }
         Insert: {
+          archived?: boolean
           conversation_id: string
           is_admin?: boolean
           joined_at?: string
+          muted_until?: string | null
+          nickname?: string | null
+          pinned?: boolean
           user_id: string
         }
         Update: {
+          archived?: boolean
           conversation_id?: string
           is_admin?: boolean
           joined_at?: string
+          muted_until?: string | null
+          nickname?: string | null
+          pinned?: boolean
           user_id?: string
         }
         Relationships: [
@@ -266,14 +322,49 @@ export type Database = {
         }
         Relationships: []
       }
+      message_reactions: {
+        Row: {
+          created_at: string
+          emoji: string
+          id: string
+          message_id: string
+          user_id: string
+        }
+        Insert: {
+          created_at?: string
+          emoji: string
+          id?: string
+          message_id: string
+          user_id: string
+        }
+        Update: {
+          created_at?: string
+          emoji?: string
+          id?: string
+          message_id?: string
+          user_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "message_reactions_message_id_fkey"
+            columns: ["message_id"]
+            isOneToOne: false
+            referencedRelation: "messages"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       messages: {
         Row: {
           content: string
           conversation_id: string
           created_at: string
+          deleted_at: string | null
+          edited_at: string | null
           id: string
           is_ai: boolean
           message_type: string
+          reply_to: string | null
           sender_id: string | null
           to_ai: boolean
         }
@@ -281,9 +372,12 @@ export type Database = {
           content: string
           conversation_id: string
           created_at?: string
+          deleted_at?: string | null
+          edited_at?: string | null
           id?: string
           is_ai?: boolean
           message_type?: string
+          reply_to?: string | null
           sender_id?: string | null
           to_ai?: boolean
         }
@@ -291,9 +385,12 @@ export type Database = {
           content?: string
           conversation_id?: string
           created_at?: string
+          deleted_at?: string | null
+          edited_at?: string | null
           id?: string
           is_ai?: boolean
           message_type?: string
+          reply_to?: string | null
           sender_id?: string | null
           to_ai?: boolean
         }
@@ -303,6 +400,13 @@ export type Database = {
             columns: ["conversation_id"]
             isOneToOne: false
             referencedRelation: "conversations"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "messages_reply_to_fkey"
+            columns: ["reply_to"]
+            isOneToOne: false
+            referencedRelation: "messages"
             referencedColumns: ["id"]
           },
         ]
@@ -522,6 +626,73 @@ export type Database = {
           user_id?: string
         }
         Relationships: []
+      }
+      scheduled_messages: {
+        Row: {
+          content: string
+          conversation_id: string
+          created_at: string
+          id: string
+          send_at: string
+          sent: boolean
+          user_id: string
+        }
+        Insert: {
+          content: string
+          conversation_id: string
+          created_at?: string
+          id?: string
+          send_at: string
+          sent?: boolean
+          user_id: string
+        }
+        Update: {
+          content?: string
+          conversation_id?: string
+          created_at?: string
+          id?: string
+          send_at?: string
+          sent?: boolean
+          user_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "scheduled_messages_conversation_id_fkey"
+            columns: ["conversation_id"]
+            isOneToOne: false
+            referencedRelation: "conversations"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      starred_messages: {
+        Row: {
+          created_at: string
+          id: string
+          message_id: string
+          user_id: string
+        }
+        Insert: {
+          created_at?: string
+          id?: string
+          message_id: string
+          user_id: string
+        }
+        Update: {
+          created_at?: string
+          id?: string
+          message_id?: string
+          user_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "starred_messages_message_id_fkey"
+            columns: ["message_id"]
+            isOneToOne: false
+            referencedRelation: "messages"
+            referencedColumns: ["id"]
+          },
+        ]
       }
       statuses: {
         Row: {
