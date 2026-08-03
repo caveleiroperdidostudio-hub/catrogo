@@ -132,6 +132,17 @@ export function ChatHome() {
                 <StatusTab compact />
               </div>
             )}
+            <div className="flex items-center justify-end px-2 py-1.5">
+              <Button
+                size="sm"
+                variant="ghost"
+                className="h-7 gap-1.5 text-[11px] text-muted-foreground"
+                onClick={() => setShowArchived((v) => !v)}
+              >
+                <Archive className="h-3.5 w-3.5" />
+                {showArchived ? "Ver conversas ativas" : "Arquivadas"}
+              </Button>
+            </div>
             {appearance.separateGroups ? (
               <Tabs value={chatFilter} onValueChange={(v) => setChatFilter(v as "direct" | "groups")}>
                 <TabsList className="w-full justify-start bg-transparent px-2 gap-1 h-9">
@@ -139,15 +150,16 @@ export function ChatHome() {
                   <TabsTrigger value="groups" className="text-xs data-[state=active]:bg-primary/15">Grupos</TabsTrigger>
                 </TabsList>
                 <TabsContent value="direct" className="m-0">
-                  <ChatList activeId={activeConvId} onSelect={setActiveConvId} filter="direct" />
+                  <ChatList activeId={activeConvId} onSelect={setActiveConvId} filter="direct" showArchived={showArchived} />
                 </TabsContent>
                 <TabsContent value="groups" className="m-0">
-                  <ChatList activeId={activeConvId} onSelect={setActiveConvId} filter="groups" />
+                  <ChatList activeId={activeConvId} onSelect={setActiveConvId} filter="groups" showArchived={showArchived} />
                 </TabsContent>
               </Tabs>
             ) : (
-              <ChatList activeId={activeConvId} onSelect={setActiveConvId} />
+              <ChatList activeId={activeConvId} onSelect={setActiveConvId} showArchived={showArchived} />
             )}
+
           </TabsContent>
           <TabsContent value="status" className="flex-1 overflow-y-auto m-0 p-4">
             <StatusTab />
