@@ -8,7 +8,32 @@ type Version = { version: string; date: string; title: string; changes: Change[]
 // Mais recente primeiro
 export const CHANGELOG: Version[] = [
   {
+    version: "3.2.0",
+    date: "Agosto de 2026",
+    title: "Sinais, Organização de Conversas & Agendamento",
+    changes: [
+      { type: "novo", text: "Aba Sinais com histórico completo de chamadas: voz/vídeo, duração e recusadas." },
+      { type: "novo", text: "Fixar, silenciar (8h) e arquivar conversas direto na lista." },
+      { type: "novo", text: "Mensagens agendadas agora são enviadas automaticamente ao vencer." },
+      { type: "melhoria", text: "Conversas fixadas sempre no topo, com indicadores de silenciado e arquivado." },
+      { type: "correção", text: "Estabilidade das chamadas de voz e vídeo (toque, recusa e reconexão)." },
+    ],
+  },
+  {
+    version: "3.1.0",
+    date: "Agosto de 2026",
+    title: "Mensagens Avançadas & Chamadas Estáveis",
+    changes: [
+      { type: "novo", text: "Responder com citação, editar, apagar para todos e reações com contador." },
+      { type: "novo", text: "Favoritar, encaminhar, copiar e buscar mensagens dentro da conversa." },
+      { type: "novo", text: "Toque de chamada real com vibração e ringback para quem liga." },
+      { type: "melhoria", text: "Compartilhar tela, controle de volume e reconexão automática nas chamadas." },
+      { type: "correção", text: "Eco e áudio duplicado nas ligações corrigidos." },
+    ],
+  },
+  {
     version: "3.0.0",
+
     date: "Julho de 2026",
     title: "Hiper Atualização • IA, Chamadas & Painel de Design",
     changes: [
