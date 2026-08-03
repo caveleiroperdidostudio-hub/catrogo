@@ -595,9 +595,11 @@ export type Database = {
         Row: {
           created_at: string
           description: string | null
+          engine: string
           id: string
           plays: number
           price: number
+          published: boolean
           source_code: string
           title: string
           updated_at: string
@@ -606,9 +608,11 @@ export type Database = {
         Insert: {
           created_at?: string
           description?: string | null
+          engine?: string
           id?: string
           plays?: number
           price?: number
+          published?: boolean
           source_code?: string
           title: string
           updated_at?: string
@@ -617,9 +621,11 @@ export type Database = {
         Update: {
           created_at?: string
           description?: string | null
+          engine?: string
           id?: string
           plays?: number
           price?: number
+          published?: boolean
           source_code?: string
           title?: string
           updated_at?: string
@@ -915,6 +921,10 @@ export type Database = {
         Returns: undefined
       }
       send_hype: { Args: { _amount: number; _video_id: string }; Returns: Json }
+      spend_coins: {
+        Args: { _amount: number; _kind: string; _reference?: string }
+        Returns: Json
+      }
       start_dm: { Args: { _other: string }; Returns: string }
       start_event: {
         Args: { _duration_seconds: number; _kind: string; _title: string }
