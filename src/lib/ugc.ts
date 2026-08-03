@@ -17,12 +17,16 @@ export type VideoPost = {
   author?: { username: string; display_name: string; avatar_url: string | null };
 };
 
+export type GameEngine = "newcatroid" | "html";
+
 export type GameProject = {
   id: string;
   user_id: string;
   title: string;
   description: string | null;
   source_code: string;
+  engine: GameEngine;
+  published: boolean;
   plays: number;
   price: number;
   created_at: string;
@@ -31,7 +35,8 @@ export type GameProject = {
 };
 
 // Colunas seguras (sem source_code) legíveis por qualquer usuário autenticado.
-const GAME_COLUMNS = "id, user_id, title, description, plays, price, created_at, updated_at";
+const GAME_COLUMNS = "id, user_id, title, description, plays, price, engine, published, created_at, updated_at";
+
 
 export type Comment = {
   id: string;
@@ -263,8 +268,11 @@ export async function saveGame(params: {
   description: string;
   sourceCode: string;
   price?: number;
+  engine?: GameEngine;
+  published?: boolean;
 }): Promise<GameProject> {
   const price = Math.max(0, Math.floor(params.price ?? 0));
+  const engine: GameEngine = params.engine ?? "newcatroid";
   if (params.id) {
     const { data, error } = await supabase
       .from("projects_games")
@@ -273,6 +281,8 @@ export async function saveGame(params: {
         description: params.description || null,
         source_code: params.sourceCode,
         price,
+        engine,
+        ...(params.published === undefined ? {} : { published: params.published }),
         updated_at: new Date().toISOString(),
       })
       .eq("id", params.id)
@@ -289,12 +299,24 @@ export async function saveGame(params: {
       description: params.description || null,
       source_code: params.sourceCode,
       price,
+      engine,
+      published: params.published ?? false,
     })
     .select("*")
     .single();
   if (error) throw error;
   return data as GameProject;
 }
+
+/** Marca um jogo como publicado na vitrine do CatroGo. */
+export async function publishGame(id: string) {
+  const { error } = await supabase
+    .from("projects_games")
+    .update({ published: true, updated_at: new Date().toISOString() })
+    .eq("id", id);
+  if (error) throw error;
+}
+
 
 
 export async function deleteGame(id: string) {

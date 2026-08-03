@@ -40,6 +40,13 @@ export const RARITY_COLOR: Record<Rarity, string> = {
 
 export const HYPE_AMOUNTS = [5, 10, 50] as const;
 
+/** Custos em hypes (CatCoins) das operações com jogos. */
+export const GAME_COSTS = {
+  export: 15,
+  publish: 10,
+  import: 20,
+} as const;
+
 export const TX_LABEL: Record<string, { label: string; emoji: string }> = {
   buy_item: { label: "Compra na loja", emoji: "🛍️" },
   buy_game: { label: "Compra de jogo", emoji: "🎮" },
@@ -48,7 +55,11 @@ export const TX_LABEL: Record<string, { label: string; emoji: string }> = {
   reward: { label: "Recompensa", emoji: "🎁" },
   daily: { label: "Bônus diário", emoji: "📅" },
   bonus: { label: "Bônus", emoji: "✨" },
+  export_game: { label: "Exportação de jogo", emoji: "📦" },
+  publish_game: { label: "Publicação no CatroGo", emoji: "🚀" },
+  import_game: { label: "Importação de jogo", emoji: "📥" },
 };
+
 
 export function txLabel(kind: string) {
   return TX_LABEL[kind] ?? { label: kind.replace(/_/g, " "), emoji: "🪙" };
@@ -120,6 +131,22 @@ export async function equipItem(userId: string, itemId: string, kind: ItemKind) 
 }
 
 /* ---------------- Hype + game purchase ---------------- */
+
+/** Cobra hypes por uma operação com jogos (exportar, publicar ou importar). */
+export async function spendCoins(
+  amount: number,
+  kind: "export_game" | "publish_game" | "import_game",
+  reference?: string,
+): Promise<number> {
+  const { data, error } = await supabase.rpc("spend_coins", {
+    _amount: amount,
+    _kind: kind,
+    _reference: reference,
+  });
+  if (error) throw new Error(error.message);
+  return (data as { balance: number }).balance;
+}
+
 
 export async function sendHype(videoId: string, amount: number): Promise<number> {
   const { data, error } = await supabase.rpc("send_hype", { _video_id: videoId, _amount: amount });
