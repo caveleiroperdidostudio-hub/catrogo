@@ -141,7 +141,7 @@ export async function spendCoins(
   const { data, error } = await supabase.rpc("spend_coins", {
     _amount: amount,
     _kind: kind,
-    _reference: reference ?? null,
+    _reference: reference,
   });
   if (error) throw new Error(error.message);
   return (data as { balance: number }).balance;
