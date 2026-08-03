@@ -31,8 +31,9 @@ export const CHANGELOG: Version[] = [
       { type: "correção", text: "Eco e áudio duplicado nas ligações corrigidos." },
     ],
   },
-
+  {
     version: "3.0.0",
+
     date: "Julho de 2026",
     title: "Hiper Atualização • IA, Chamadas & Painel de Design",
     changes: [
