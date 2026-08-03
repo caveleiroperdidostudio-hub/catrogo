@@ -17,12 +17,16 @@ export type VideoPost = {
   author?: { username: string; display_name: string; avatar_url: string | null };
 };
 
+export type GameEngine = "newcatroid" | "html";
+
 export type GameProject = {
   id: string;
   user_id: string;
   title: string;
   description: string | null;
   source_code: string;
+  engine: GameEngine;
+  published: boolean;
   plays: number;
   price: number;
   created_at: string;
@@ -31,7 +35,8 @@ export type GameProject = {
 };
 
 // Colunas seguras (sem source_code) legíveis por qualquer usuário autenticado.
-const GAME_COLUMNS = "id, user_id, title, description, plays, price, created_at, updated_at";
+const GAME_COLUMNS = "id, user_id, title, description, plays, price, engine, published, created_at, updated_at";
+
 
 export type Comment = {
   id: string;
