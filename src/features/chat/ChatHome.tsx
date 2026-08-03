@@ -13,7 +13,9 @@ import { useSettings } from "@/lib/settings-context";
 import { NotificationCenter } from "@/features/notifications/NotificationCenter";
 import { Tabs, TabsList, TabsTrigger, TabsContent } from "@/components/ui/tabs";
 import { Button } from "@/components/ui/button";
-import { MessageCircle, Users, Circle, Phone, MoreVertical, LogOut, User as UserIcon, Sparkles, Orbit, ShieldHalf } from "lucide-react";
+import { MessageCircle, Users, Circle, Phone, MoreVertical, LogOut, User as UserIcon, Sparkles, Orbit, ShieldHalf, Archive } from "lucide-react";
+import { flushScheduledMessages } from "@/lib/scheduled";
+
 import {
   DropdownMenu,
   DropdownMenuContent,
