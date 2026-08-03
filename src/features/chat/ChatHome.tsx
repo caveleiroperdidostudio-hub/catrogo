@@ -32,7 +32,19 @@ export function ChatHome() {
   const [profileOpen, setProfileOpen] = useState(false);
   const [newChatOpen, setNewChatOpen] = useState(false);
   const [settingsOpen, setSettingsOpen] = useState(false);
+  const [showArchived, setShowArchived] = useState(false);
   const { wallpaper, appearance } = useSettings();
+
+  // Dispara mensagens agendadas que já venceram enquanto o app está aberto
+  useEffect(() => {
+    if (!user) return;
+    const run = () => { flushScheduledMessages(user.id).catch(() => {}); };
+    run();
+    const t = setInterval(run, 30000);
+    return () => clearInterval(t);
+  }, [user]);
+
+
 
   // Garante que a conversa com Carlos existe para o usuário
   useEffect(() => {
