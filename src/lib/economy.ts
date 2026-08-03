@@ -132,6 +132,22 @@ export async function equipItem(userId: string, itemId: string, kind: ItemKind) 
 
 /* ---------------- Hype + game purchase ---------------- */
 
+/** Cobra hypes por uma operação com jogos (exportar, publicar ou importar). */
+export async function spendCoins(
+  amount: number,
+  kind: "export_game" | "publish_game" | "import_game",
+  reference?: string,
+): Promise<number> {
+  const { data, error } = await supabase.rpc("spend_coins", {
+    _amount: amount,
+    _kind: kind,
+    _reference: reference ?? null,
+  });
+  if (error) throw new Error(error.message);
+  return (data as { balance: number }).balance;
+}
+
+
 export async function sendHype(videoId: string, amount: number): Promise<number> {
   const { data, error } = await supabase.rpc("send_hype", { _video_id: videoId, _amount: amount });
   if (error) throw new Error(error.message);
