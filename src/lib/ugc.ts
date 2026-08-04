@@ -286,10 +286,10 @@ export async function saveGame(params: {
         updated_at: new Date().toISOString(),
       })
       .eq("id", params.id)
-      .select("*")
+      .select(GAME_COLUMNS)
       .single();
     if (error) throw error;
-    return data as GameProject;
+    return { ...(data as unknown as GameProject), source_code: params.sourceCode };
   }
   const { data, error } = await supabase
     .from("projects_games")
@@ -302,10 +302,10 @@ export async function saveGame(params: {
       engine,
       published: params.published ?? false,
     })
-    .select("*")
+    .select(GAME_COLUMNS)
     .single();
   if (error) throw error;
-  return data as GameProject;
+  return { ...(data as unknown as GameProject), source_code: params.sourceCode };
 }
 
 /** Marca um jogo como publicado na vitrine do CatroGo. */
