@@ -555,7 +555,14 @@ export function ChatView({ conversationId, onBack }: { conversationId: string; o
             <DropdownMenuItem onClick={() => setScheduleOpen(true)}>
               <Clock className="mr-2 h-4 w-4" /> Agendar mensagem
             </DropdownMenuItem>
+            <DropdownMenuItem onClick={exportChat}>
+              <FileDown className="mr-2 h-4 w-4" /> Exportar conversa (.txt)
+            </DropdownMenuItem>
+            <DropdownMenuItem className="text-red-400" onClick={clearChat}>
+              <Eraser className="mr-2 h-4 w-4" /> Limpar minhas mensagens
+            </DropdownMenuItem>
             <DropdownMenuSeparator />
+
             <DropdownMenuLabel>Chat efêmero</DropdownMenuLabel>
 
             {EPHEMERAL_OPTIONS.map((o) => (
