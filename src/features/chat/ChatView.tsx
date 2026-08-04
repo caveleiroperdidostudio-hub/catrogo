@@ -8,7 +8,7 @@ import { Input } from "@/components/ui/input";
 import {
   ArrowLeft, Sparkles, Send, Phone, Video, MoreVertical, Users, Wand2, Loader2,
   Languages, BrainCircuit, Timer, Lock, OrbitIcon, ShieldHalf, ShieldCheck, MailOpen, Mic, Image as ImageIcon,
-  Reply, Pencil, Trash2, Star, Forward, Search, Copy, SmilePlus, X, Clock, CheckCheck,
+  Reply, Pencil, Trash2, Star, Forward, Search, Copy, SmilePlus, X, Clock, CheckCheck, FileDown, Eraser,
 } from "lucide-react";
 import {
   DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger,
@@ -183,6 +183,35 @@ export function ChatView({ conversationId, onBack }: { conversationId: string; o
     const { data } = await supabase.from("starred_messages").select("message_id").eq("user_id", user.id);
     setStarredIds((data ?? []).map((r: { message_id: string }) => r.message_id));
   };
+
+  /** Exporta a conversa como arquivo .txt (estilo "exportar conversa"). */
+  const exportChat = () => {
+    if (messages.length === 0) return toast.error("Nada para exportar");
+    const who = (m: Message) =>
+      m.sender_id === user?.id ? "Você" : (m.sender_id ? senderNames.current[m.sender_id] : null) ?? header?.displayName ?? "Contato";
+    const body = messages
+      .map((m) => `[${format(new Date(m.created_at), "dd/MM/yyyy HH:mm")}] ${who(m)}: ${m.deleted_at ? "(mensagem apagada)" : m.content}`)
+      .join("\n");
+    const head = `Conversa do CatroGo — ${header?.displayName ?? "Conversa"}\nExportada em ${format(new Date(), "dd/MM/yyyy HH:mm")}\n\n`;
+    const blob = new Blob([head + body], { type: "text/plain;charset=utf-8" });
+    const url = URL.createObjectURL(blob);
+    const a = document.createElement("a");
+    a.href = url;
+    a.download = `catrogo-${(header?.displayName ?? "conversa").replace(/[^\w-]+/g, "-").toLowerCase()}.txt`;
+    a.click();
+    URL.revokeObjectURL(url);
+    toast.success("Conversa exportada");
+  };
+
+  /** Apaga suas mensagens desta conversa. */
+  const clearChat = async () => {
+    if (!user) return;
+    const { error } = await supabase.from("messages").delete().eq("conversation_id", conversationId).eq("sender_id", user.id);
+    if (error) return toast.error("Não foi possível limpar a conversa");
+    await loadMessages();
+    toast.success("Suas mensagens foram apagadas");
+  };
+
 
   useEffect(() => {
     (async () => {
@@ -526,7 +555,14 @@ export function ChatView({ conversationId, onBack }: { conversationId: string; o
             <DropdownMenuItem onClick={() => setScheduleOpen(true)}>
               <Clock className="mr-2 h-4 w-4" /> Agendar mensagem
             </DropdownMenuItem>
+            <DropdownMenuItem onClick={exportChat}>
+              <FileDown className="mr-2 h-4 w-4" /> Exportar conversa (.txt)
+            </DropdownMenuItem>
+            <DropdownMenuItem className="text-red-400" onClick={clearChat}>
+              <Eraser className="mr-2 h-4 w-4" /> Limpar minhas mensagens
+            </DropdownMenuItem>
             <DropdownMenuSeparator />
+
             <DropdownMenuLabel>Chat efêmero</DropdownMenuLabel>
 
             {EPHEMERAL_OPTIONS.map((o) => (

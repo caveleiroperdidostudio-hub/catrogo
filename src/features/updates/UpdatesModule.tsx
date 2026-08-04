@@ -8,6 +8,20 @@ type Version = { version: string; date: string; title: string; changes: Change[]
 // Mais recente primeiro
 export const CHANGELOG: Version[] = [
   {
+    version: "3.3.0",
+    date: "Agosto de 2026",
+    title: "Jogos 100% por IA & Conversas Portáveis",
+    changes: [
+      { type: "novo", text: "Criar jogos agora é só conversar: a IA programa o jogo inteiro em HTML, sem escrever código." },
+      { type: "novo", text: "Ajuste seu jogo publicado por comandos ('deixe mais difícil') e desfaça versões na hora." },
+      { type: "novo", text: "Preço em hypes, salvar rascunho, exportar (15) e publicar/atualizar na vitrine (10)." },
+      { type: "novo", text: "Exportar conversa em .txt e limpar suas mensagens de um chat." },
+      { type: "melhoria", text: "Importação de jogos aceita arquivos HTML e abre direto no estúdio da IA." },
+      { type: "melhoria", text: "Editor de código Newcatroid removido — jogos antigos continuam jogáveis." },
+    ],
+  },
+  {
+
     version: "3.2.0",
     date: "Agosto de 2026",
     title: "Sinais, Organização de Conversas & Agendamento",

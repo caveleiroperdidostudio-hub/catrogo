@@ -142,19 +142,30 @@ REGRAS OBRIGATÓRIAS:
 - Código LIMPO, comentado em português, sem dependências externas nem CDNs (100% offline).
 - Layout deve ocupar 100% da viewport e escalar corretamente (viewport meta tag incluída).`;
 
+const HtmlInput = z.object({
+  prompt: z.string().min(1).max(1000),
+  currentHtml: z.string().max(120000).optional(),
+});
+
 export const generateHtmlGame = createServerFn({ method: "POST" })
   .middleware([requireSupabaseAuth])
-  .inputValidator((input: unknown) => Input.parse(input))
+  .inputValidator((input: unknown) => HtmlInput.parse(input))
   .handler(async ({ data }) => {
-    let html = await callGateway([
-      { role: "system", content: HTML_GAME_SYSTEM },
-      { role: "user", content: data.prompt },
-    ]);
+    const messages: { role: string; content: string }[] = [{ role: "system", content: HTML_GAME_SYSTEM }];
+    if (data.currentHtml) {
+      messages.push({
+        role: "system",
+        content: `O jogo atual do usuário é este arquivo HTML. Aplique as mudanças pedidas mantendo o que já funciona e devolva o arquivo COMPLETO atualizado:\n${data.currentHtml}`,
+      });
+    }
+    messages.push({ role: "user", content: data.prompt });
+    let html = await callGateway(messages);
     html = html.replace(/```[a-z]*\n?/gi, "").replace(/```/g, "").trim();
     const idx = html.toLowerCase().indexOf("<!doctype");
     if (idx > 0) html = html.slice(idx);
     return { html };
   });
+
 
 /* ---------------- Assistente geral da plataforma (Catrogo IA) ---------------- */
 
