@@ -193,7 +193,7 @@ export function GamesModule() {
       </div>
       <div className="flex-1 overflow-y-auto p-4">
         {loading ? (
-          <CardListSkeleton count={4} />
+          <CardListSkeleton rows={4} />
         ) : games.length === 0 ? (
           <div className="text-center py-12 space-y-3">
             <Gamepad2 className="h-10 w-10 mx-auto text-muted-foreground" />
