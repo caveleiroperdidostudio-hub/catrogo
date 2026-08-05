@@ -85,6 +85,41 @@ export type Database = {
         }
         Relationships: []
       }
+      conversation_keys: {
+        Row: {
+          conversation_id: string
+          created_at: string
+          sender_pub: string
+          user_id: string
+          wrap_iv: string
+          wrapped_key: string
+        }
+        Insert: {
+          conversation_id: string
+          created_at?: string
+          sender_pub: string
+          user_id: string
+          wrap_iv: string
+          wrapped_key: string
+        }
+        Update: {
+          conversation_id?: string
+          created_at?: string
+          sender_pub?: string
+          user_id?: string
+          wrap_iv?: string
+          wrapped_key?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "conversation_keys_conversation_id_fkey"
+            columns: ["conversation_id"]
+            isOneToOne: false
+            referencedRelation: "conversations"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       conversation_members: {
         Row: {
           archived: boolean
@@ -153,6 +188,30 @@ export type Database = {
           is_group?: boolean
           last_message_at?: string
           name?: string | null
+        }
+        Relationships: []
+      }
+      device_keys: {
+        Row: {
+          created_at: string
+          fingerprint: string
+          public_key: string
+          updated_at: string
+          user_id: string
+        }
+        Insert: {
+          created_at?: string
+          fingerprint: string
+          public_key: string
+          updated_at?: string
+          user_id: string
+        }
+        Update: {
+          created_at?: string
+          fingerprint?: string
+          public_key?: string
+          updated_at?: string
+          user_id?: string
         }
         Relationships: []
       }
@@ -322,6 +381,42 @@ export type Database = {
         }
         Relationships: []
       }
+      learning_progress: {
+        Row: {
+          created_at: string
+          id: string
+          last_day: string | null
+          level: number
+          streak: number
+          track: string
+          updated_at: string
+          user_id: string
+          xp: number
+        }
+        Insert: {
+          created_at?: string
+          id?: string
+          last_day?: string | null
+          level?: number
+          streak?: number
+          track: string
+          updated_at?: string
+          user_id: string
+          xp?: number
+        }
+        Update: {
+          created_at?: string
+          id?: string
+          last_day?: string | null
+          level?: number
+          streak?: number
+          track?: string
+          updated_at?: string
+          user_id?: string
+          xp?: number
+        }
+        Relationships: []
+      }
       message_reactions: {
         Row: {
           created_at: string
@@ -356,39 +451,60 @@ export type Database = {
       }
       messages: {
         Row: {
+          cipher: string | null
           content: string
           conversation_id: string
           created_at: string
           deleted_at: string | null
           edited_at: string | null
+          enc_v: number
           id: string
           is_ai: boolean
+          iv: string | null
+          media_mime: string | null
+          media_name: string | null
+          media_size: number | null
+          media_url: string | null
           message_type: string
           reply_to: string | null
           sender_id: string | null
           to_ai: boolean
         }
         Insert: {
+          cipher?: string | null
           content: string
           conversation_id: string
           created_at?: string
           deleted_at?: string | null
           edited_at?: string | null
+          enc_v?: number
           id?: string
           is_ai?: boolean
+          iv?: string | null
+          media_mime?: string | null
+          media_name?: string | null
+          media_size?: number | null
+          media_url?: string | null
           message_type?: string
           reply_to?: string | null
           sender_id?: string | null
           to_ai?: boolean
         }
         Update: {
+          cipher?: string | null
           content?: string
           conversation_id?: string
           created_at?: string
           deleted_at?: string | null
           edited_at?: string | null
+          enc_v?: number
           id?: string
           is_ai?: boolean
+          iv?: string | null
+          media_mime?: string | null
+          media_name?: string | null
+          media_size?: number | null
+          media_url?: string | null
           message_type?: string
           reply_to?: string | null
           sender_id?: string | null
@@ -437,40 +553,91 @@ export type Database = {
       }
       mods: {
         Row: {
+          ai_review: string | null
           created_at: string
           description: string | null
           id: string
           installs: number
           is_exclusive: boolean
           is_published: boolean
+          quality: number | null
           source_code: string
           title: string
           updated_at: string
           user_id: string | null
         }
         Insert: {
+          ai_review?: string | null
           created_at?: string
           description?: string | null
           id?: string
           installs?: number
           is_exclusive?: boolean
           is_published?: boolean
+          quality?: number | null
           source_code?: string
           title: string
           updated_at?: string
           user_id?: string | null
         }
         Update: {
+          ai_review?: string | null
           created_at?: string
           description?: string | null
           id?: string
           installs?: number
           is_exclusive?: boolean
           is_published?: boolean
+          quality?: number | null
           source_code?: string
           title?: string
           updated_at?: string
           user_id?: string | null
+        }
+        Relationships: []
+      }
+      movies: {
+        Row: {
+          category: string
+          created_at: string
+          created_by: string
+          description: string | null
+          duration_min: number | null
+          id: string
+          poster_url: string | null
+          title: string
+          updated_at: string
+          video_url: string
+          views: number
+          year: number | null
+        }
+        Insert: {
+          category?: string
+          created_at?: string
+          created_by: string
+          description?: string | null
+          duration_min?: number | null
+          id?: string
+          poster_url?: string | null
+          title: string
+          updated_at?: string
+          video_url: string
+          views?: number
+          year?: number | null
+        }
+        Update: {
+          category?: string
+          created_at?: string
+          created_by?: string
+          description?: string | null
+          duration_min?: number | null
+          id?: string
+          poster_url?: string | null
+          title?: string
+          updated_at?: string
+          video_url?: string
+          views?: number
+          year?: number | null
         }
         Relationships: []
       }
@@ -671,6 +838,39 @@ export type Database = {
           },
         ]
       }
+      skins: {
+        Row: {
+          accessories: Json
+          config: Json
+          created_at: string
+          id: string
+          is_active: boolean
+          name: string
+          updated_at: string
+          user_id: string
+        }
+        Insert: {
+          accessories?: Json
+          config?: Json
+          created_at?: string
+          id?: string
+          is_active?: boolean
+          name?: string
+          updated_at?: string
+          user_id: string
+        }
+        Update: {
+          accessories?: Json
+          config?: Json
+          created_at?: string
+          id?: string
+          is_active?: boolean
+          name?: string
+          updated_at?: string
+          user_id?: string
+        }
+        Relationships: []
+      }
       starred_messages: {
         Row: {
           created_at: string
@@ -732,6 +932,74 @@ export type Database = {
           user_id?: string
         }
         Relationships: []
+      }
+      sticker_packs: {
+        Row: {
+          created_at: string
+          id: string
+          is_public: boolean
+          name: string
+          owner_id: string
+          updated_at: string
+        }
+        Insert: {
+          created_at?: string
+          id?: string
+          is_public?: boolean
+          name: string
+          owner_id: string
+          updated_at?: string
+        }
+        Update: {
+          created_at?: string
+          id?: string
+          is_public?: boolean
+          name?: string
+          owner_id?: string
+          updated_at?: string
+        }
+        Relationships: []
+      }
+      stickers: {
+        Row: {
+          created_at: string
+          emoji: string | null
+          id: string
+          image_url: string
+          is_public: boolean
+          owner_id: string
+          pack_id: string | null
+          uses: number
+        }
+        Insert: {
+          created_at?: string
+          emoji?: string | null
+          id?: string
+          image_url: string
+          is_public?: boolean
+          owner_id: string
+          pack_id?: string | null
+          uses?: number
+        }
+        Update: {
+          created_at?: string
+          emoji?: string | null
+          id?: string
+          image_url?: string
+          is_public?: boolean
+          owner_id?: string
+          pack_id?: string | null
+          uses?: number
+        }
+        Relationships: [
+          {
+            foreignKeyName: "stickers_pack_id_fkey"
+            columns: ["pack_id"]
+            isOneToOne: false
+            referencedRelation: "sticker_packs"
+            referencedColumns: ["id"]
+          },
+        ]
       }
       store_items: {
         Row: {
@@ -883,11 +1151,13 @@ export type Database = {
       [_ in never]: never
     }
     Functions: {
+      add_learning_xp: { Args: { _track: string; _xp: number }; Returns: Json }
       admin_give_hype: {
         Args: { _amount: number; _username: string }
         Returns: Json
       }
       assign_app_phone: { Args: never; Returns: string }
+      bump_sticker: { Args: { _id: string }; Returns: undefined }
       buy_game: { Args: { _game_id: string }; Returns: Json }
       buy_store_item: { Args: { _item_id: string }; Returns: Json }
       claim_event_reward: {
@@ -898,8 +1168,19 @@ export type Database = {
         Args: { _members: string[]; _name: string }
         Returns: string
       }
+      find_by_app_phone: {
+        Args: { _phone: string }
+        Returns: {
+          app_phone: string
+          avatar_url: string
+          display_name: string
+          id: string
+          username: string
+        }[]
+      }
       generate_app_phone: { Args: never; Returns: string }
       get_game_source: { Args: { _game_id: string }; Returns: string }
+      grant_admin: { Args: { _username: string }; Returns: Json }
       has_role: {
         Args: {
           _role: Database["public"]["Enums"]["app_role"]
@@ -908,9 +1189,20 @@ export type Database = {
         Returns: boolean
       }
       increment_game_plays: { Args: { _id: string }; Returns: undefined }
+      increment_movie_views: { Args: { _id: string }; Returns: undefined }
       increment_video_views: { Args: { _id: string }; Returns: undefined }
       is_member: { Args: { _conv: string; _user: string }; Returns: boolean }
       is_owner: { Args: { _uid?: string }; Returns: boolean }
+      is_staff: { Args: { _uid?: string }; Returns: boolean }
+      list_staff: {
+        Args: never
+        Returns: {
+          avatar_url: string
+          display_name: string
+          user_id: string
+          username: string
+        }[]
+      }
       notify_follow: { Args: { _target: string }; Returns: undefined }
       notify_hype: {
         Args: { _amount: number; _target: string }
@@ -920,6 +1212,7 @@ export type Database = {
         Args: { _conversation_id: string; _preview: string }
         Returns: undefined
       }
+      revoke_admin: { Args: { _username: string }; Returns: Json }
       send_hype: { Args: { _amount: number; _video_id: string }; Returns: Json }
       spend_coins: {
         Args: { _amount: number; _kind: string; _reference?: string }
