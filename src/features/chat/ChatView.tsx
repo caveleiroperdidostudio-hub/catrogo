@@ -338,10 +338,16 @@ export function ChatView({ conversationId, onBack }: { conversationId: string; o
     if (!content || !user) return;
     setText(""); setSuggestions([]);
     setSending(true);
+
+    // Conversas entre pessoas viajam cifradas; com a IA seguem em claro (ela precisa ler).
+    const enc = header?.isAi ? null : await encryptMessage(conversationId, user.id, content);
     const { error } = await supabase.from("messages").insert({
       conversation_id: conversationId,
       sender_id: user.id,
-      content,
+      content: enc ? ENC_PLACEHOLDER : content,
+      cipher: enc?.cipher ?? null,
+      iv: enc?.iv ?? null,
+      enc_v: enc ? ENC_VERSION : 0,
       to_ai: header?.isAi ?? false,
       reply_to: replyTo?.id ?? null,
     });
@@ -350,8 +356,9 @@ export function ChatView({ conversationId, onBack }: { conversationId: string; o
     setSending(false);
     if (error) { toast.error(error.message); setText(content); return; }
     if (!header?.isAi) {
-      notifyNewMessage({ data: { conversationId, preview: content.slice(0, 180) } }).catch(() => {});
-      notifyConversation(conversationId, content.slice(0, 140)).catch(() => {});
+      const preview = enc ? "🔒 Nova mensagem" : content.slice(0, 180);
+      notifyNewMessage({ data: { conversationId, preview } }).catch(() => {});
+      notifyConversation(conversationId, preview.slice(0, 140)).catch(() => {});
     }
 
     const mentionsCarlos = /(^|\s)@carlos\b/i.test(content);
@@ -365,6 +372,55 @@ export function ChatView({ conversationId, onBack }: { conversationId: string; o
       try { await callAI({ conversationId, mode: "mention", userMessage: content }); }
       catch (e) { setAiThinking(false); toast.error((e as Error).message); }
     }
+  };
+
+  /** Envia arquivo (foto, vídeo, áudio ou documento) para o bucket privado. */
+  const sendAttachment = async (file: File | undefined) => {
+    if (!file || !user) return;
+    if (file.size > 80 * 1024 * 1024) return toast.error("Máximo 80MB por arquivo");
+    setUploadingFile(true);
+    try {
+      const path = await uploadFile("chat-media", user.id, file, file.name);
+      const kind = mediaKind(file.type);
+      const label = kind === "image" ? "📷 Foto" : kind === "video" ? "🎬 Vídeo" : kind === "audio" ? "🎵 Áudio" : `📎 ${file.name}`;
+      const { error } = await supabase.from("messages").insert({
+        conversation_id: conversationId,
+        sender_id: user.id,
+        content: label,
+        message_type: kind,
+        media_url: path,
+        media_name: file.name,
+        media_mime: file.type || "application/octet-stream",
+        media_size: file.size,
+        to_ai: false,
+      });
+      if (error) throw new Error(error.message);
+      notifyNewMessage({ data: { conversationId, preview: label } }).catch(() => {});
+      notifyConversation(conversationId, label).catch(() => {});
+    } catch (e) {
+      toast.error((e as Error).message);
+    } finally {
+      setUploadingFile(false);
+      if (fileRef.current) fileRef.current.value = "";
+    }
+  };
+
+  /** Envia uma figurinha (bucket de figurinhas). */
+  const sendSticker = async (s: StickerRow) => {
+    if (!user) return;
+    setStickerOpen(false);
+    const { error } = await supabase.from("messages").insert({
+      conversation_id: conversationId,
+      sender_id: user.id,
+      content: `${s.emoji ?? "🌟"} figurinha`,
+      message_type: "sticker",
+      media_url: s.image_url,
+      media_mime: "image/png",
+      to_ai: false,
+    });
+    if (error) return toast.error(error.message);
+    supabase.rpc("bump_sticker", { _id: s.id }).then(() => {});
+    notifyConversation(conversationId, "🌟 Figurinha").catch(() => {});
   };
 
   const stopAndSendAudio = async () => {
