@@ -958,6 +958,28 @@ export function ChatView({ conversationId, onBack }: { conversationId: string; o
                 {suggesting ? <Loader2 className="h-4 w-4 animate-spin" /> : <Wand2 className="h-4 w-4 text-[var(--nebula)]" />}
               </Button>
             )}
+            {!header.isAi && (
+              <>
+                <input
+                  ref={fileRef}
+                  type="file"
+                  className="hidden"
+                  accept="image/*,video/*,audio/*,.pdf,.txt,.zip,.doc,.docx"
+                  onChange={(e) => sendAttachment(e.target.files?.[0])}
+                />
+                <Button
+                  size="icon" variant="ghost" className="shrink-0"
+                  onClick={() => fileRef.current?.click()}
+                  disabled={uploadingFile}
+                  title="Anexar arquivo"
+                >
+                  {uploadingFile ? <Loader2 className="h-4 w-4 animate-spin" /> : <Paperclip className="h-4 w-4" />}
+                </Button>
+                <Button size="icon" variant="ghost" className="shrink-0" onClick={() => setStickerOpen(true)} title="Figurinhas">
+                  <Sticker className="h-4 w-4 text-[var(--nebula)]" />
+                </Button>
+              </>
+            )}
             <Input
               value={text}
               onChange={(e) => setText(e.target.value)}
