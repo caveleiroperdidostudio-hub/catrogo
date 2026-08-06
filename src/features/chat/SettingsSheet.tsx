@@ -1,4 +1,4 @@
-import { useRef, useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import { useSettings, type ThemeAccent, type AppFont, type BubbleStyle, type TickStyle, TICK_GLYPHS } from "@/lib/settings-context";
 import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/lib/auth-context";
@@ -8,8 +8,9 @@ import { Label } from "@/components/ui/label";
 import { Separator } from "@/components/ui/separator";
 import { Button } from "@/components/ui/button";
 import { Slider } from "@/components/ui/slider";
-import { Ghost, Eye, Keyboard, Mic, OrbitIcon, Image as ImageIcon, Palette, Bell, Wallpaper, Video, Loader2, Volume2, Type, MessageSquare, CheckCheck, LayoutGrid, Droplet } from "lucide-react";
+import { Ghost, Eye, Keyboard, Mic, OrbitIcon, Image as ImageIcon, Palette, Bell, Wallpaper, Video, Loader2, Volume2, Type, MessageSquare, CheckCheck, LayoutGrid, Droplet, Phone, Copy, ShieldCheck } from "lucide-react";
 import { requestPushPermission, isPushSupported } from "@/lib/push";
+import { myFingerprint } from "@/lib/e2ee";
 import { toast } from "sonner";
 
 const FONTS: { id: AppFont; label: string }[] = [
@@ -53,6 +54,14 @@ export function SettingsSheet({ open, onOpenChange }: { open: boolean; onOpenCha
   const [local, setLocal] = useState(privacy);
   const [uploading, setUploading] = useState(false);
   const fileRef = useRef<HTMLInputElement>(null);
+  const [appPhone, setAppPhone] = useState<string | null>(null);
+  const [fingerprint, setFingerprint] = useState<string | null>(null);
+
+  useEffect(() => {
+    if (!user || !open) return;
+    supabase.from("profiles").select("app_phone").eq("id", user.id).maybeSingle().then(({ data }) => setAppPhone(data?.app_phone ?? null));
+    myFingerprint().then(setFingerprint).catch(() => {});
+  }, [user, open]);
 
   const uploadChatBg = async (file: File, kind: "image" | "video") => {
     if (!user) return;
@@ -87,6 +96,38 @@ export function SettingsSheet({ open, onOpenChange }: { open: boolean; onOpenCha
         </SheetHeader>
 
         <div className="px-4 py-5 space-y-5">
+          <section className="space-y-3">
+            <h3 className="text-sm font-semibold flex items-center gap-2 text-[var(--nebula)]">
+              <Phone className="h-4 w-4" /> Seu número do CatroGo
+            </h3>
+            <div className="flex items-center gap-2 rounded-xl bg-secondary/40 px-3 py-2">
+              <span className="flex-1 font-mono text-sm">{appPhone ?? "—"}</span>
+              <Button
+                size="icon"
+                variant="ghost"
+                onClick={() => {
+                  if (!appPhone) return;
+                  navigator.clipboard.writeText(appPhone).catch(() => {});
+                  toast.success("Número copiado");
+                }}
+                title="Copiar número"
+              >
+                <Copy className="h-4 w-4" />
+              </Button>
+            </div>
+            <p className="text-xs text-muted-foreground">Compartilhe este número para que outras pessoas te encontrem no app.</p>
+            {fingerprint && (
+              <div className="rounded-xl border border-white/10 p-3">
+                <div className="flex items-center gap-2 text-xs font-semibold">
+                  <ShieldCheck className="h-3.5 w-3.5 text-emerald-400" /> Código de segurança deste aparelho
+                </div>
+                <div className="mt-1 font-mono text-[11px] tracking-widest text-muted-foreground">{fingerprint}</div>
+              </div>
+            )}
+          </section>
+
+          <Separator />
+
           <section className="space-y-3">
             <h3 className="text-sm font-semibold flex items-center gap-2 text-[var(--nebula)]">
               <Bell className="h-4 w-4" /> Notificações Push
