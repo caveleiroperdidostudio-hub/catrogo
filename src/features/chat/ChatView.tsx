@@ -145,6 +145,43 @@ export function ChatView({ conversationId, onBack }: { conversationId: string; o
     return () => clearInterval(id);
   }, [ephemeral, conversationId]);
 
+  // --- Criptografia ponta a ponta (Cosmos Lattice) + mídia
+  const [plain, setPlain] = useState<Record<string, string>>({});
+  const [safety, setSafety] = useState<string | null>(null);
+  const [stickerOpen, setStickerOpen] = useState(false);
+  const [uploadingFile, setUploadingFile] = useState(false);
+  const fileRef = useRef<HTMLInputElement>(null);
+  const decryptTried = useRef<Set<string>>(new Set());
+
+  /** Texto legível de uma mensagem (decifrado quando criptografada). */
+  const textOf = (m: Message) => (m.cipher && m.iv ? (plain[m.id] ?? ENC_PLACEHOLDER) : m.content);
+
+  useEffect(() => {
+    if (!user) return;
+    publishDeviceKey(user.id)
+      .then(() => syncConversationKey(conversationId, user.id))
+      .catch(() => {});
+  }, [user, conversationId]);
+
+  useEffect(() => {
+    if (!user) return;
+    const pending = messages.filter((m) => m.cipher && m.iv && !decryptTried.current.has(m.id));
+    if (pending.length === 0) return;
+    pending.forEach((m) => decryptTried.current.add(m.id));
+    let cancelled = false;
+    (async () => {
+      const out: Record<string, string> = {};
+      for (const m of pending) {
+        const t = await decryptMessage(conversationId, user.id, m.cipher!, m.iv!);
+        if (t !== null) out[m.id] = t;
+      }
+      if (!cancelled && Object.keys(out).length > 0) setPlain((p) => ({ ...p, ...out }));
+    })();
+    return () => {
+      cancelled = true;
+    };
+  }, [messages, user, conversationId]);
+
   // header
   useEffect(() => {
     if (!user) return;
