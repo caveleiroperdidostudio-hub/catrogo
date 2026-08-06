@@ -8,6 +8,21 @@ type Version = { version: string; date: string; title: string; changes: Change[]
 // Mais recente primeiro
 export const CHANGELOG: Version[] = [
   {
+    version: "3.4.0",
+    date: "Setembro de 2026",
+    title: "Chat Completo • Criptografia, Anexos & Figurinhas",
+    changes: [
+      { type: "novo", text: "Criptografia ponta a ponta real: mensagens cifradas no seu aparelho, com código de segurança verificável." },
+      { type: "novo", text: "Anexos no chat: fotos, vídeos, áudios e documentos em armazenamento privado." },
+      { type: "novo", text: "Figurinhas: crie enviando imagem ou gerando com a IA, e use as da comunidade." },
+      { type: "novo", text: "Categoria Filmes com catálogo global — o dono publica e pode dar admin a outras contas." },
+      { type: "novo", text: "IA Personal: lições de idiomas com XP, níveis e ofensiva, além de treinos personalizados." },
+      { type: "novo", text: "Skins: monte seu avatar cósmico com cores, corpo, olhos, aura e acessórios." },
+      { type: "novo", text: "Busca de contatos pelo número do CatroGo." },
+      { type: "melhoria", text: "Modo museu: navegue pelas versões antigas em somente leitura." },
+    ],
+  },
+  {
     version: "3.3.0",
     date: "Agosto de 2026",
     title: "Jogos 100% por IA & Conversas Portáveis",
@@ -180,6 +195,12 @@ export function UpdatesModule() {
             ))}
           </ul>
         </div>
+
+        {!isLatest && (
+          <div className="rounded-xl border border-amber-500/30 bg-amber-500/10 p-3 text-xs text-amber-300">
+            🏛️ <strong>Modo museu</strong> — você está lendo uma versão antiga do CatroGo. Este histórico é somente leitura.
+          </div>
+        )}
 
         <p className="text-center text-[11px] text-muted-foreground">
           Versão {index + 1} de {CHANGELOG.length} no histórico
