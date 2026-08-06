@@ -495,7 +495,7 @@ export function ChatView({ conversationId, onBack }: { conversationId: string; o
   const translate = async (m: Message, lang: string) => {
     setTranslatingId(m.id);
     try {
-      const r = await callAI({ mode: "translate", text: m.content, targetLang: lang });
+      const r = await callAI({ mode: "translate", text: textOf(m), targetLang: lang });
       setTranslations((t) => ({ ...t, [m.id]: `${r.translation}  ·  (${lang})` }));
     } catch (e) { toast.error((e as Error).message); }
     finally { setTranslatingId(null); }
@@ -764,16 +764,20 @@ export function ChatView({ conversationId, onBack }: { conversationId: string; o
                 )}
                 {m.reply_to && messageById[m.reply_to] && (
                   <div className="mb-1 border-l-2 border-[var(--nebula)] pl-2 text-[12px] text-muted-foreground line-clamp-2">
-                    {messageById[m.reply_to].content || "mensagem apagada"}
+                    {textOf(messageById[m.reply_to]) || "mensagem apagada"}
                   </div>
                 )}
                 {(() => {
                   if (m.deleted_at) return <div className="italic text-[13px] text-muted-foreground">🚫 Mensagem apagada</div>;
+                  if (m.message_type === "sticker" && m.media_url) return <StickerImg path={m.media_url} className="h-28 w-28 object-contain" />;
+                  if (m.media_url && m.message_type && ["image", "video", "audio", "file"].includes(m.message_type)) {
+                    return <MediaBubble message={m} />;
+                  }
                   const am = /^\[audio:(\d+)(?:\|(.+))?\]$/.exec(m.content);
                   if (am) return <AudioBubble duration={parseInt(am[1], 10)} url={am[2]} />;
                   return (
                     <div className="whitespace-pre-wrap break-words text-[15px]">
-                      {m.content}
+                      {textOf(m)}
                       {m.edited_at && <span className="ml-1 text-[10px] text-muted-foreground">(editada)</span>}
                     </div>
                   );
