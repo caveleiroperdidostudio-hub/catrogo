@@ -243,7 +243,7 @@ export function ChatView({ conversationId, onBack }: { conversationId: string; o
     const who = (m: Message) =>
       m.sender_id === user?.id ? "Você" : (m.sender_id ? senderNames.current[m.sender_id] : null) ?? header?.displayName ?? "Contato";
     const body = messages
-      .map((m) => `[${format(new Date(m.created_at), "dd/MM/yyyy HH:mm")}] ${who(m)}: ${m.deleted_at ? "(mensagem apagada)" : m.content}`)
+      .map((m) => `[${format(new Date(m.created_at), "dd/MM/yyyy HH:mm")}] ${who(m)}: ${m.deleted_at ? "(mensagem apagada)" : textOf(m)}`)
       .join("\n");
     const head = `Conversa do CatroGo — ${header?.displayName ?? "Conversa"}\nExportada em ${format(new Date(), "dd/MM/yyyy HH:mm")}\n\n`;
     const blob = new Blob([head + body], { type: "text/plain;charset=utf-8" });
@@ -306,7 +306,7 @@ export function ChatView({ conversationId, onBack }: { conversationId: string; o
     let list = messages;
     if (ephemeralSeconds) list = list.filter((m) => (now - new Date(m.created_at).getTime()) < ephemeralSeconds * 1000);
     const q = searchQuery.trim().toLowerCase();
-    if (q) list = list.filter((m) => m.content.toLowerCase().includes(q));
+    if (q) list = list.filter((m) => textOf(m).toLowerCase().includes(q));
     return list;
   }, [messages, ephemeralSeconds, now, searchQuery]);
 
@@ -505,7 +505,7 @@ export function ChatView({ conversationId, onBack }: { conversationId: string; o
     const { error } = await supabase.from("messages").insert({
       conversation_id: targetId,
       sender_id: user.id,
-      content: `↪️ ${forwarding.content}`,
+      content: `↪️ ${textOf(forwarding)}`,
       to_ai: false,
     });
     if (error) toast.error(error.message);
@@ -800,7 +800,7 @@ export function ChatView({ conversationId, onBack }: { conversationId: string; o
                       <DropdownMenuItem onClick={() => openForward(m)}>
                         <Forward className="mr-2 h-4 w-4" /> Encaminhar
                       </DropdownMenuItem>
-                      <DropdownMenuItem onClick={() => { navigator.clipboard.writeText(m.content).catch(() => {}); toast.success("Copiada"); }}>
+                      <DropdownMenuItem onClick={() => { navigator.clipboard.writeText(textOf(m)).catch(() => {}); toast.success("Copiada"); }}>
                         <Copy className="mr-2 h-4 w-4" /> Copiar
                       </DropdownMenuItem>
                       <DropdownMenuItem onClick={() => toggleStar(m)}>
@@ -821,7 +821,10 @@ export function ChatView({ conversationId, onBack }: { conversationId: string; o
                       <DropdownMenuItem onClick={() => setUnreadMarks((u) => ({ ...u, [m.id]: !u[m.id] }))}>
                         <MailOpen className="mr-2 h-4 w-4" /> {unreadMarks[m.id] ? "Desmarcar não lida" : "Marcar como não lida"}
                       </DropdownMenuItem>
-                      <DropdownMenuItem onClick={() => toast.info("🔒 Mensagem com criptografia ponta-a-ponta (E2EE simulada · Cosmos Lattice)", { description: `ID #${m.id.slice(0, 8)} · ${format(new Date(m.created_at), "dd/MM HH:mm")}` })}>
+                      <DropdownMenuItem onClick={async () => {
+                        const code = await conversationSafetyNumber(conversationId);
+                        setSafety(code);
+                      }}>
                         <ShieldCheck className="mr-2 h-4 w-4" /> Ver informações de criptografia
                       </DropdownMenuItem>
                     </DropdownMenuContent>
