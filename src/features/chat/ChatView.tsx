@@ -1113,7 +1113,64 @@ export function ChatView({ conversationId, onBack }: { conversationId: string; o
           </DialogFooter>
         </DialogContent>
       </Dialog>
+
+      {/* Figurinhas */}
+      <Dialog open={stickerOpen} onOpenChange={setStickerOpen}>
+        <DialogContent>
+          <DialogHeader>
+            <DialogTitle className="flex items-center gap-2"><Sticker className="h-4 w-4 text-[var(--nebula)]" /> Figurinhas</DialogTitle>
+            <DialogDescription>Escolha, envie ou crie figurinhas com a IA.</DialogDescription>
+          </DialogHeader>
+          <StickerPicker onPick={sendSticker} />
+        </DialogContent>
+      </Dialog>
+
+      {/* Código de segurança da conversa */}
+      <Dialog open={!!safety} onOpenChange={(o) => { if (!o) setSafety(null); }}>
+        <DialogContent>
+          <DialogHeader>
+            <DialogTitle className="flex items-center gap-2"><ShieldCheck className="h-4 w-4 text-emerald-400" /> Criptografia ponta a ponta</DialogTitle>
+            <DialogDescription>
+              As mensagens desta conversa são cifradas no seu aparelho (Cosmos Lattice · AES-GCM 256 com troca de chaves ECDH).
+              Nem o CatroGo consegue lê-las.
+            </DialogDescription>
+          </DialogHeader>
+          <div className="rounded-xl bg-secondary/40 p-4 text-center font-mono text-sm tracking-widest">{safety}</div>
+          <p className="text-xs text-muted-foreground">
+            Compare este código com a outra pessoa: se for igual nos dois aparelhos, ninguém está no meio da conversa.
+          </p>
+        </DialogContent>
+      </Dialog>
     </div>
+  );
+}
+
+/** Mostra fotos, vídeos, áudios e documentos enviados no chat (bucket privado). */
+function MediaBubble({ message }: { message: Message }) {
+  const [url, setUrl] = useState<string | null>(null);
+  useEffect(() => {
+    if (!message.media_url) return;
+    signedUrl("chat-media", message.media_url).then(setUrl);
+  }, [message.media_url]);
+
+  const kind = message.message_type;
+  if (!url) return <div className="h-32 w-48 animate-pulse rounded-xl bg-white/10" />;
+  if (kind === "image") {
+    return (
+      <a href={url} target="_blank" rel="noreferrer">
+        <img src={url} alt={message.media_name ?? "imagem"} loading="lazy" className="max-h-64 rounded-xl object-cover" />
+      </a>
+    );
+  }
+  if (kind === "video") return <video src={url} controls playsInline className="max-h-64 rounded-xl" />;
+  if (kind === "audio") return <audio src={url} controls className="w-56" />;
+  return (
+    <a href={url} target="_blank" rel="noreferrer" className="flex items-center gap-2 rounded-xl bg-secondary/50 px-3 py-2 text-sm">
+      <FileText className="h-4 w-4 text-[var(--nebula)]" />
+      <span className="max-w-[10rem] truncate">{message.media_name ?? "arquivo"}</span>
+      {message.media_size ? <span className="text-[11px] text-muted-foreground">{humanSize(message.media_size)}</span> : null}
+      <Download className="h-3.5 w-3.5" />
+    </a>
   );
 }
 
