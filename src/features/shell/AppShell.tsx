@@ -1,5 +1,5 @@
 import { useState, useEffect } from "react";
-import { MessageCircle, Play, Clapperboard, Gamepad2, User, ShoppingBag, Package, Gift, ShieldCheck, Sparkles, Rocket } from "lucide-react";
+import { MessageCircle, Play, Clapperboard, Gamepad2, User, ShoppingBag, Package, Gift, ShieldCheck, Sparkles, Rocket, Film, GraduationCap, Shirt } from "lucide-react";
 import { ChatHome } from "@/features/chat/ChatHome";
 import { VideoModule } from "@/features/video/VideoModule";
 import { ShortsModule } from "@/features/shorts/ShortsModule";
@@ -9,6 +9,9 @@ import { StoreModule } from "@/features/store/StoreModule";
 import { ModsModule } from "@/features/mods/ModsModule";
 import { AiChatModule } from "@/features/ai/AiChatModule";
 import { UpdatesModule } from "@/features/updates/UpdatesModule";
+import { MoviesModule } from "@/features/movies/MoviesModule";
+import { PersonalModule } from "@/features/personal/PersonalModule";
+import { SkinsModule } from "@/features/skins/SkinsModule";
 import { AdminPanel } from "@/features/admin/AdminPanel";
 import { ChristmasMissions, EventCountdownBanner } from "@/features/admin/ChristmasMissions";
 import { ChannelView } from "@/features/profile/ChannelView";
@@ -18,14 +21,17 @@ import { EventsProvider, useGlobalEvent } from "@/lib/events-context";
 import { NotificationsProvider } from "@/lib/notifications-context";
 import { useAuth } from "@/lib/auth-context";
 
-type ModuleId = "chat" | "video" | "shorts" | "games" | "ia" | "store" | "mods" | "updates" | "profile" | "admin" | "missions";
+type ModuleId = "chat" | "movies" | "personal" | "skins" | "video" | "shorts" | "games" | "ia" | "store" | "mods" | "updates" | "profile" | "admin" | "missions";
 
 const BASE_TABS: { id: ModuleId; label: string; icon: typeof MessageCircle }[] = [
   { id: "chat", label: "Chat", icon: MessageCircle },
+  { id: "movies", label: "Filmes", icon: Film },
   { id: "video", label: "Vídeos", icon: Play },
   { id: "shorts", label: "Shorts", icon: Clapperboard },
   { id: "games", label: "Games", icon: Gamepad2 },
   { id: "ia", label: "IA", icon: Sparkles },
+  { id: "personal", label: "Personal", icon: GraduationCap },
+  { id: "skins", label: "Skins", icon: Shirt },
   { id: "mods", label: "Mods", icon: Package },
   { id: "store", label: "Loja", icon: ShoppingBag },
   { id: "updates", label: "Novidades", icon: Rocket },
@@ -52,6 +58,9 @@ function ShellInner() {
       <EventCountdownBanner />
       <div key={active} className="page-transition flex-1 min-h-0 overflow-hidden">
         {active === "chat" && <ChatHome />}
+        {active === "movies" && <MoviesModule />}
+        {active === "personal" && <PersonalModule />}
+        {active === "skins" && <SkinsModule />}
         {active === "video" && <VideoModule />}
         {active === "shorts" && <ShortsModule />}
         {active === "games" && <GamesModule />}
