@@ -9,6 +9,8 @@ import {
   ArrowLeft, Sparkles, Send, Phone, Video, MoreVertical, Users, Wand2, Loader2,
   Languages, BrainCircuit, Timer, Lock, OrbitIcon, ShieldHalf, ShieldCheck, MailOpen, Mic, Image as ImageIcon,
   Reply, Pencil, Trash2, Star, Forward, Search, Copy, SmilePlus, X, Clock, CheckCheck, FileDown, Eraser,
+  Paperclip, Sticker, FileText, Download,
+
 } from "lucide-react";
 import {
   DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger,
@@ -23,6 +25,12 @@ import { VoiceRecorder, AudioBubble, uploadAudio, type RecordingHandle } from ".
 import { sendCallInvite } from "./IncomingCallListener";
 import { notifyNewMessage } from "@/lib/notify.functions";
 import { notifyConversation } from "@/lib/notify-inapp";
+import {
+  publishDeviceKey, syncConversationKey, encryptMessage, decryptMessage,
+  conversationSafetyNumber, ENC_PLACEHOLDER, ENC_VERSION,
+} from "@/lib/e2ee";
+import { uploadFile, signedUrl, mediaKind, humanSize } from "@/lib/media";
+import { StickerPicker, StickerImg, type StickerRow } from "./StickerPicker";
 
 const QUICK_REACTIONS = ["❤️", "😂", "😮", "😢", "🙏", "👍", "🚀"];
 
@@ -37,6 +45,14 @@ type Message = {
   reply_to?: string | null;
   edited_at?: string | null;
   deleted_at?: string | null;
+  message_type?: string | null;
+  media_url?: string | null;
+  media_name?: string | null;
+  media_mime?: string | null;
+  media_size?: number | null;
+  cipher?: string | null;
+  iv?: string | null;
+  enc_v?: number | null;
 };
 
 type Reaction = { message_id: string; user_id: string; emoji: string };
