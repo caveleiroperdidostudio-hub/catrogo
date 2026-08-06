@@ -81,7 +81,7 @@ export function SkinsModule() {
     const { error } = await supabase.from("skins").insert({
       user_id: user.id,
       name: name.trim() || "Minha skin",
-      config: config as unknown as Record<string, unknown>,
+      config: { ...config },
       accessories: acc,
       is_active: skins.length === 0,
     });
