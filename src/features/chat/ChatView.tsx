@@ -9,6 +9,8 @@ import {
   ArrowLeft, Sparkles, Send, Phone, Video, MoreVertical, Users, Wand2, Loader2,
   Languages, BrainCircuit, Timer, Lock, OrbitIcon, ShieldHalf, ShieldCheck, MailOpen, Mic, Image as ImageIcon,
   Reply, Pencil, Trash2, Star, Forward, Search, Copy, SmilePlus, X, Clock, CheckCheck, FileDown, Eraser,
+  Paperclip, Sticker, FileText, Download,
+
 } from "lucide-react";
 import {
   DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger,
@@ -23,6 +25,12 @@ import { VoiceRecorder, AudioBubble, uploadAudio, type RecordingHandle } from ".
 import { sendCallInvite } from "./IncomingCallListener";
 import { notifyNewMessage } from "@/lib/notify.functions";
 import { notifyConversation } from "@/lib/notify-inapp";
+import {
+  publishDeviceKey, syncConversationKey, encryptMessage, decryptMessage,
+  conversationSafetyNumber, ENC_PLACEHOLDER, ENC_VERSION,
+} from "@/lib/e2ee";
+import { uploadFile, signedUrl, mediaKind, humanSize } from "@/lib/media";
+import { StickerPicker, StickerImg, type StickerRow } from "./StickerPicker";
 
 const QUICK_REACTIONS = ["❤️", "😂", "😮", "😢", "🙏", "👍", "🚀"];
 
@@ -37,6 +45,14 @@ type Message = {
   reply_to?: string | null;
   edited_at?: string | null;
   deleted_at?: string | null;
+  message_type?: string | null;
+  media_url?: string | null;
+  media_name?: string | null;
+  media_mime?: string | null;
+  media_size?: number | null;
+  cipher?: string | null;
+  iv?: string | null;
+  enc_v?: number | null;
 };
 
 type Reaction = { message_id: string; user_id: string; emoji: string };
@@ -129,6 +145,43 @@ export function ChatView({ conversationId, onBack }: { conversationId: string; o
     return () => clearInterval(id);
   }, [ephemeral, conversationId]);
 
+  // --- Criptografia ponta a ponta (Cosmos Lattice) + mídia
+  const [plain, setPlain] = useState<Record<string, string>>({});
+  const [safety, setSafety] = useState<string | null>(null);
+  const [stickerOpen, setStickerOpen] = useState(false);
+  const [uploadingFile, setUploadingFile] = useState(false);
+  const fileRef = useRef<HTMLInputElement>(null);
+  const decryptTried = useRef<Set<string>>(new Set());
+
+  /** Texto legível de uma mensagem (decifrado quando criptografada). */
+  const textOf = (m: Message) => (m.cipher && m.iv ? (plain[m.id] ?? ENC_PLACEHOLDER) : m.content);
+
+  useEffect(() => {
+    if (!user) return;
+    publishDeviceKey(user.id)
+      .then(() => syncConversationKey(conversationId, user.id))
+      .catch(() => {});
+  }, [user, conversationId]);
+
+  useEffect(() => {
+    if (!user) return;
+    const pending = messages.filter((m) => m.cipher && m.iv && !decryptTried.current.has(m.id));
+    if (pending.length === 0) return;
+    pending.forEach((m) => decryptTried.current.add(m.id));
+    let cancelled = false;
+    (async () => {
+      const out: Record<string, string> = {};
+      for (const m of pending) {
+        const t = await decryptMessage(conversationId, user.id, m.cipher!, m.iv!);
+        if (t !== null) out[m.id] = t;
+      }
+      if (!cancelled && Object.keys(out).length > 0) setPlain((p) => ({ ...p, ...out }));
+    })();
+    return () => {
+      cancelled = true;
+    };
+  }, [messages, user, conversationId]);
+
   // header
   useEffect(() => {
     if (!user) return;
@@ -190,7 +243,7 @@ export function ChatView({ conversationId, onBack }: { conversationId: string; o
     const who = (m: Message) =>
       m.sender_id === user?.id ? "Você" : (m.sender_id ? senderNames.current[m.sender_id] : null) ?? header?.displayName ?? "Contato";
     const body = messages
-      .map((m) => `[${format(new Date(m.created_at), "dd/MM/yyyy HH:mm")}] ${who(m)}: ${m.deleted_at ? "(mensagem apagada)" : m.content}`)
+      .map((m) => `[${format(new Date(m.created_at), "dd/MM/yyyy HH:mm")}] ${who(m)}: ${m.deleted_at ? "(mensagem apagada)" : textOf(m)}`)
       .join("\n");
     const head = `Conversa do CatroGo — ${header?.displayName ?? "Conversa"}\nExportada em ${format(new Date(), "dd/MM/yyyy HH:mm")}\n\n`;
     const blob = new Blob([head + body], { type: "text/plain;charset=utf-8" });
@@ -253,7 +306,7 @@ export function ChatView({ conversationId, onBack }: { conversationId: string; o
     let list = messages;
     if (ephemeralSeconds) list = list.filter((m) => (now - new Date(m.created_at).getTime()) < ephemeralSeconds * 1000);
     const q = searchQuery.trim().toLowerCase();
-    if (q) list = list.filter((m) => m.content.toLowerCase().includes(q));
+    if (q) list = list.filter((m) => textOf(m).toLowerCase().includes(q));
     return list;
   }, [messages, ephemeralSeconds, now, searchQuery]);
 
@@ -285,10 +338,16 @@ export function ChatView({ conversationId, onBack }: { conversationId: string; o
     if (!content || !user) return;
     setText(""); setSuggestions([]);
     setSending(true);
+
+    // Conversas entre pessoas viajam cifradas; com a IA seguem em claro (ela precisa ler).
+    const enc = header?.isAi ? null : await encryptMessage(conversationId, user.id, content);
     const { error } = await supabase.from("messages").insert({
       conversation_id: conversationId,
       sender_id: user.id,
-      content,
+      content: enc ? ENC_PLACEHOLDER : content,
+      cipher: enc?.cipher ?? null,
+      iv: enc?.iv ?? null,
+      enc_v: enc ? ENC_VERSION : 0,
       to_ai: header?.isAi ?? false,
       reply_to: replyTo?.id ?? null,
     });
@@ -297,8 +356,9 @@ export function ChatView({ conversationId, onBack }: { conversationId: string; o
     setSending(false);
     if (error) { toast.error(error.message); setText(content); return; }
     if (!header?.isAi) {
-      notifyNewMessage({ data: { conversationId, preview: content.slice(0, 180) } }).catch(() => {});
-      notifyConversation(conversationId, content.slice(0, 140)).catch(() => {});
+      const preview = enc ? "🔒 Nova mensagem" : content.slice(0, 180);
+      notifyNewMessage({ data: { conversationId, preview } }).catch(() => {});
+      notifyConversation(conversationId, preview.slice(0, 140)).catch(() => {});
     }
 
     const mentionsCarlos = /(^|\s)@carlos\b/i.test(content);
@@ -312,6 +372,55 @@ export function ChatView({ conversationId, onBack }: { conversationId: string; o
       try { await callAI({ conversationId, mode: "mention", userMessage: content }); }
       catch (e) { setAiThinking(false); toast.error((e as Error).message); }
     }
+  };
+
+  /** Envia arquivo (foto, vídeo, áudio ou documento) para o bucket privado. */
+  const sendAttachment = async (file: File | undefined) => {
+    if (!file || !user) return;
+    if (file.size > 80 * 1024 * 1024) return toast.error("Máximo 80MB por arquivo");
+    setUploadingFile(true);
+    try {
+      const path = await uploadFile("chat-media", user.id, file, file.name);
+      const kind = mediaKind(file.type);
+      const label = kind === "image" ? "📷 Foto" : kind === "video" ? "🎬 Vídeo" : kind === "audio" ? "🎵 Áudio" : `📎 ${file.name}`;
+      const { error } = await supabase.from("messages").insert({
+        conversation_id: conversationId,
+        sender_id: user.id,
+        content: label,
+        message_type: kind,
+        media_url: path,
+        media_name: file.name,
+        media_mime: file.type || "application/octet-stream",
+        media_size: file.size,
+        to_ai: false,
+      });
+      if (error) throw new Error(error.message);
+      notifyNewMessage({ data: { conversationId, preview: label } }).catch(() => {});
+      notifyConversation(conversationId, label).catch(() => {});
+    } catch (e) {
+      toast.error((e as Error).message);
+    } finally {
+      setUploadingFile(false);
+      if (fileRef.current) fileRef.current.value = "";
+    }
+  };
+
+  /** Envia uma figurinha (bucket de figurinhas). */
+  const sendSticker = async (s: StickerRow) => {
+    if (!user) return;
+    setStickerOpen(false);
+    const { error } = await supabase.from("messages").insert({
+      conversation_id: conversationId,
+      sender_id: user.id,
+      content: `${s.emoji ?? "🌟"} figurinha`,
+      message_type: "sticker",
+      media_url: s.image_url,
+      media_mime: "image/png",
+      to_ai: false,
+    });
+    if (error) return toast.error(error.message);
+    supabase.rpc("bump_sticker", { _id: s.id }).then(() => {});
+    notifyConversation(conversationId, "🌟 Figurinha").catch(() => {});
   };
 
   const stopAndSendAudio = async () => {
@@ -386,7 +495,7 @@ export function ChatView({ conversationId, onBack }: { conversationId: string; o
   const translate = async (m: Message, lang: string) => {
     setTranslatingId(m.id);
     try {
-      const r = await callAI({ mode: "translate", text: m.content, targetLang: lang });
+      const r = await callAI({ mode: "translate", text: textOf(m), targetLang: lang });
       setTranslations((t) => ({ ...t, [m.id]: `${r.translation}  ·  (${lang})` }));
     } catch (e) { toast.error((e as Error).message); }
     finally { setTranslatingId(null); }
@@ -452,7 +561,7 @@ export function ChatView({ conversationId, onBack }: { conversationId: string; o
     const { error } = await supabase.from("messages").insert({
       conversation_id: targetId,
       sender_id: user.id,
-      content: `↪️ ${forwarding.content}`,
+      content: `↪️ ${textOf(forwarding)}`,
       to_ai: false,
     });
     if (error) toast.error(error.message);
@@ -655,16 +764,20 @@ export function ChatView({ conversationId, onBack }: { conversationId: string; o
                 )}
                 {m.reply_to && messageById[m.reply_to] && (
                   <div className="mb-1 border-l-2 border-[var(--nebula)] pl-2 text-[12px] text-muted-foreground line-clamp-2">
-                    {messageById[m.reply_to].content || "mensagem apagada"}
+                    {textOf(messageById[m.reply_to]) || "mensagem apagada"}
                   </div>
                 )}
                 {(() => {
                   if (m.deleted_at) return <div className="italic text-[13px] text-muted-foreground">🚫 Mensagem apagada</div>;
+                  if (m.message_type === "sticker" && m.media_url) return <StickerImg path={m.media_url} className="h-28 w-28 object-contain" />;
+                  if (m.media_url && m.message_type && ["image", "video", "audio", "file"].includes(m.message_type)) {
+                    return <MediaBubble message={m} />;
+                  }
                   const am = /^\[audio:(\d+)(?:\|(.+))?\]$/.exec(m.content);
                   if (am) return <AudioBubble duration={parseInt(am[1], 10)} url={am[2]} />;
                   return (
                     <div className="whitespace-pre-wrap break-words text-[15px]">
-                      {m.content}
+                      {textOf(m)}
                       {m.edited_at && <span className="ml-1 text-[10px] text-muted-foreground">(editada)</span>}
                     </div>
                   );
@@ -747,7 +860,7 @@ export function ChatView({ conversationId, onBack }: { conversationId: string; o
                       <DropdownMenuItem onClick={() => openForward(m)}>
                         <Forward className="mr-2 h-4 w-4" /> Encaminhar
                       </DropdownMenuItem>
-                      <DropdownMenuItem onClick={() => { navigator.clipboard.writeText(m.content).catch(() => {}); toast.success("Copiada"); }}>
+                      <DropdownMenuItem onClick={() => { navigator.clipboard.writeText(textOf(m)).catch(() => {}); toast.success("Copiada"); }}>
                         <Copy className="mr-2 h-4 w-4" /> Copiar
                       </DropdownMenuItem>
                       <DropdownMenuItem onClick={() => toggleStar(m)}>
@@ -768,7 +881,10 @@ export function ChatView({ conversationId, onBack }: { conversationId: string; o
                       <DropdownMenuItem onClick={() => setUnreadMarks((u) => ({ ...u, [m.id]: !u[m.id] }))}>
                         <MailOpen className="mr-2 h-4 w-4" /> {unreadMarks[m.id] ? "Desmarcar não lida" : "Marcar como não lida"}
                       </DropdownMenuItem>
-                      <DropdownMenuItem onClick={() => toast.info("🔒 Mensagem com criptografia ponta-a-ponta (E2EE simulada · Cosmos Lattice)", { description: `ID #${m.id.slice(0, 8)} · ${format(new Date(m.created_at), "dd/MM HH:mm")}` })}>
+                      <DropdownMenuItem onClick={async () => {
+                        const code = await conversationSafetyNumber(conversationId);
+                        setSafety(code);
+                      }}>
                         <ShieldCheck className="mr-2 h-4 w-4" /> Ver informações de criptografia
                       </DropdownMenuItem>
                     </DropdownMenuContent>
@@ -841,6 +957,28 @@ export function ChatView({ conversationId, onBack }: { conversationId: string; o
               <Button size="icon" variant="ghost" onClick={suggest} disabled={suggesting} title="Sugerir respostas com Carlos">
                 {suggesting ? <Loader2 className="h-4 w-4 animate-spin" /> : <Wand2 className="h-4 w-4 text-[var(--nebula)]" />}
               </Button>
+            )}
+            {!header.isAi && (
+              <>
+                <input
+                  ref={fileRef}
+                  type="file"
+                  className="hidden"
+                  accept="image/*,video/*,audio/*,.pdf,.txt,.zip,.doc,.docx"
+                  onChange={(e) => sendAttachment(e.target.files?.[0])}
+                />
+                <Button
+                  size="icon" variant="ghost" className="shrink-0"
+                  onClick={() => fileRef.current?.click()}
+                  disabled={uploadingFile}
+                  title="Anexar arquivo"
+                >
+                  {uploadingFile ? <Loader2 className="h-4 w-4 animate-spin" /> : <Paperclip className="h-4 w-4" />}
+                </Button>
+                <Button size="icon" variant="ghost" className="shrink-0" onClick={() => setStickerOpen(true)} title="Figurinhas">
+                  <Sticker className="h-4 w-4 text-[var(--nebula)]" />
+                </Button>
+              </>
             )}
             <Input
               value={text}
@@ -975,7 +1113,64 @@ export function ChatView({ conversationId, onBack }: { conversationId: string; o
           </DialogFooter>
         </DialogContent>
       </Dialog>
+
+      {/* Figurinhas */}
+      <Dialog open={stickerOpen} onOpenChange={setStickerOpen}>
+        <DialogContent>
+          <DialogHeader>
+            <DialogTitle className="flex items-center gap-2"><Sticker className="h-4 w-4 text-[var(--nebula)]" /> Figurinhas</DialogTitle>
+            <DialogDescription>Escolha, envie ou crie figurinhas com a IA.</DialogDescription>
+          </DialogHeader>
+          <StickerPicker onPick={sendSticker} />
+        </DialogContent>
+      </Dialog>
+
+      {/* Código de segurança da conversa */}
+      <Dialog open={!!safety} onOpenChange={(o) => { if (!o) setSafety(null); }}>
+        <DialogContent>
+          <DialogHeader>
+            <DialogTitle className="flex items-center gap-2"><ShieldCheck className="h-4 w-4 text-emerald-400" /> Criptografia ponta a ponta</DialogTitle>
+            <DialogDescription>
+              As mensagens desta conversa são cifradas no seu aparelho (Cosmos Lattice · AES-GCM 256 com troca de chaves ECDH).
+              Nem o CatroGo consegue lê-las.
+            </DialogDescription>
+          </DialogHeader>
+          <div className="rounded-xl bg-secondary/40 p-4 text-center font-mono text-sm tracking-widest">{safety}</div>
+          <p className="text-xs text-muted-foreground">
+            Compare este código com a outra pessoa: se for igual nos dois aparelhos, ninguém está no meio da conversa.
+          </p>
+        </DialogContent>
+      </Dialog>
     </div>
+  );
+}
+
+/** Mostra fotos, vídeos, áudios e documentos enviados no chat (bucket privado). */
+function MediaBubble({ message }: { message: Message }) {
+  const [url, setUrl] = useState<string | null>(null);
+  useEffect(() => {
+    if (!message.media_url) return;
+    signedUrl("chat-media", message.media_url).then(setUrl);
+  }, [message.media_url]);
+
+  const kind = message.message_type;
+  if (!url) return <div className="h-32 w-48 animate-pulse rounded-xl bg-white/10" />;
+  if (kind === "image") {
+    return (
+      <a href={url} target="_blank" rel="noreferrer">
+        <img src={url} alt={message.media_name ?? "imagem"} loading="lazy" className="max-h-64 rounded-xl object-cover" />
+      </a>
+    );
+  }
+  if (kind === "video") return <video src={url} controls playsInline className="max-h-64 rounded-xl" />;
+  if (kind === "audio") return <audio src={url} controls className="w-56" />;
+  return (
+    <a href={url} target="_blank" rel="noreferrer" className="flex items-center gap-2 rounded-xl bg-secondary/50 px-3 py-2 text-sm">
+      <FileText className="h-4 w-4 text-[var(--nebula)]" />
+      <span className="max-w-[10rem] truncate">{message.media_name ?? "arquivo"}</span>
+      {message.media_size ? <span className="text-[11px] text-muted-foreground">{humanSize(message.media_size)}</span> : null}
+      <Download className="h-3.5 w-3.5" />
+    </a>
   );
 }
 

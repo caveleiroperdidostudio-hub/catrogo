@@ -9,7 +9,7 @@ import { Tabs, TabsList, TabsTrigger, TabsContent } from "@/components/ui/tabs";
 import { Avatar, AvatarFallback } from "@/components/ui/avatar";
 import { Checkbox } from "@/components/ui/checkbox";
 import { toast } from "sonner";
-import { Search } from "lucide-react";
+import { Search, Phone } from "lucide-react";
 
 type Profile = { id: string; username: string; display_name: string };
 
@@ -31,6 +31,16 @@ export function NewChatDialog({ open, onOpenChange, onCreated }: { open: boolean
       .or(`username.ilike.%${text}%,display_name.ilike.%${text}%`)
       .limit(20);
     setResults(data ?? []);
+  };
+
+  const searchByPhone = async () => {
+    const digits = q.replace(/\D/g, "");
+    if (digits.length < 6) return toast.error("Digite o número completo do CatroGo");
+    const { data, error } = await supabase.rpc("find_by_app_phone", { _phone: q });
+    const rows = (data ?? []) as (Profile & { app_phone: string })[];
+    if (error || rows.length === 0) return toast.error("Nenhum perfil com esse número");
+    setResults(rows.map((r) => ({ id: r.id, username: r.username, display_name: r.display_name })));
+    toast.success(`Encontrado: ${rows[0].display_name}`);
   };
 
   const startDM = async (other: Profile) => {
@@ -73,8 +83,11 @@ export function NewChatDialog({ open, onOpenChange, onCreated }: { open: boolean
           <TabsContent value="dm" className="space-y-3 mt-3">
             <div className="relative">
               <Search className="h-4 w-4 absolute left-3 top-1/2 -translate-y-1/2 text-muted-foreground" />
-              <Input value={q} onChange={(e) => search(e.target.value)} placeholder="Buscar por nome ou @usuario" className="pl-9" />
+              <Input value={q} onChange={(e) => search(e.target.value)} placeholder="Nome, @usuario ou número do CatroGo" className="pl-9" />
             </div>
+            <Button variant="secondary" className="w-full" onClick={searchByPhone} disabled={!q.trim()}>
+              <Phone className="mr-2 h-4 w-4" /> Buscar por número do CatroGo
+            </Button>
             <ul className="max-h-80 overflow-y-auto space-y-1">
               {results.map((p) => (
                 <li key={p.id}>
