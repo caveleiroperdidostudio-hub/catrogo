@@ -289,6 +289,26 @@ export function MoviesModule() {
               <Label>Pôster (opcional)</Label>
               <Input type="file" accept="image/*" onChange={(e) => setPosterFile(e.target.files?.[0] ?? null)} />
             </div>
+            <div className="space-y-1.5">
+              <Label>Detentor dos direitos</Label>
+              <Input
+                value={form.rights}
+                onChange={(e) => setForm({ ...form, rights: e.target.value })}
+                placeholder="ex: Axis Film Studio / estúdio licenciante"
+              />
+            </div>
+            <div className="space-y-1.5">
+              <Label>Licença ou contrato (opcional)</Label>
+              <Textarea
+                value={form.license}
+                onChange={(e) => setForm({ ...form, license: e.target.value })}
+                rows={2}
+                placeholder="ex: contrato de distribuição nº 123, conteúdo original, domínio público…"
+              />
+              <p className="text-xs text-muted-foreground">
+                Publique apenas conteúdo próprio, licenciado ou em domínio público.
+              </p>
+            </div>
           </div>
           <DialogFooter>
             <Button variant="ghost" onClick={() => setOpen(false)}>
