@@ -792,6 +792,75 @@ export type Database = {
         }
         Relationships: []
       }
+      premium_requests: {
+        Row: {
+          created_at: string
+          id: string
+          note: string | null
+          pix_key_used: string | null
+          plan: string
+          receipt_path: string | null
+          reviewed_at: string | null
+          reviewed_by: string | null
+          status: string
+          user_id: string
+        }
+        Insert: {
+          created_at?: string
+          id?: string
+          note?: string | null
+          pix_key_used?: string | null
+          plan?: string
+          receipt_path?: string | null
+          reviewed_at?: string | null
+          reviewed_by?: string | null
+          status?: string
+          user_id: string
+        }
+        Update: {
+          created_at?: string
+          id?: string
+          note?: string | null
+          pix_key_used?: string | null
+          plan?: string
+          receipt_path?: string | null
+          reviewed_at?: string | null
+          reviewed_by?: string | null
+          status?: string
+          user_id?: string
+        }
+        Relationships: []
+      }
+      premium_subscriptions: {
+        Row: {
+          created_at: string
+          expires_at: string | null
+          granted_by: string | null
+          id: string
+          is_gift: boolean
+          updated_at: string
+          user_id: string
+        }
+        Insert: {
+          created_at?: string
+          expires_at?: string | null
+          granted_by?: string | null
+          id?: string
+          is_gift?: boolean
+          updated_at?: string
+          user_id: string
+        }
+        Update: {
+          created_at?: string
+          expires_at?: string | null
+          granted_by?: string | null
+          id?: string
+          is_gift?: boolean
+          updated_at?: string
+          user_id?: string
+        }
+        Relationships: []
+      }
       profiles: {
         Row: {
           about: string | null
@@ -1254,6 +1323,10 @@ export type Database = {
       generate_app_phone: { Args: never; Returns: string }
       get_game_source: { Args: { _game_id: string }; Returns: string }
       grant_admin: { Args: { _username: string }; Returns: Json }
+      grant_premium: {
+        Args: { _days?: number; _username: string }
+        Returns: Json
+      }
       has_role: {
         Args: {
           _role: Database["public"]["Enums"]["app_role"]
@@ -1266,6 +1339,7 @@ export type Database = {
       increment_video_views: { Args: { _id: string }; Returns: undefined }
       is_member: { Args: { _conv: string; _user: string }; Returns: boolean }
       is_owner: { Args: { _uid?: string }; Returns: boolean }
+      is_premium: { Args: { _user_id?: string }; Returns: boolean }
       is_staff: { Args: { _uid?: string }; Returns: boolean }
       list_staff: {
         Args: never
@@ -1285,7 +1359,12 @@ export type Database = {
         Args: { _conversation_id: string; _preview: string }
         Returns: undefined
       }
+      review_premium_request: {
+        Args: { _approve: boolean; _days?: number; _id: string }
+        Returns: Json
+      }
       revoke_admin: { Args: { _username: string }; Returns: Json }
+      revoke_premium: { Args: { _username: string }; Returns: Json }
       send_hype: { Args: { _amount: number; _video_id: string }; Returns: Json }
       spend_coins: {
         Args: { _amount: number; _kind: string; _reference?: string }
