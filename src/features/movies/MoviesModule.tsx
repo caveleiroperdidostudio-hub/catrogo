@@ -147,12 +147,14 @@ export function MoviesModule() {
         duration_min: form.duration ? Number(form.duration) : null,
         video_url: videoPath,
         poster_url: posterPath,
+        rights_holder: form.rights.trim(),
+        license_note: form.license.trim() || null,
         created_by: user.id,
       });
       if (error) throw new Error(error.message);
       toast.success("Filme publicado no catálogo!");
       setOpen(false);
-      setForm({ title: "", description: "", category: CATEGORIES[0], year: "", duration: "" });
+      setForm({ title: "", description: "", category: CATEGORIES[0], year: "", duration: "", rights: "", license: "" });
       setVideoFile(null);
       setPosterFile(null);
       await load();
