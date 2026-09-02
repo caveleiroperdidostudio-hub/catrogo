@@ -40,37 +40,52 @@ function Poster({ path, title }: { path: string | null; title: string }) {
   return <img src={url} alt={`Pôster de ${title}`} loading="lazy" className="aspect-[2/3] w-full rounded-xl object-cover" />;
 }
 
-function Player({ movie, onClose }: { movie: Movie; onClose: () => void }) {
+function Player({ movie, startAt, onClose }: { movie: Movie; startAt: number; onClose: () => void }) {
   const [url, setUrl] = useState<string | null>(null);
+  const [poster, setPoster] = useState<string | null>(null);
+  const lastSaved = useRef(0);
+
   useEffect(() => {
     if (/^https?:/.test(movie.video_url)) setUrl(movie.video_url);
     else signedUrl("movies", movie.video_url).then(setUrl);
+    if (movie.poster_url) {
+      if (/^https?:/.test(movie.poster_url)) setPoster(movie.poster_url);
+      else signedUrl("movies", movie.poster_url).then(setPoster);
+    }
     supabase.rpc("increment_movie_views", { _id: movie.id }).then(() => {});
   }, [movie]);
-  return (
-    <div className="fixed inset-0 z-50 flex flex-col bg-black/95">
-      <div className="flex h-14 shrink-0 items-center gap-2 px-3">
-        <Button size="icon" variant="ghost" onClick={onClose} aria-label="Fechar filme">
+
+  const saveProgress = async (sec: number, dur: number) => {
+    if (Math.abs(sec - lastSaved.current) < 10) return;
+    lastSaved.current = sec;
+    const { data } = await supabase.auth.getUser();
+    if (!data.user) return;
+    await supabase.from("movie_progress").upsert(
+      { user_id: data.user.id, movie_id: movie.id, position_sec: Math.floor(sec), duration_sec: Math.floor(dur), updated_at: new Date().toISOString() },
+      { onConflict: "user_id,movie_id" },
+    );
+  };
+
+  if (!url)
+    return (
+      <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/95">
+        <Loader2 className="h-6 w-6 animate-spin text-primary" />
+        <Button size="icon" variant="ghost" className="absolute right-3 top-3" onClick={onClose} aria-label="Fechar filme">
           <X className="h-5 w-5" />
         </Button>
-        <div className="min-w-0 flex-1">
-          <div className="truncate font-semibold">{movie.title}</div>
-          <div className="text-[11px] text-muted-foreground">
-            {movie.category}
-            {movie.year ? ` · ${movie.year}` : ""}
-            {movie.duration_min ? ` · ${movie.duration_min} min` : ""}
-          </div>
-        </div>
       </div>
-      <div className="flex flex-1 items-center justify-center p-2">
-        {url ? (
-          <video src={url} controls autoPlay playsInline className="max-h-full w-full rounded-xl" />
-        ) : (
-          <Loader2 className="h-6 w-6 animate-spin text-primary" />
-        )}
-      </div>
-      {movie.description && <p className="max-h-24 overflow-y-auto px-4 pb-4 text-sm text-muted-foreground">{movie.description}</p>}
-    </div>
+    );
+
+  return (
+    <CatroPlayer
+      title={movie.title}
+      subtitle={[movie.category, movie.year ?? "", movie.duration_min ? `${movie.duration_min} min` : ""].filter(Boolean).join(" · ")}
+      sources={[{ label: "Original", src: url }]}
+      poster={poster}
+      startAt={startAt}
+      onProgress={saveProgress}
+      onClose={onClose}
+    />
   );
 }
 
