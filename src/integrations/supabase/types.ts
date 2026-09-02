@@ -596,6 +596,70 @@ export type Database = {
         }
         Relationships: []
       }
+      movie_favorites: {
+        Row: {
+          created_at: string
+          id: string
+          movie_id: string
+          user_id: string
+        }
+        Insert: {
+          created_at?: string
+          id?: string
+          movie_id: string
+          user_id: string
+        }
+        Update: {
+          created_at?: string
+          id?: string
+          movie_id?: string
+          user_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "movie_favorites_movie_id_fkey"
+            columns: ["movie_id"]
+            isOneToOne: false
+            referencedRelation: "movies"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      movie_progress: {
+        Row: {
+          duration_sec: number
+          id: string
+          movie_id: string
+          position_sec: number
+          updated_at: string
+          user_id: string
+        }
+        Insert: {
+          duration_sec?: number
+          id?: string
+          movie_id: string
+          position_sec?: number
+          updated_at?: string
+          user_id: string
+        }
+        Update: {
+          duration_sec?: number
+          id?: string
+          movie_id?: string
+          position_sec?: number
+          updated_at?: string
+          user_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "movie_progress_movie_id_fkey"
+            columns: ["movie_id"]
+            isOneToOne: false
+            referencedRelation: "movies"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       movies: {
         Row: {
           category: string
@@ -604,7 +668,10 @@ export type Database = {
           description: string | null
           duration_min: number | null
           id: string
+          license_note: string | null
           poster_url: string | null
+          rights_holder: string | null
+          source_url: string | null
           title: string
           updated_at: string
           video_url: string
@@ -618,7 +685,10 @@ export type Database = {
           description?: string | null
           duration_min?: number | null
           id?: string
+          license_note?: string | null
           poster_url?: string | null
+          rights_holder?: string | null
+          source_url?: string | null
           title: string
           updated_at?: string
           video_url: string
@@ -632,7 +702,10 @@ export type Database = {
           description?: string | null
           duration_min?: number | null
           id?: string
+          license_note?: string | null
           poster_url?: string | null
+          rights_holder?: string | null
+          source_url?: string | null
           title?: string
           updated_at?: string
           video_url?: string
