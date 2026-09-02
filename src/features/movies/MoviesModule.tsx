@@ -134,6 +134,7 @@ export function MoviesModule() {
   const publish = async () => {
     if (!user || !videoFile) return toast.error("Escolha o arquivo do filme");
     if (!form.title.trim()) return toast.error("Dê um título ao filme");
+    if (!form.rights.trim()) return toast.error("Informe quem detém os direitos do filme");
     setBusy(true);
     try {
       const videoPath = await uploadFile("movies", user.id, videoFile, videoFile.name);
