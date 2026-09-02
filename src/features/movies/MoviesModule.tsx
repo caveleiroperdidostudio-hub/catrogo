@@ -1,4 +1,5 @@
-import { useEffect, useState } from "react";
+import { useEffect, useRef, useState } from "react";
+import { CatroPlayer } from "@/components/player/CatroPlayer";
 import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/lib/auth-context";
 import { signedUrl, uploadFile } from "@/lib/media";
@@ -40,37 +41,52 @@ function Poster({ path, title }: { path: string | null; title: string }) {
   return <img src={url} alt={`Pôster de ${title}`} loading="lazy" className="aspect-[2/3] w-full rounded-xl object-cover" />;
 }
 
-function Player({ movie, onClose }: { movie: Movie; onClose: () => void }) {
+function Player({ movie, startAt, onClose }: { movie: Movie; startAt: number; onClose: () => void }) {
   const [url, setUrl] = useState<string | null>(null);
+  const [poster, setPoster] = useState<string | null>(null);
+  const lastSaved = useRef(0);
+
   useEffect(() => {
     if (/^https?:/.test(movie.video_url)) setUrl(movie.video_url);
     else signedUrl("movies", movie.video_url).then(setUrl);
+    if (movie.poster_url) {
+      if (/^https?:/.test(movie.poster_url)) setPoster(movie.poster_url);
+      else signedUrl("movies", movie.poster_url).then(setPoster);
+    }
     supabase.rpc("increment_movie_views", { _id: movie.id }).then(() => {});
   }, [movie]);
-  return (
-    <div className="fixed inset-0 z-50 flex flex-col bg-black/95">
-      <div className="flex h-14 shrink-0 items-center gap-2 px-3">
-        <Button size="icon" variant="ghost" onClick={onClose} aria-label="Fechar filme">
+
+  const saveProgress = async (sec: number, dur: number) => {
+    if (Math.abs(sec - lastSaved.current) < 10) return;
+    lastSaved.current = sec;
+    const { data } = await supabase.auth.getUser();
+    if (!data.user) return;
+    await supabase.from("movie_progress").upsert(
+      { user_id: data.user.id, movie_id: movie.id, position_sec: Math.floor(sec), duration_sec: Math.floor(dur), updated_at: new Date().toISOString() },
+      { onConflict: "user_id,movie_id" },
+    );
+  };
+
+  if (!url)
+    return (
+      <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/95">
+        <Loader2 className="h-6 w-6 animate-spin text-primary" />
+        <Button size="icon" variant="ghost" className="absolute right-3 top-3" onClick={onClose} aria-label="Fechar filme">
           <X className="h-5 w-5" />
         </Button>
-        <div className="min-w-0 flex-1">
-          <div className="truncate font-semibold">{movie.title}</div>
-          <div className="text-[11px] text-muted-foreground">
-            {movie.category}
-            {movie.year ? ` · ${movie.year}` : ""}
-            {movie.duration_min ? ` · ${movie.duration_min} min` : ""}
-          </div>
-        </div>
       </div>
-      <div className="flex flex-1 items-center justify-center p-2">
-        {url ? (
-          <video src={url} controls autoPlay playsInline className="max-h-full w-full rounded-xl" />
-        ) : (
-          <Loader2 className="h-6 w-6 animate-spin text-primary" />
-        )}
-      </div>
-      {movie.description && <p className="max-h-24 overflow-y-auto px-4 pb-4 text-sm text-muted-foreground">{movie.description}</p>}
-    </div>
+    );
+
+  return (
+    <CatroPlayer
+      title={movie.title}
+      subtitle={[movie.category, movie.year ?? "", movie.duration_min ? `${movie.duration_min} min` : ""].filter(Boolean).join(" · ")}
+      sources={[{ label: "Original", src: url }]}
+      poster={poster}
+      startAt={startAt}
+      onProgress={saveProgress}
+      onClose={onClose}
+    />
   );
 }
 
@@ -87,7 +103,8 @@ export function MoviesModule() {
   const [promoteOpen, setPromoteOpen] = useState(false);
   const [promoteName, setPromoteName] = useState("");
 
-  const [form, setForm] = useState({ title: "", description: "", category: CATEGORIES[0], year: "", duration: "" });
+  const [progress, setProgress] = useState<Record<string, { pos: number; dur: number }>>({});
+  const [form, setForm] = useState({ title: "", description: "", category: CATEGORIES[0], year: "", duration: "", rights: "", license: "" });
   const [videoFile, setVideoFile] = useState<File | null>(null);
   const [posterFile, setPosterFile] = useState<File | null>(null);
 
@@ -100,14 +117,24 @@ export function MoviesModule() {
     setLoading(false);
   };
 
+  const loadProgress = async () => {
+    if (!user) return;
+    const { data } = await supabase.from("movie_progress").select("movie_id, position_sec, duration_sec").eq("user_id", user.id);
+    const map: Record<string, { pos: number; dur: number }> = {};
+    for (const r of data ?? []) map[r.movie_id] = { pos: r.position_sec, dur: r.duration_sec };
+    setProgress(map);
+  };
+
   useEffect(() => {
     load();
+    loadProgress();
     supabase.rpc("is_staff").then(({ data }) => setStaff(!!data));
   }, [user]);
 
   const publish = async () => {
     if (!user || !videoFile) return toast.error("Escolha o arquivo do filme");
     if (!form.title.trim()) return toast.error("Dê um título ao filme");
+    if (!form.rights.trim()) return toast.error("Informe quem detém os direitos do filme");
     setBusy(true);
     try {
       const videoPath = await uploadFile("movies", user.id, videoFile, videoFile.name);
@@ -120,12 +147,14 @@ export function MoviesModule() {
         duration_min: form.duration ? Number(form.duration) : null,
         video_url: videoPath,
         poster_url: posterPath,
+        rights_holder: form.rights.trim(),
+        license_note: form.license.trim() || null,
         created_by: user.id,
       });
       if (error) throw new Error(error.message);
       toast.success("Filme publicado no catálogo!");
       setOpen(false);
-      setForm({ title: "", description: "", category: CATEGORIES[0], year: "", duration: "" });
+      setForm({ title: "", description: "", category: CATEGORIES[0], year: "", duration: "", rights: "", license: "" });
       setVideoFile(null);
       setPosterFile(null);
       await load();
@@ -210,7 +239,16 @@ export function MoviesModule() {
         )}
       </div>
 
-      {playing && <Player movie={playing} onClose={() => setPlaying(null)} />}
+      {playing && (
+        <Player
+          movie={playing}
+          startAt={progress[playing.id]?.pos ?? 0}
+          onClose={() => {
+            setPlaying(null);
+            loadProgress();
+          }}
+        />
+      )}
 
       <Dialog open={open} onOpenChange={setOpen}>
         <DialogContent className="max-h-[90dvh] overflow-y-auto">
@@ -259,6 +297,26 @@ export function MoviesModule() {
             <div className="space-y-1.5">
               <Label>Pôster (opcional)</Label>
               <Input type="file" accept="image/*" onChange={(e) => setPosterFile(e.target.files?.[0] ?? null)} />
+            </div>
+            <div className="space-y-1.5">
+              <Label>Detentor dos direitos</Label>
+              <Input
+                value={form.rights}
+                onChange={(e) => setForm({ ...form, rights: e.target.value })}
+                placeholder="ex: Axis Film Studio / estúdio licenciante"
+              />
+            </div>
+            <div className="space-y-1.5">
+              <Label>Licença ou contrato (opcional)</Label>
+              <Textarea
+                value={form.license}
+                onChange={(e) => setForm({ ...form, license: e.target.value })}
+                rows={2}
+                placeholder="ex: contrato de distribuição nº 123, conteúdo original, domínio público…"
+              />
+              <p className="text-xs text-muted-foreground">
+                Publique apenas conteúdo próprio, licenciado ou em domínio público.
+              </p>
             </div>
           </div>
           <DialogFooter>
