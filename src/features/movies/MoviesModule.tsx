@@ -239,7 +239,16 @@ export function MoviesModule() {
         )}
       </div>
 
-      {playing && <Player movie={playing} onClose={() => setPlaying(null)} />}
+      {playing && (
+        <Player
+          movie={playing}
+          startAt={progress[playing.id]?.pos ?? 0}
+          onClose={() => {
+            setPlaying(null);
+            loadProgress();
+          }}
+        />
+      )}
 
       <Dialog open={open} onOpenChange={setOpen}>
         <DialogContent className="max-h-[90dvh] overflow-y-auto">
