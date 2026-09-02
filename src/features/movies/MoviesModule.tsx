@@ -103,7 +103,8 @@ export function MoviesModule() {
   const [promoteOpen, setPromoteOpen] = useState(false);
   const [promoteName, setPromoteName] = useState("");
 
-  const [form, setForm] = useState({ title: "", description: "", category: CATEGORIES[0], year: "", duration: "" });
+  const [progress, setProgress] = useState<Record<string, { pos: number; dur: number }>>({});
+  const [form, setForm] = useState({ title: "", description: "", category: CATEGORIES[0], year: "", duration: "", rights: "", license: "" });
   const [videoFile, setVideoFile] = useState<File | null>(null);
   const [posterFile, setPosterFile] = useState<File | null>(null);
 
@@ -116,8 +117,17 @@ export function MoviesModule() {
     setLoading(false);
   };
 
+  const loadProgress = async () => {
+    if (!user) return;
+    const { data } = await supabase.from("movie_progress").select("movie_id, position_sec, duration_sec").eq("user_id", user.id);
+    const map: Record<string, { pos: number; dur: number }> = {};
+    for (const r of data ?? []) map[r.movie_id] = { pos: r.position_sec, dur: r.duration_sec };
+    setProgress(map);
+  };
+
   useEffect(() => {
     load();
+    loadProgress();
     supabase.rpc("is_staff").then(({ data }) => setStaff(!!data));
   }, [user]);
 
