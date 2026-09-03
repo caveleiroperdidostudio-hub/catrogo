@@ -12,6 +12,7 @@ import { useEffect } from "react";
 import { AuthProvider } from "@/lib/auth-context";
 import { registerAppServiceWorker } from "@/lib/pwa";
 import { SettingsProvider } from "@/lib/settings-context";
+import { ViewportProvider } from "@/lib/viewport";
 
 import appCss from "../styles.css?url";
 
@@ -128,8 +129,10 @@ function RootComponent() {
     <QueryClientProvider client={queryClient}>
       <AuthProvider>
         <SettingsProvider>
+          <ViewportProvider>
           <Outlet />
           <Toaster richColors position="top-center" theme="dark" />
+          </ViewportProvider>
         </SettingsProvider>
       </AuthProvider>
     </QueryClientProvider>
