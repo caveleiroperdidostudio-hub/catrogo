@@ -14,6 +14,123 @@ export type Database = {
   }
   public: {
     Tables: {
+      ai_providers: {
+        Row: {
+          base_url: string
+          created_at: string
+          enabled: boolean
+          global_daily_limit: number
+          id: string
+          model: string
+          name: string
+          priority: number
+          secret_name: string | null
+          slug: string
+          timeout_ms: number
+          updated_at: string
+          user_daily_limit: number
+        }
+        Insert: {
+          base_url: string
+          created_at?: string
+          enabled?: boolean
+          global_daily_limit?: number
+          id?: string
+          model: string
+          name: string
+          priority?: number
+          secret_name?: string | null
+          slug: string
+          timeout_ms?: number
+          updated_at?: string
+          user_daily_limit?: number
+        }
+        Update: {
+          base_url?: string
+          created_at?: string
+          enabled?: boolean
+          global_daily_limit?: number
+          id?: string
+          model?: string
+          name?: string
+          priority?: number
+          secret_name?: string | null
+          slug?: string
+          timeout_ms?: number
+          updated_at?: string
+          user_daily_limit?: number
+        }
+        Relationships: []
+      }
+      ai_usage: {
+        Row: {
+          created_at: string
+          error: string | null
+          feature: string
+          id: string
+          model: string
+          provider_slug: string
+          success: boolean
+          tokens: number
+          user_id: string | null
+        }
+        Insert: {
+          created_at?: string
+          error?: string | null
+          feature?: string
+          id?: string
+          model: string
+          provider_slug: string
+          success?: boolean
+          tokens?: number
+          user_id?: string | null
+        }
+        Update: {
+          created_at?: string
+          error?: string | null
+          feature?: string
+          id?: string
+          model?: string
+          provider_slug?: string
+          success?: boolean
+          tokens?: number
+          user_id?: string | null
+        }
+        Relationships: []
+      }
+      audit_logs: {
+        Row: {
+          action: string
+          actor_id: string | null
+          created_at: string
+          id: string
+          metadata: Json
+          resource_id: string | null
+          resource_type: string
+          result: string
+        }
+        Insert: {
+          action: string
+          actor_id?: string | null
+          created_at?: string
+          id?: string
+          metadata?: Json
+          resource_id?: string | null
+          resource_type: string
+          result?: string
+        }
+        Update: {
+          action?: string
+          actor_id?: string | null
+          created_at?: string
+          id?: string
+          metadata?: Json
+          resource_id?: string | null
+          resource_type?: string
+          result?: string
+        }
+        Relationships: []
+      }
       call_logs: {
         Row: {
           callee_id: string
@@ -527,6 +644,44 @@ export type Database = {
           },
         ]
       }
+      mod_versions: {
+        Row: {
+          changelog: string | null
+          created_at: string
+          created_by: string | null
+          id: string
+          mod_id: string
+          source_code: string
+          version: number
+        }
+        Insert: {
+          changelog?: string | null
+          created_at?: string
+          created_by?: string | null
+          id?: string
+          mod_id: string
+          source_code: string
+          version: number
+        }
+        Update: {
+          changelog?: string | null
+          created_at?: string
+          created_by?: string | null
+          id?: string
+          mod_id?: string
+          source_code?: string
+          version?: number
+        }
+        Relationships: [
+          {
+            foreignKeyName: "mod_versions_mod_id_fkey"
+            columns: ["mod_id"]
+            isOneToOne: false
+            referencedRelation: "mods"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       modpacks: {
         Row: {
           created_at: string
@@ -555,11 +710,13 @@ export type Database = {
         Row: {
           ai_review: string | null
           created_at: string
+          current_version: number
           description: string | null
           id: string
           installs: number
           is_exclusive: boolean
           is_published: boolean
+          moderation_status: string
           quality: number | null
           source_code: string
           title: string
@@ -569,11 +726,13 @@ export type Database = {
         Insert: {
           ai_review?: string | null
           created_at?: string
+          current_version?: number
           description?: string | null
           id?: string
           installs?: number
           is_exclusive?: boolean
           is_published?: boolean
+          moderation_status?: string
           quality?: number | null
           source_code?: string
           title: string
@@ -583,11 +742,13 @@ export type Database = {
         Update: {
           ai_review?: string | null
           created_at?: string
+          current_version?: number
           description?: string | null
           id?: string
           installs?: number
           is_exclusive?: boolean
           is_published?: boolean
+          moderation_status?: string
           quality?: number | null
           source_code?: string
           title?: string
@@ -662,51 +823,75 @@ export type Database = {
       }
       movies: {
         Row: {
+          age_rating: string | null
+          cast_names: string[]
           category: string
           created_at: string
           created_by: string
           description: string | null
+          director: string | null
           duration_min: number | null
+          genres: string[]
           id: string
           license_note: string | null
+          original_title: string | null
           poster_url: string | null
+          rating: number | null
           rights_holder: string | null
           source_url: string | null
+          status: string
           title: string
+          trailer_url: string | null
           updated_at: string
           video_url: string
           views: number
           year: number | null
         }
         Insert: {
+          age_rating?: string | null
+          cast_names?: string[]
           category?: string
           created_at?: string
           created_by: string
           description?: string | null
+          director?: string | null
           duration_min?: number | null
+          genres?: string[]
           id?: string
           license_note?: string | null
+          original_title?: string | null
           poster_url?: string | null
+          rating?: number | null
           rights_holder?: string | null
           source_url?: string | null
+          status?: string
           title: string
+          trailer_url?: string | null
           updated_at?: string
           video_url: string
           views?: number
           year?: number | null
         }
         Update: {
+          age_rating?: string | null
+          cast_names?: string[]
           category?: string
           created_at?: string
           created_by?: string
           description?: string | null
+          director?: string | null
           duration_min?: number | null
+          genres?: string[]
           id?: string
           license_note?: string | null
+          original_title?: string | null
           poster_url?: string | null
+          rating?: number | null
           rights_holder?: string | null
           source_url?: string | null
+          status?: string
           title?: string
+          trailer_url?: string | null
           updated_at?: string
           video_url?: string
           views?: number
@@ -747,6 +932,24 @@ export type Database = {
           title?: string
           type?: string
           user_id?: string
+        }
+        Relationships: []
+      }
+      permissions: {
+        Row: {
+          created_at: string
+          description: string
+          key: string
+        }
+        Insert: {
+          created_at?: string
+          description?: string
+          key: string
+        }
+        Update: {
+          created_at?: string
+          description?: string
+          key?: string
         }
         Relationships: []
       }
@@ -941,6 +1144,74 @@ export type Database = {
           user_id?: string
         }
         Relationships: []
+      }
+      reports: {
+        Row: {
+          created_at: string
+          details: string | null
+          id: string
+          reason: string
+          reporter_id: string
+          resolved_at: string | null
+          resolved_by: string | null
+          status: string
+          target_id: string
+          target_type: string
+        }
+        Insert: {
+          created_at?: string
+          details?: string | null
+          id?: string
+          reason: string
+          reporter_id: string
+          resolved_at?: string | null
+          resolved_by?: string | null
+          status?: string
+          target_id: string
+          target_type: string
+        }
+        Update: {
+          created_at?: string
+          details?: string | null
+          id?: string
+          reason?: string
+          reporter_id?: string
+          resolved_at?: string | null
+          resolved_by?: string | null
+          status?: string
+          target_id?: string
+          target_type?: string
+        }
+        Relationships: []
+      }
+      role_permissions: {
+        Row: {
+          created_at: string
+          id: string
+          permission: string
+          role: Database["public"]["Enums"]["app_role"]
+        }
+        Insert: {
+          created_at?: string
+          id?: string
+          permission: string
+          role: Database["public"]["Enums"]["app_role"]
+        }
+        Update: {
+          created_at?: string
+          id?: string
+          permission?: string
+          role?: Database["public"]["Enums"]["app_role"]
+        }
+        Relationships: [
+          {
+            foreignKeyName: "role_permissions_permission_fkey"
+            columns: ["permission"]
+            isOneToOne: false
+            referencedRelation: "permissions"
+            referencedColumns: ["key"]
+          },
+        ]
       }
       scheduled_messages: {
         Row: {
@@ -1182,6 +1453,38 @@ export type Database = {
         }
         Relationships: []
       }
+      user_badges: {
+        Row: {
+          created_at: string
+          granted_by: string | null
+          id: string
+          type_key: string
+          user_id: string
+        }
+        Insert: {
+          created_at?: string
+          granted_by?: string | null
+          id?: string
+          type_key: string
+          user_id: string
+        }
+        Update: {
+          created_at?: string
+          granted_by?: string | null
+          id?: string
+          type_key?: string
+          user_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "user_badges_type_key_fkey"
+            columns: ["type_key"]
+            isOneToOne: false
+            referencedRelation: "verification_types"
+            referencedColumns: ["key"]
+          },
+        ]
+      }
       user_items: {
         Row: {
           acquired_at: string
@@ -1267,6 +1570,92 @@ export type Database = {
         }
         Relationships: []
       }
+      verification_requests: {
+        Row: {
+          about: string
+          created_at: string
+          evidence_url: string | null
+          full_name: string
+          id: string
+          links: string[]
+          reject_reason: string | null
+          reviewed_at: string | null
+          reviewed_by: string | null
+          status: string
+          type_key: string
+          updated_at: string
+          user_id: string
+        }
+        Insert: {
+          about?: string
+          created_at?: string
+          evidence_url?: string | null
+          full_name: string
+          id?: string
+          links?: string[]
+          reject_reason?: string | null
+          reviewed_at?: string | null
+          reviewed_by?: string | null
+          status?: string
+          type_key: string
+          updated_at?: string
+          user_id: string
+        }
+        Update: {
+          about?: string
+          created_at?: string
+          evidence_url?: string | null
+          full_name?: string
+          id?: string
+          links?: string[]
+          reject_reason?: string | null
+          reviewed_at?: string | null
+          reviewed_by?: string | null
+          status?: string
+          type_key?: string
+          updated_at?: string
+          user_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "verification_requests_type_key_fkey"
+            columns: ["type_key"]
+            isOneToOne: false
+            referencedRelation: "verification_types"
+            referencedColumns: ["key"]
+          },
+        ]
+      }
+      verification_types: {
+        Row: {
+          active: boolean
+          color: string
+          created_at: string
+          icon: string
+          key: string
+          label: string
+          requirements: string
+        }
+        Insert: {
+          active?: boolean
+          color?: string
+          created_at?: string
+          icon?: string
+          key: string
+          label: string
+          requirements?: string
+        }
+        Update: {
+          active?: boolean
+          color?: string
+          created_at?: string
+          icon?: string
+          key?: string
+          label?: string
+          requirements?: string
+        }
+        Relationships: []
+      }
       wallets: {
         Row: {
           balance: number
@@ -1327,6 +1716,10 @@ export type Database = {
         Args: { _days?: number; _username: string }
         Returns: Json
       }
+      has_permission: {
+        Args: { _perm: string; _user_id?: string }
+        Returns: boolean
+      }
       has_role: {
         Args: {
           _role: Database["public"]["Enums"]["app_role"]
@@ -1350,6 +1743,16 @@ export type Database = {
           username: string
         }[]
       }
+      log_audit: {
+        Args: {
+          _action: string
+          _metadata?: Json
+          _resource_id?: string
+          _resource_type: string
+          _result?: string
+        }
+        Returns: undefined
+      }
       notify_follow: { Args: { _target: string }; Returns: undefined }
       notify_hype: {
         Args: { _amount: number; _target: string }
@@ -1359,13 +1762,31 @@ export type Database = {
         Args: { _conversation_id: string; _preview: string }
         Returns: undefined
       }
+      resolve_report: { Args: { _id: string; _status: string }; Returns: Json }
+      review_movie: { Args: { _approve: boolean; _id: string }; Returns: Json }
       review_premium_request: {
         Args: { _approve: boolean; _days?: number; _id: string }
         Returns: Json
       }
+      review_verification: {
+        Args: { _approve: boolean; _id: string; _reason?: string }
+        Returns: Json
+      }
       revoke_admin: { Args: { _username: string }; Returns: Json }
       revoke_premium: { Args: { _username: string }; Returns: Json }
+      rollback_mod: {
+        Args: { _mod_id: string; _version: number }
+        Returns: Json
+      }
       send_hype: { Args: { _amount: number; _video_id: string }; Returns: Json }
+      set_role_permission: {
+        Args: {
+          _enabled: boolean
+          _permission: string
+          _role: Database["public"]["Enums"]["app_role"]
+        }
+        Returns: Json
+      }
       spend_coins: {
         Args: { _amount: number; _kind: string; _reference?: string }
         Returns: Json
@@ -1376,6 +1797,17 @@ export type Database = {
         Returns: string
       }
       stop_event: { Args: { _id: string }; Returns: undefined }
+      update_ai_provider: {
+        Args: {
+          _enabled?: boolean
+          _global_daily_limit?: number
+          _model?: string
+          _priority?: number
+          _slug: string
+          _user_daily_limit?: number
+        }
+        Returns: Json
+      }
     }
     Enums: {
       app_role: "admin" | "moderator" | "user"
