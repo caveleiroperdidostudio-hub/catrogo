@@ -98,7 +98,7 @@ export function PremiumModule() {
   const gift = async () => {
     const { data, error } = await supabase.rpc("grant_premium", {
       _username: giftName.trim(),
-      _days: giftDays ? Number(giftDays) : null,
+      _days: giftDays ? Number(giftDays) : undefined,
     });
     const res = data as { ok?: boolean; error?: string } | null;
     if (error || !res?.ok) return toast.error(res?.error ?? error?.message ?? "Falha ao dar premium");
