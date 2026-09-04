@@ -1,5 +1,5 @@
 import { useState, useEffect } from "react";
-import { MessageCircle, Play, Clapperboard, Gamepad2, User, ShoppingBag, Package, Gift, ShieldCheck, Crown, Sparkles, Rocket, Film, GraduationCap, Shirt } from "lucide-react";
+import { MessageCircle, Play, Clapperboard, Gamepad2, User, ShoppingBag, Package, Gift, ShieldCheck, Crown, Sparkles, Rocket, BadgeCheck, Film, GraduationCap, Shirt } from "lucide-react";
 import { ChatHome } from "@/features/chat/ChatHome";
 import { VideoModule } from "@/features/video/VideoModule";
 import { ShortsModule } from "@/features/shorts/ShortsModule";
@@ -13,6 +13,8 @@ import { MoviesModule } from "@/features/movies/MoviesModule";
 import { PersonalModule } from "@/features/personal/PersonalModule";
 import { SkinsModule } from "@/features/skins/SkinsModule";
 import { PremiumModule } from "@/features/premium/PremiumModule";
+import { VerificationModule } from "@/features/verification/VerificationModule";
+import { StaffPanel } from "@/features/admin/StaffPanel";
 import { AdminPanel } from "@/features/admin/AdminPanel";
 import { ChristmasMissions, EventCountdownBanner } from "@/features/admin/ChristmasMissions";
 import { ChannelView } from "@/features/profile/ChannelView";
@@ -21,8 +23,9 @@ import { WalletProvider } from "@/lib/wallet-context";
 import { EventsProvider, useGlobalEvent } from "@/lib/events-context";
 import { NotificationsProvider } from "@/lib/notifications-context";
 import { useAuth } from "@/lib/auth-context";
+import { supabase } from "@/integrations/supabase/client";
 
-type ModuleId = "chat" | "movies" | "personal" | "skins" | "video" | "shorts" | "games" | "ia" | "store" | "premium" | "mods" | "updates" | "profile" | "admin" | "missions";
+type ModuleId = "chat" | "movies" | "personal" | "skins" | "video" | "shorts" | "games" | "ia" | "store" | "premium" | "mods" | "updates" | "profile" | "admin" | "missions" | "verify" | "staff";
 
 const BASE_TABS: { id: ModuleId; label: string; icon: typeof MessageCircle }[] = [
   { id: "chat", label: "Chat", icon: MessageCircle },
@@ -36,6 +39,7 @@ const BASE_TABS: { id: ModuleId; label: string; icon: typeof MessageCircle }[] =
   { id: "mods", label: "Mods", icon: Package },
   { id: "store", label: "Loja", icon: ShoppingBag },
   { id: "premium", label: "Premium", icon: Crown },
+  { id: "verify", label: "Selos", icon: BadgeCheck },
   { id: "updates", label: "Novidades", icon: Rocket },
   { id: "profile", label: "Perfil", icon: User },
 ];
@@ -44,16 +48,29 @@ function ShellInner() {
   const { isOwner } = useAuth();
   const { event } = useGlobalEvent();
   const [active, setActive] = useState<ModuleId>("chat");
+  const [isStaff, setIsStaff] = useState(false);
+
+  useEffect(() => {
+    let alive = true;
+    supabase.rpc("is_staff").then(({ data }) => {
+      if (alive) setIsStaff(data === true);
+    });
+    return () => {
+      alive = false;
+    };
+  }, []);
 
   const tabs = [...BASE_TABS];
   if (event) tabs.push({ id: "missions", label: "Natal", icon: Gift });
+  if (isStaff || isOwner) tabs.push({ id: "staff", label: "Equipe", icon: ShieldCheck });
   if (isOwner) tabs.push({ id: "admin", label: "Comandos", icon: ShieldCheck });
 
   // se sair do evento estando na aba de missões, volta ao chat
   useEffect(() => {
     if (!event && active === "missions") setActive("chat");
     if (!isOwner && active === "admin") setActive("chat");
-  }, [event, isOwner, active]);
+    if (!isStaff && !isOwner && active === "staff") setActive("chat");
+  }, [event, isOwner, isStaff, active]);
 
   return (
     <div className="app-viewport relative flex flex-col overflow-hidden bg-background">
@@ -70,6 +87,8 @@ function ShellInner() {
         {active === "mods" && <ModsModule />}
         {active === "store" && <StoreModule />}
         {active === "premium" && <PremiumModule />}
+        {active === "verify" && <VerificationModule />}
+        {active === "staff" && <StaffPanel />}
         {active === "updates" && <UpdatesModule />}
         {active === "profile" && <ProfileModule />}
         {active === "missions" && <ChristmasMissions />}

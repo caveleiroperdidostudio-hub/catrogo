@@ -20,12 +20,18 @@ const TABS: { id: Tab; label: string; icon: typeof Flag; ownerOnly?: boolean }[]
 
 const PERMISSIONS = [
   "users.view",
+  "users.edit",
+  "users.ban",
   "movies.publish",
+  "movies.delete",
   "verification.review",
   "mods.review",
+  "mods.publish",
   "reports.review",
   "audit.view",
   "ai.configure",
+  "system.settings",
+  "admin.manage",
 ];
 
 export function StaffPanel() {
