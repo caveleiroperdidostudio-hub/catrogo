@@ -1,6 +1,8 @@
 import { useEffect, useState } from "react";
 import { ArrowLeft, Package, Plus, Save, Trash2, Loader2, Power, PowerOff, Code2, Layers, Sparkles, Lock } from "lucide-react";
 import { toast } from "sonner";
+import { ReportButton } from "@/components/ReportButton";
+
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
@@ -232,7 +234,9 @@ export function ModsModule() {
                     ) : (
                       <Button size="sm" variant="secondary" onClick={() => install(m)}><Sparkles className="h-3.5 w-3.5 mr-1" /> Instalar</Button>
                     )}
+                    <ReportButton targetType="mod" targetId={m.id} label="" />
                   </div>
+
                 </div>
               );
             })

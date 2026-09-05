@@ -1,6 +1,8 @@
 import { useEffect, useRef, useState } from "react";
 import { Heart, MessageCircle, Send, Loader2, Upload, X, Zap, Share2, UserPlus, UserCheck } from "lucide-react";
 import { toast } from "sonner";
+import { ReportButton } from "@/components/ReportButton";
+
 import { Avatar, AvatarFallback } from "@/components/ui/avatar";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -197,7 +199,9 @@ function ShortCard({ short }: { short: VideoPost }) {
           <button onClick={handleShare} className="flex flex-col items-center gap-1">
             <Share2 className="h-7 w-7" /><span className="text-xs">Enviar</span>
           </button>
+          <ReportButton targetType="video" targetId={short.id} label="" />
         </div>
+
       </div>
       {showComments && <Comments video={short} onClose={() => setShowComments(false)} />}
 
