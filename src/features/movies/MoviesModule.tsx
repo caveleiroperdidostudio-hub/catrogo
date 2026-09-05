@@ -226,15 +226,19 @@ export function MoviesModule() {
         ) : (
           <div className="grid grid-cols-2 gap-3 sm:grid-cols-3">
             {list.map((m) => (
-              <button key={m.id} onClick={() => setPlaying(m)} className="tap-press text-left">
-                <Poster path={m.poster_url} title={m.title} />
-                <div className="mt-1 truncate text-sm font-medium">{m.title}</div>
-                <div className="flex items-center gap-1 text-[11px] text-muted-foreground">
-                  <Eye className="h-3 w-3" /> {m.views}
-                  {m.year ? ` · ${m.year}` : ""}
-                </div>
-              </button>
+              <div key={m.id}>
+                <button onClick={() => setPlaying(m)} className="tap-press w-full text-left">
+                  <Poster path={m.poster_url} title={m.title} />
+                  <div className="mt-1 truncate text-sm font-medium">{m.title}</div>
+                  <div className="flex items-center gap-1 text-[11px] text-muted-foreground">
+                    <Eye className="h-3 w-3" /> {m.views}
+                    {m.year ? ` · ${m.year}` : ""}
+                  </div>
+                </button>
+                <ReportButton targetType="movie" targetId={m.id} label="" />
+              </div>
             ))}
+
           </div>
         )}
       </div>
