@@ -1,6 +1,8 @@
 import { useEffect, useRef, useState } from "react";
 import { Heart, MessageCircle, Send, Loader2, Upload, X, Zap, Share2, UserPlus, UserCheck } from "lucide-react";
 import { toast } from "sonner";
+import { ReportButton } from "@/components/ReportButton";
+
 import { Avatar, AvatarFallback } from "@/components/ui/avatar";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
