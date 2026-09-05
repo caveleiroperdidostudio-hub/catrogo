@@ -109,7 +109,7 @@ function VerifQueue() {
   const [busy, setBusy] = useState<string | null>(null);
 
   const act = async (id: string, approve: boolean) => {
-    const reason = approve ? null : window.prompt("Motivo da recusa:") || "Não atende aos requisitos";
+    const reason = approve ? undefined : window.prompt("Motivo da recusa:") || "Não atende aos requisitos";
     setBusy(id);
     const { data, error } = await supabase.rpc("review_verification", {
       _id: id,
