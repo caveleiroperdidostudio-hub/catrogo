@@ -4,7 +4,10 @@
 - [x] Player oficial (CatroPlayer) ligado aos Filmes + continuar assistindo (`movie_progress`)
 - [x] Campos de licença nos filmes (detentor dos direitos / contrato)
 - [ ] Detalhes do filme, minha lista (`movie_favorites`) e histórico na UI
-- [ ] Painel de provedores de IA configurável + RBAC real (roles/permissions)
+- [x] Botão de denúncia em filmes, shorts, mods e canais
+- [x] Provedores de IA configuráveis pelo painel (ordem, modelo, limites, registro de uso)
+- [ ] RBAC real ampliado (permissões por tela)
+
 
 ## Premium (novo pedido)
 - [x] Tabela de assinaturas premium + RPCs (`grant_premium` só pelo dono, `is_premium`)
