@@ -55,8 +55,10 @@ export function ChannelView({ userId, onClose }: { userId: string; onClose: () =
     <div className="absolute inset-0 z-40 flex flex-col bg-background">
       <div className="h-12 flex items-center gap-2 px-3 border-b border-white/5">
         <Button size="icon" variant="ghost" onClick={onClose}><ArrowLeft className="h-4 w-4" /></Button>
-        <span className="font-semibold truncate">{profile ? `@${profile.username}` : "Canal"}</span>
+        <span className="font-semibold truncate flex-1">{profile ? `@${profile.username}` : "Canal"}</span>
+        {!isMe && <ReportButton targetType="user" targetId={userId} label="" />}
       </div>
+
 
       {loading ? (
         <div className="flex-1 overflow-y-auto"><ListSkeleton rows={4} /></div>
