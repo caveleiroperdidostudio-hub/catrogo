@@ -10,6 +10,8 @@ import { Label } from "@/components/ui/label";
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter } from "@/components/ui/dialog";
 import { Film, Plus, Loader2, Eye, X, ShieldCheck, UserPlus } from "lucide-react";
 import { toast } from "sonner";
+import { ReportButton } from "@/components/ReportButton";
+
 
 type Movie = {
   id: string;
