@@ -232,7 +232,9 @@ export function ModsModule() {
                     ) : (
                       <Button size="sm" variant="secondary" onClick={() => install(m)}><Sparkles className="h-3.5 w-3.5 mr-1" /> Instalar</Button>
                     )}
+                    <ReportButton targetType="mod" targetId={m.id} label="" />
                   </div>
+
                 </div>
               );
             })
