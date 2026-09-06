@@ -14,6 +14,36 @@ export type Database = {
   }
   public: {
     Tables: {
+      ai_navigation_logs: {
+        Row: {
+          allowed: boolean
+          created_at: string
+          id: string
+          reason: string | null
+          target: string
+          tool: string
+          user_id: string
+        }
+        Insert: {
+          allowed: boolean
+          created_at?: string
+          id?: string
+          reason?: string | null
+          target: string
+          tool: string
+          user_id: string
+        }
+        Update: {
+          allowed?: boolean
+          created_at?: string
+          id?: string
+          reason?: string | null
+          target?: string
+          tool?: string
+          user_id?: string
+        }
+        Relationships: []
+      }
       ai_providers: {
         Row: {
           base_url: string
@@ -95,6 +125,45 @@ export type Database = {
           success?: boolean
           tokens?: number
           user_id?: string | null
+        }
+        Relationships: []
+      }
+      app_awards: {
+        Row: {
+          active: boolean
+          award_key: string
+          created_at: string
+          granted_by: string | null
+          id: string
+          note: string | null
+          unlocked: boolean
+          unlocked_at: string
+          updated_at: string
+          user_id: string
+        }
+        Insert: {
+          active?: boolean
+          award_key?: string
+          created_at?: string
+          granted_by?: string | null
+          id?: string
+          note?: string | null
+          unlocked?: boolean
+          unlocked_at?: string
+          updated_at?: string
+          user_id: string
+        }
+        Update: {
+          active?: boolean
+          award_key?: string
+          created_at?: string
+          granted_by?: string | null
+          id?: string
+          note?: string | null
+          unlocked?: boolean
+          unlocked_at?: string
+          updated_at?: string
+          user_id?: string
         }
         Relationships: []
       }
@@ -384,6 +453,30 @@ export type Database = {
             referencedColumns: ["id"]
           },
         ]
+      }
+      feature_flags: {
+        Row: {
+          created_at: string
+          description: string | null
+          enabled: boolean
+          key: string
+          updated_at: string
+        }
+        Insert: {
+          created_at?: string
+          description?: string | null
+          enabled?: boolean
+          key: string
+          updated_at?: string
+        }
+        Update: {
+          created_at?: string
+          description?: string | null
+          enabled?: boolean
+          key?: string
+          updated_at?: string
+        }
+        Relationships: []
       }
       follows: {
         Row: {
@@ -899,6 +992,45 @@ export type Database = {
         }
         Relationships: []
       }
+      museum_versions: {
+        Row: {
+          app_version: string
+          config: Json
+          created_at: string
+          id: string
+          label: string
+          playable: boolean
+          released_at: string | null
+          sort_order: number
+          summary: string | null
+          ui_version: string | null
+        }
+        Insert: {
+          app_version: string
+          config?: Json
+          created_at?: string
+          id?: string
+          label: string
+          playable?: boolean
+          released_at?: string | null
+          sort_order?: number
+          summary?: string | null
+          ui_version?: string | null
+        }
+        Update: {
+          app_version?: string
+          config?: Json
+          created_at?: string
+          id?: string
+          label?: string
+          playable?: boolean
+          released_at?: string | null
+          sort_order?: number
+          summary?: string | null
+          ui_version?: string | null
+        }
+        Relationships: []
+      }
       notifications: {
         Row: {
           body: string | null
@@ -1061,6 +1193,48 @@ export type Database = {
           is_gift?: boolean
           updated_at?: string
           user_id?: string
+        }
+        Relationships: []
+      }
+      profile_customization: {
+        Row: {
+          accent_color: string
+          banner_url: string | null
+          card_style: string
+          created_at: string
+          interests: string[]
+          is_public: boolean
+          layout: string
+          profile_theme: string
+          updated_at: string
+          user_id: string
+          widgets: Json
+        }
+        Insert: {
+          accent_color?: string
+          banner_url?: string | null
+          card_style?: string
+          created_at?: string
+          interests?: string[]
+          is_public?: boolean
+          layout?: string
+          profile_theme?: string
+          updated_at?: string
+          user_id: string
+          widgets?: Json
+        }
+        Update: {
+          accent_color?: string
+          banner_url?: string | null
+          card_style?: string
+          created_at?: string
+          interests?: string[]
+          is_public?: boolean
+          layout?: string
+          profile_theme?: string
+          updated_at?: string
+          user_id?: string
+          widgets?: Json
         }
         Relationships: []
       }
@@ -1453,6 +1627,110 @@ export type Database = {
         }
         Relationships: []
       }
+      ui_user_preferences: {
+        Row: {
+          animations: boolean
+          color_scheme: string
+          created_at: string
+          density: string
+          effects: boolean
+          element_scale: number
+          language: string
+          skin: string
+          ui_mode: string
+          ui_version_id: string | null
+          updated_at: string
+          user_id: string
+        }
+        Insert: {
+          animations?: boolean
+          color_scheme?: string
+          created_at?: string
+          density?: string
+          effects?: boolean
+          element_scale?: number
+          language?: string
+          skin?: string
+          ui_mode?: string
+          ui_version_id?: string | null
+          updated_at?: string
+          user_id: string
+        }
+        Update: {
+          animations?: boolean
+          color_scheme?: string
+          created_at?: string
+          density?: string
+          effects?: boolean
+          element_scale?: number
+          language?: string
+          skin?: string
+          ui_mode?: string
+          ui_version_id?: string | null
+          updated_at?: string
+          user_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "ui_user_preferences_ui_version_id_fkey"
+            columns: ["ui_version_id"]
+            isOneToOne: false
+            referencedRelation: "ui_versions"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      ui_versions: {
+        Row: {
+          app_version: string
+          available: boolean
+          components: Json
+          created_at: string
+          description: string | null
+          id: string
+          kind: string
+          name: string
+          released_at: string
+          settings: Json
+          status: string
+          theme: Json
+          ui_version: string
+          updated_at: string
+        }
+        Insert: {
+          app_version: string
+          available?: boolean
+          components?: Json
+          created_at?: string
+          description?: string | null
+          id?: string
+          kind?: string
+          name: string
+          released_at?: string
+          settings?: Json
+          status?: string
+          theme?: Json
+          ui_version: string
+          updated_at?: string
+        }
+        Update: {
+          app_version?: string
+          available?: boolean
+          components?: Json
+          created_at?: string
+          description?: string | null
+          id?: string
+          kind?: string
+          name?: string
+          released_at?: string
+          settings?: Json
+          status?: string
+          theme?: Json
+          ui_version?: string
+          updated_at?: string
+        }
+        Relationships: []
+      }
       user_badges: {
         Row: {
           created_at: string
@@ -1699,6 +1977,7 @@ export type Database = {
         Args: { _members: string[]; _name: string }
         Returns: string
       }
+      current_ui_version: { Args: { _user_id?: string }; Returns: Json }
       find_by_app_phone: {
         Args: { _phone: string }
         Returns: {
