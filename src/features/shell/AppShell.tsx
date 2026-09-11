@@ -89,7 +89,7 @@ function ShellInner() {
   }, [event, isOwner, isStaff, active]);
 
   return (
-    <div className="app-viewport relative flex flex-col overflow-hidden bg-background">
+    <div className="app-viewport relative flex flex-col overflow-hidden bg-background safe-top">
       <EventCountdownBanner />
       <div key={active} className="page-transition flex-1 min-h-0 overflow-hidden">
         {active === "chat" && <ChatHome />}
@@ -116,7 +116,7 @@ function ShellInner() {
       <nav
         aria-label="Navegação principal"
         className="shrink-0 border-t border-white/10 glass flex items-stretch justify-around px-1 pb-[env(safe-area-inset-bottom)] overflow-x-auto"
-        style={{ height: "var(--ctrg-nav-height, 4rem)" }}
+        style={{ height: "calc(var(--ctrg-nav-height, 4rem) + env(safe-area-inset-bottom))" }}
       >
         {tabs.map((t) => {
           const Icon = t.icon;
