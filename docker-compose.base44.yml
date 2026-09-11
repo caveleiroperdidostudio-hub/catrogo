@@ -1,0 +1,22 @@
+services:
+  web:
+    image: oven/bun:1.2-debian
+    working_dir: /app
+    volumes:
+      - .:/app
+      - /app/node_modules
+    ports:
+      - "3000:3000"
+    env_file:
+      - .env
+      - /run/base44/app.env
+    environment:
+      - __VITE_ADDITIONAL_SERVER_ALLOWED_HOSTS
+      - NODE_ENV=development
+    command: sh -c "bun install && bun run dev -- --host 0.0.0.0 --port 3000"
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:3000/"]
+      interval: 5s
+      timeout: 5s
+      retries: 20
+      start_period: 60s
