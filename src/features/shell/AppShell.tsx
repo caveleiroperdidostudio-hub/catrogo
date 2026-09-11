@@ -1,5 +1,5 @@
-import { useState, useEffect } from "react";
-import { MessageCircle, Play, Clapperboard, Gamepad2, User, ShoppingBag, Package, Gift, ShieldCheck, Crown, Sparkles, Rocket, BadgeCheck, Film, GraduationCap, Shirt } from "lucide-react";
+import { useState, useEffect, useCallback } from "react";
+import { MessageCircle, Play, Clapperboard, Gamepad2, User, ShoppingBag, Package, Gift, ShieldCheck, Crown, Sparkles, Rocket, BadgeCheck, Film, GraduationCap, Shirt, Settings, Clock } from "lucide-react";
 import { ChatHome } from "@/features/chat/ChatHome";
 import { VideoModule } from "@/features/video/VideoModule";
 import { ShortsModule } from "@/features/shorts/ShortsModule";
@@ -18,14 +18,17 @@ import { StaffPanel } from "@/features/admin/StaffPanel";
 import { AdminPanel } from "@/features/admin/AdminPanel";
 import { ChristmasMissions, EventCountdownBanner } from "@/features/admin/ChristmasMissions";
 import { ChannelView } from "@/features/profile/ChannelView";
+import { SettingsModule } from "@/features/settings/SettingsModule";
+import { MuseumModule } from "@/features/museum/MuseumModule";
 import { ChannelProvider } from "@/lib/channel-context";
 import { WalletProvider } from "@/lib/wallet-context";
 import { EventsProvider, useGlobalEvent } from "@/lib/events-context";
 import { NotificationsProvider } from "@/lib/notifications-context";
 import { useAuth } from "@/lib/auth-context";
 import { supabase } from "@/integrations/supabase/client";
+import { AppNavProvider, useAppNav, isAllowedPage, type AppPageId } from "@/lib/app-nav";
 
-type ModuleId = "chat" | "movies" | "personal" | "skins" | "video" | "shorts" | "games" | "ia" | "store" | "premium" | "mods" | "updates" | "profile" | "admin" | "missions" | "verify" | "staff";
+type ModuleId = AppPageId | "admin" | "missions" | "staff";
 
 const BASE_TABS: { id: ModuleId; label: string; icon: typeof MessageCircle }[] = [
   { id: "chat", label: "Chat", icon: MessageCircle },
@@ -40,14 +43,18 @@ const BASE_TABS: { id: ModuleId; label: string; icon: typeof MessageCircle }[] =
   { id: "store", label: "Loja", icon: ShoppingBag },
   { id: "premium", label: "Premium", icon: Crown },
   { id: "verify", label: "Selos", icon: BadgeCheck },
+  { id: "museum", label: "Museu", icon: Clock },
   { id: "updates", label: "Novidades", icon: Rocket },
+  { id: "settings", label: "Ajustes", icon: Settings },
   { id: "profile", label: "Perfil", icon: User },
 ];
 
 function ShellInner() {
   const { isOwner } = useAuth();
   const { event } = useGlobalEvent();
+  const { register } = useAppNav();
   const [active, setActive] = useState<ModuleId>("chat");
+  const [settingsSection, setSettingsSection] = useState<string | undefined>(undefined);
   const [isStaff, setIsStaff] = useState(false);
 
   useEffect(() => {
@@ -59,6 +66,15 @@ function ShellInner() {
       alive = false;
     };
   }, []);
+
+  // Registra handler de navegação para a IA e AppNav
+  const go = useCallback((id: string, section?: string): boolean => {
+    if (!isAllowedPage(id)) return false;
+    setActive(id as ModuleId);
+    if (section) setSettingsSection(section);
+    return true;
+  }, []);
+  useEffect(() => { register(go); }, [register, go]);
 
   const tabs = [...BASE_TABS];
   if (event) tabs.push({ id: "missions", label: "Natal", icon: Gift });
@@ -90,6 +106,8 @@ function ShellInner() {
         {active === "verify" && <VerificationModule />}
         {active === "staff" && <StaffPanel />}
         {active === "updates" && <UpdatesModule />}
+        {active === "museum" && <MuseumModule />}
+        {active === "settings" && <SettingsModule />}
         {active === "profile" && <ProfileModule />}
         {active === "missions" && <ChristmasMissions />}
         {active === "admin" && <AdminPanel />}
@@ -97,7 +115,8 @@ function ShellInner() {
 
       <nav
         aria-label="Navegação principal"
-        className="h-16 shrink-0 border-t border-white/10 glass flex items-stretch justify-around px-1 pb-[env(safe-area-inset-bottom)] overflow-x-auto"
+        className="shrink-0 border-t border-white/10 glass flex items-stretch justify-around px-1 pb-[env(safe-area-inset-bottom)] overflow-x-auto"
+        style={{ height: "var(--ctrg-nav-height, 4rem)" }}
       >
         {tabs.map((t) => {
           const Icon = t.icon;
@@ -108,7 +127,7 @@ function ShellInner() {
               onClick={() => setActive(t.id)}
               aria-label={t.label}
               aria-current={isActive ? "page" : undefined}
-              className="tap-press group relative flex flex-1 min-w-[52px] flex-col items-center justify-center gap-0.5 transition"
+              className="ctrg-nav-item group relative flex flex-1 min-w-[var(--ctrg-nav-item-min,52px)] flex-col items-center justify-center gap-0.5"
             >
               {isActive && (
                 <span className="absolute top-0 h-0.5 w-8 rounded-full bg-primary cosmic-glow" aria-hidden="true" />
@@ -139,7 +158,9 @@ export function AppShell() {
       <EventsProvider>
         <NotificationsProvider>
           <ChannelProvider render={(userId, close) => <ChannelView userId={userId} onClose={close} />}>
-            <ShellInner />
+            <AppNavProvider>
+              <ShellInner />
+            </AppNavProvider>
           </ChannelProvider>
         </NotificationsProvider>
       </EventsProvider>

@@ -6,6 +6,9 @@ import { toast } from "sonner";
 import { Button } from "@/components/ui/button";
 import { Textarea } from "@/components/ui/textarea";
 import { platformAssistant } from "@/lib/game-ai.functions";
+import { aiNavigate } from "@/lib/ai-nav.functions";
+import { useAppNav, pageLabel } from "@/lib/app-nav";
+import { useCtrgUi, uiLabel } from "@/lib/ctrg-ui";
 
 type Msg = { role: "user" | "assistant"; content: string };
 
@@ -14,12 +17,18 @@ const SUGGESTIONS = [
   "Me dê 5 ideias de shorts virais",
   "Crie um conceito de jogo mobile",
   "Como faço uma chamada de vídeo?",
+  "Quero ver os filmes",
+  "Abra minhas configurações",
+  "Qual Ctrg UI estou usando?",
 ];
 
 const STORAGE_KEY = "catrogo-ai-chat";
 
 export function AiChatModule() {
   const chat = useServerFn(platformAssistant);
+  const navigate = useServerFn(aiNavigate);
+  const { go } = useAppNav();
+  const { info } = useCtrgUi();
   const [messages, setMessages] = useState<Msg[]>(() => {
     if (typeof window === "undefined") return [];
     try {
@@ -54,6 +63,44 @@ export function AiChatModule() {
     setMessages(next);
     setInput("");
     setBusy(true);
+
+    // Verifica se o usuário pediu para abrir uma tela (IA com navegação)
+    let navHandled = false;
+    try {
+      const nav = await navigate({ data: { message: content } });
+      if (nav.page) {
+        const label = pageLabel(nav.page);
+        const navigated = go(nav.page);
+        if (navigated) {
+          navHandled = true;
+          const sayText = nav.say ?? `Abrindo ${label}…`;
+          setMessages((prev) => [...prev, {
+            role: "assistant",
+            content: `🔗 ${sayText}\n\nVocê foi levado para **${label}**.`,
+          }]);
+        }
+      }
+    } catch {
+      /* navegação opcional — não interrompe o chat */
+    }
+
+    if (navHandled) {
+      setBusy(false);
+      setTimeout(() => taRef.current?.focus(), 50);
+      return;
+    }
+
+    // Resposta especial: "Qual Ctrg UI estou usando?"
+    if (/ctrg\s*ui|interface/i.test(content) && /usando|versão|qual/i.test(content)) {
+      setMessages((prev) => [...prev, {
+        role: "assistant",
+        content: `Você está usando **${uiLabel(info)}**.\n\n- Versão do app: ${info.app_version}\n- Interface: ${info.kind === "pro" ? "Ctrg UI Pro" : "Ctrg UI"} ${info.ui_version}\n- Modo: ${info.ui_mode}`,
+      }]);
+      setBusy(false);
+      setTimeout(() => taRef.current?.focus(), 50);
+      return;
+    }
+
     try {
       const r = await chat({ data: { messages: next.slice(-20) } });
       setMessages((prev) => [...prev, { role: "assistant", content: r.reply || "…" }]);
@@ -103,7 +150,7 @@ export function AiChatModule() {
             <div>
               <h2 className="text-xl font-semibold">Fale com a Catrogo IA</h2>
               <p className="text-sm text-muted-foreground max-w-xs mt-1">
-                Tire dúvidas sobre o app, peça ideias, crie conceitos de jogos e muito mais.
+                Tire dúvidas, peça ideias, crie jogos e peça para abrir telas do app.
               </p>
             </div>
             <div className="grid grid-cols-1 sm:grid-cols-2 gap-2 w-full max-w-md">

@@ -8,6 +8,25 @@ type Version = { version: string; date: string; title: string; changes: Change[]
 // Mais recente primeiro
 export const CHANGELOG: Version[] = [
   {
+    version: "4.0.0",
+    date: "Setembro de 2026",
+    title: "Ctrg UI • Sistema de Design, Museu & IA com Navegação",
+    changes: [
+      { type: "novo", text: "Ctrg UI: sistema de design oficial do CatroGo com tokens centralizados." },
+      { type: "novo", text: "Ctrg UI Pro: experiência premium com efeitos visuais e animações exclusivas." },
+      { type: "novo", text: "Sistema de versionamento da interface que acompanha a versão do aplicativo." },
+      { type: "novo", text: "Prêmio do App: desbloqueio do Ctrg UI Pro validado no backend." },
+      { type: "novo", text: "Modo Museu: viaje no tempo e experimente versões antigas do CatroGo." },
+      { type: "novo", text: "IA com navegação: peça para a IA abrir filmes, configurações e mais." },
+      { type: "novo", text: "Configurações redesenhadas com categorias: Conta, Perfil, Privacidade, etc." },
+      { type: "novo", text: "Página Sobre com versão do app e da interface Ctrg UI." },
+      { type: "novo", text: "Feature flags para ativar/desativar recursos sem alterar código." },
+      { type: "novo", text: "Personalização de perfil com tema, banner e estilo de cards." },
+      { type: "melhoria", text: "Navegação inferior refinada com densidade ajustável e microinterações." },
+      { type: "melhoria", text: "Tokens de design centralizados para cores, espaçamento e animações." },
+    ],
+  },
+  {
     version: "3.4.0",
     date: "Setembro de 2026",
     title: "Chat Completo • Criptografia, Anexos & Figurinhas",

@@ -417,3 +417,153 @@ a[href*="lovable.dev"] { display: none !important; }
   scroll-snap-type: x proximity;
   &::-webkit-scrollbar { display: none; }
 }
+
+/* ================================================================
+   CTRG UI — Design System Tokens
+   Sistema de design centralizado do CatroGo.
+   Cada versão da Ctrg UI pode alterar estes tokens.
+   ================================================================ */
+:root {
+  /* Spacing scale */
+  --ctrg-space-1: 0.25rem;
+  --ctrg-space-2: 0.5rem;
+  --ctrg-space-3: 0.75rem;
+  --ctrg-space-4: 1rem;
+  --ctrg-space-5: 1.25rem;
+  --ctrg-space-6: 1.5rem;
+  --ctrg-space-8: 2rem;
+  --ctrg-space-10: 2.5rem;
+  --ctrg-space-12: 3rem;
+
+  /* Radius scale */
+  --ctrg-radius-xs: 0.375rem;
+  --ctrg-radius-sm: 0.5rem;
+  --ctrg-radius-md: 0.75rem;
+  --ctrg-radius-lg: 1rem;
+  --ctrg-radius-xl: 1.25rem;
+  --ctrg-radius-2xl: 1.5rem;
+  --ctrg-radius-full: 9999px;
+
+  /* Typography scale */
+  --ctrg-text-xs: 0.6875rem;
+  --ctrg-text-sm: 0.8125rem;
+  --ctrg-text-base: 0.9375rem;
+  --ctrg-text-md: 1rem;
+  --ctrg-text-lg: 1.125rem;
+  --ctrg-text-xl: 1.375rem;
+  --ctrg-text-2xl: 1.75rem;
+  --ctrg-text-3xl: 2.25rem;
+
+  /* Motion tokens */
+  --ctrg-ease: cubic-bezier(0.22, 1, 0.36, 1);
+  --ctrg-ease-out: cubic-bezier(0.16, 1, 0.3, 1);
+  --ctrg-dur-fast: 0.15s;
+  --ctrg-dur-normal: 0.25s;
+  --ctrg-dur-slow: 0.4s;
+
+  /* Elevation */
+  --ctrg-elev-1: 0 1px 3px oklch(0 0 0 / 0.2), 0 1px 2px oklch(0 0 0 / 0.15);
+  --ctrg-elev-2: 0 4px 12px -2px oklch(0 0 0 / 0.25), 0 2px 4px -1px oklch(0 0 0 / 0.15);
+  --ctrg-elev-3: 0 8px 24px -4px oklch(0 0 0 / 0.35), 0 4px 8px -2px oklch(0 0 0 / 0.2);
+  --ctrg-elev-glow: 0 0 32px -8px color-mix(in oklab, var(--cosmic) 45%, transparent);
+
+  /* CTRG UI surface tokens */
+  --ctrg-surface-1: oklch(0.16 0.03 280 / 0.6);
+  --ctrg-surface-2: oklch(0.19 0.035 280 / 0.7);
+  --ctrg-surface-3: oklch(0.22 0.04 280 / 0.8);
+
+  /* Navigation */
+  --ctrg-nav-height: 3.75rem;
+  --ctrg-nav-item-min: 52px;
+}
+
+/* === Density variants === */
+[data-density="compact"] {
+  --ctrg-space-3: 0.5rem;
+  --ctrg-space-4: 0.75rem;
+  --ctrg-space-5: 1rem;
+  --ctrg-nav-height: 3.25rem;
+}
+[data-density="spacious"] {
+  --ctrg-space-3: 1rem;
+  --ctrg-space-4: 1.25rem;
+  --ctrg-space-5: 1.75rem;
+  --ctrg-nav-height: 4.25rem;
+}
+
+/* === Animation toggle === */
+[data-animations="off"] *,
+[data-animations="off"] *::before,
+[data-animations="off"] *::after {
+  animation-duration: 0.01ms !important;
+  transition-duration: 0.05s !important;
+}
+
+/* === CTRG UI Pro — visual enhancements === */
+[data-ctrg-mode="pro"] {
+  --ctrg-elev-glow: 0 0 40px -6px color-mix(in oklab, var(--cosmic) 55%, transparent),
+    0 0 80px -12px color-mix(in oklab, var(--nebula) 35%, transparent);
+}
+[data-ctrg-mode="pro"] .glass {
+  backdrop-filter: blur(20px) saturate(160%);
+  -webkit-backdrop-filter: blur(20px) saturate(160%);
+}
+[data-ctrg-mode="pro"] .cosmic-glow {
+  box-shadow:
+    0 0 0 1px color-mix(in oklab, var(--cosmic) 40%, transparent),
+    0 0 32px -4px color-mix(in oklab, var(--cosmic) 55%, transparent),
+    0 0 64px -12px color-mix(in oklab, var(--nebula) 30%, transparent);
+}
+
+/* === CTRG UI Pro — premium card style === */
+@utility ctrg-card-pro {
+  background: linear-gradient(135deg,
+    color-mix(in oklab, var(--card) 95%, transparent),
+    color-mix(in oklab, var(--card) 85%, transparent));
+  border: 1px solid color-mix(in oklab, var(--cosmic) 20%, transparent);
+  border-radius: var(--ctrg-radius-xl);
+  box-shadow: var(--ctrg-elev-2), var(--ctrg-elev-glow);
+}
+
+/* === CTRG UI — refined bottom nav === */
+@utility ctrg-nav-item {
+  transition: transform var(--ctrg-dur-fast) var(--ctrg-ease), color var(--ctrg-dur-fast) ease;
+  &:active { transform: scale(0.92); }
+}
+
+/* === CTRG UI — smooth modal entrance === */
+@keyframes ctrg-modal-enter {
+  from { opacity: 0; transform: translateY(16px) scale(0.98); }
+  to { opacity: 1; transform: translateY(0) scale(1); }
+}
+@utility ctrg-modal-enter {
+  animation: ctrg-modal-enter var(--ctrg-dur-normal) var(--ctrg-ease-out);
+}
+
+/* === CTRG UI — tab switch animation === */
+@keyframes ctrg-tab-enter {
+  from { opacity: 0; transform: translateX(6px); }
+  to { opacity: 1; transform: translateX(0); }
+}
+@utility ctrg-tab-enter {
+  animation: ctrg-tab-enter var(--ctrg-dur-fast) var(--ctrg-ease);
+}
+
+/* === CTRG UI — loading shimmer === */
+@keyframes ctrg-pulse {
+  0%, 100% { opacity: 1; }
+  50% { opacity: 0.5; }
+}
+@utility ctrg-loading {
+  animation: ctrg-pulse 1.8s ease-in-out infinite;
+}
+
+/* === CTRG UI — section header === */
+@utility ctrg-section-title {
+  font-family: var(--font-display);
+  font-size: var(--ctrg-text-xs);
+  font-weight: 600;
+  text-transform: uppercase;
+  letter-spacing: 0.08em;
+  color: var(--muted-foreground);
+}

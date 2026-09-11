@@ -10,6 +10,7 @@ import {
 import { Toaster } from "sonner";
 import { useEffect } from "react";
 import { AuthProvider } from "@/lib/auth-context";
+import { CtrgUiProvider } from "@/lib/ctrg-ui";
 import { registerAppServiceWorker } from "@/lib/pwa";
 import { SettingsProvider } from "@/lib/settings-context";
 import { ViewportProvider } from "@/lib/viewport";
@@ -129,10 +130,12 @@ function RootComponent() {
     <QueryClientProvider client={queryClient}>
       <AuthProvider>
         <SettingsProvider>
-          <ViewportProvider>
-          <Outlet />
-          <Toaster richColors position="top-center" theme="dark" />
-          </ViewportProvider>
+          <CtrgUiProvider>
+            <ViewportProvider>
+            <Outlet />
+            <Toaster richColors position="top-center" theme="dark" />
+            </ViewportProvider>
+          </CtrgUiProvider>
         </SettingsProvider>
       </AuthProvider>
     </QueryClientProvider>
