@@ -2047,6 +2047,10 @@ export type Database = {
         Args: { _approve: boolean; _days?: number; _id: string }
         Returns: Json
       }
+      self_activate_premium: {
+        Args: { _note?: string | null; _plan?: string }
+        Returns: Json
+      }
       review_verification: {
         Args: { _approve: boolean; _id: string; _reason?: string }
         Returns: Json

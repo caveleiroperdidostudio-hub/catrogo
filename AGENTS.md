@@ -28,6 +28,22 @@ docker compose -f docker-compose.base44.yml up -d
 - AI keys (`LOVABLE_API_KEY`, `OPENAI_API_KEY`, `JARVIS_AI_URL`, `JARVIS_API_KEY`, `JARVIS_MODEL`) — optional, checked for presence at runtime
 - `ONESIGNAL_REST_API_KEY` — optional, for push notifications
 
+## PIX / Premium (automatizado)
+- Aba Premium agora gera um **PIX Copia e Cola** (BR Code EMV) + QR Code automaticamente
+- O usuário clica em "Comprar Premium", copia o código, paga no banco, e clica "Já paguei"
+- A função RPC `self_activate_premium` (migration `20260912000000`) concede o Premium automaticamente
+- **Importante:** a migration precisa ser aplicada no Supabase (SQL Editor do dashboard) para a auto-ativação funcionar
+- Sem a migration, o sistema faz fallback: cria pedido como "pendente" e o dono aprova manualmente
+- Gerador de BR Code: `src/lib/pix-brcode.ts` (CRC-16/CCITT-FALSE, padrão BCB)
+- Server functions: `src/lib/premium.functions.ts` (`generatePixPayment`, `activatePremium`)
+- O painel do dono (aprovação manual) continua disponível como backup
+
+## IA (fallback local)
+- Quando nenhum provedor de IA externo (Lovable, OpenAI, Jarvis) está configurado, a IA usa um **fallback local** (`src/lib/ai-fallback.ts`)
+- O fallback responde perguntas comuns sobre o CatroGo (CatCoins, chamadas, mods, premium, configurações, etc.)
+- Para respostas inteligentes completas, configurar `LOVABLE_API_KEY` ou `OPENAI_API_KEY` no painel de segredos
+- A IA **nunca mais fica em silêncio** — sempre responde, mesmo offline
+
 ## Quirks
 - `vite.config.ts` uses `@lovable.dev/vite-tanstack-config` which bundles TanStack Start, React, Tailwind, Cloudflare, and sandbox detection plugins — do NOT add these manually (causes duplicate plugin errors)
 - `src/server.ts` is the SSR entry (wraps TanStack Start's server entry with error handling)

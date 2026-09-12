@@ -1,6 +1,7 @@
 import { createServerFn } from "@tanstack/react-start";
 import { z } from "zod";
 import { requireSupabaseAuth } from "@/integrations/supabase/auth-middleware";
+import { platformFallback, gameFallback, htmlGameFallback } from "@/lib/ai-fallback";
 
 const Input = z.object({
   prompt: z.string().min(1).max(500),
@@ -54,20 +55,19 @@ async function callOpenAi(messages: { role: string; content: string }[]) {
   return text.trim() ? text : null;
 }
 
-async function callGateway(messages: { role: string; content: string }[]) {
-  const out = (await callLovable(messages)) ?? (await callOpenAi(messages));
-  if (!out) throw new Error("A IA está indisponível agora. Tente novamente em instantes.");
-  return out;
+/** Tenta os provedores externos; retorna null se todos falharem (sem lançar erro). */
+async function tryGateway(messages: { role: string; content: string }[]): Promise<string | null> {
+  return (await callLovable(messages)) ?? (await callOpenAi(messages));
 }
 
 export const generateGame = createServerFn({ method: "POST" })
   .middleware([requireSupabaseAuth])
   .inputValidator((input: unknown) => Input.parse(input))
   .handler(async ({ data }) => {
-    let code = await callGateway([
+    let code = (await tryGateway([
       { role: "system", content: SYSTEM },
       { role: "user", content: data.prompt },
-    ]);
+    ])) ?? gameFallback(data.prompt);
     // limpa eventuais cercas de código
     code = code.replace(/```[a-z]*\n?/gi, "").replace(/```/g, "").trim();
     return { code };
@@ -120,11 +120,11 @@ export const chatAssistant = createServerFn({ method: "POST" })
           },
         ]
       : [];
-    const reply = await callGateway([
+    const reply = (await tryGateway([
       { role: "system", content: CHAT_SYSTEM },
       ...context,
       ...data.messages,
-    ]);
+    ])) ?? platformFallback(data.messages);
     return { reply };
   });
 
@@ -158,7 +158,7 @@ export const generateHtmlGame = createServerFn({ method: "POST" })
       });
     }
     messages.push({ role: "user", content: data.prompt });
-    let html = await callGateway(messages);
+    let html = (await tryGateway(messages)) ?? htmlGameFallback(data.prompt);
     html = html.replace(/```[a-z]*\n?/gi, "").replace(/```/g, "").trim();
     const idx = html.toLowerCase().indexOf("<!doctype");
     if (idx > 0) html = html.slice(idx);
@@ -185,9 +185,9 @@ export const platformAssistant = createServerFn({ method: "POST" })
   .middleware([requireSupabaseAuth])
   .inputValidator((input: unknown) => ChatInput.parse(input))
   .handler(async ({ data }) => {
-    const reply = await callGateway([
+    const reply = (await tryGateway([
       { role: "system", content: PLATFORM_SYSTEM },
       ...data.messages,
-    ]);
+    ])) ?? platformFallback(data.messages);
     return { reply };
   });

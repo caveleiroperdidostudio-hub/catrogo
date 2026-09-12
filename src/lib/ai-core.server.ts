@@ -5,6 +5,8 @@
  * sempre no servidor, em segredos (LOVABLE_API_KEY, OPENAI_API_KEY,
  * JARVIS_AI_URL/JARVIS_API_KEY…).
  */
+import { platformFallback } from "@/lib/ai-fallback";
+
 export type AiMsg = { role: string; content: string };
 
 const LOVABLE_CHAT = "https://ai.gateway.lovable.dev/v1/chat/completions";
@@ -196,11 +198,8 @@ export async function aiText(
     lastError = `Provedor ${p.name} indisponível`;
     logUsage({ userId: opts.userId, slug: p.slug, model: p.model, feature, success: false, error: lastError });
   }
-  throw new Error(
-    lastError
-      ? `A IA está indisponível agora (${lastError}). Configure outro provedor no painel da equipe ou tente novamente.`
-      : "Nenhum provedor de IA está ativo. Configure um no painel da equipe.",
-  );
+  // Fallback local — a IA sempre responde, mesmo sem provedores externos
+  return platformFallback(messages);
 }
 
 export async function aiJson<T>(messages: AiMsg[], fallback: T): Promise<T> {
