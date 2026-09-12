@@ -20,10 +20,10 @@ const PLANS = [
 
 const PERKS = [
   "Selo Premium dourado no perfil e nas conversas",
-  "Temas e auras exclusivas nas Skins",
-  "IA Carlos com respostas mais longas e prioridade na fila",
-  "Uploads maiores em vídeos, shorts e filmes",
+  "Temas e auras exclusivas",
+  "IA com respostas mais longas e prioridade na fila",
   "Figurinhas por IA ilimitadas",
+  "Personalizações exclusivas de interface",
   "Sem espera para resgatar recompensas de CatCoins",
 ];
 

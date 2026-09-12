@@ -17,7 +17,7 @@ export const CHANGELOG: Version[] = [
       { type: "novo", text: "Sistema de versionamento da interface que acompanha a versão do aplicativo." },
       { type: "novo", text: "Prêmio do App: desbloqueio do Ctrg UI Pro validado no backend." },
       { type: "novo", text: "Modo Museu: viaje no tempo e experimente versões antigas do CatroGo." },
-      { type: "novo", text: "IA com navegação: peça para a IA abrir filmes, configurações e mais." },
+      { type: "novo", text: "IA com navegação: peça para a IA abrir configurações, mods e mais." },
       { type: "novo", text: "Configurações redesenhadas com categorias: Conta, Perfil, Privacidade, etc." },
       { type: "novo", text: "Página Sobre com versão do app e da interface Ctrg UI." },
       { type: "novo", text: "Feature flags para ativar/desativar recursos sem alterar código." },
@@ -34,7 +34,6 @@ export const CHANGELOG: Version[] = [
       { type: "novo", text: "Criptografia ponta a ponta real: mensagens cifradas no seu aparelho, com código de segurança verificável." },
       { type: "novo", text: "Anexos no chat: fotos, vídeos, áudios e documentos em armazenamento privado." },
       { type: "novo", text: "Figurinhas: crie enviando imagem ou gerando com a IA, e use as da comunidade." },
-      { type: "novo", text: "Categoria Filmes com catálogo global — o dono publica e pode dar admin a outras contas." },
       { type: "novo", text: "IA Personal: lições de idiomas com XP, níveis e ofensiva, além de treinos personalizados." },
       { type: "novo", text: "Skins: monte seu avatar cósmico com cores, corpo, olhos, aura e acessórios." },
       { type: "novo", text: "Busca de contatos pelo número do CatroGo." },
@@ -85,7 +84,7 @@ export const CHANGELOG: Version[] = [
     date: "Julho de 2026",
     title: "Hiper Atualização • IA, Chamadas & Painel de Design",
     changes: [
-      { type: "novo", text: "Nova aba Catrogo IA: chat inteligente contextualizado com o app." },
+      { type: "novo", text: "Nova aba CatroGo IA: chat inteligente contextualizado com o app." },
       { type: "novo", text: "Chamadas de vídeo entre usuários (WebRTC) com câmera e microfone." },
       { type: "novo", text: "Painel de Design de Eventos para o dono criar eventos visualmente." },
       { type: "novo", text: "Comando /criar no terminal admin para eventos e comandos personalizados." },
@@ -119,10 +118,10 @@ export const CHANGELOG: Version[] = [
   {
     version: "1.0.0",
     date: "Junho de 2026",
-    title: "Lançamento do Catrogo",
+    title: "Lançamento do CatroGo",
     changes: [
-      { type: "novo", text: "Chat em tempo real, vídeos, shorts, games e loja com CatCoins." },
-      { type: "novo", text: "Sistema de hype, inscrições e perfis/canais." },
+      { type: "novo", text: "Chat em tempo real, IA e mods da comunidade." },
+      { type: "novo", text: "Sistema de hype, inscrições e perfis." },
     ],
   },
 ];
@@ -146,7 +145,7 @@ export function UpdatesModule() {
         </div>
         <div className="flex-1">
           <div className="font-semibold leading-tight">Atualizações</div>
-          <div className="text-[11px] text-muted-foreground">Tudo que chegou ao Catrogo</div>
+          <div className="text-[11px] text-muted-foreground">Tudo que chegou ao CatroGo</div>
         </div>
       </div>
 

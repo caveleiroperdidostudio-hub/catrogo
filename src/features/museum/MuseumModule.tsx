@@ -18,9 +18,9 @@ type MuseumVersion = {
 const FALLBACK_VERSIONS: MuseumVersion[] = [
   { id: "4", app_version: "4.0.0", label: "CatroGo 4.0", released_at: "2026-09-06", summary: "Ctrg UI: novo sistema de design, Museu, IA com navegação", ui_version: "4.0", playable: true, sort_order: 0 },
   { id: "3", app_version: "3.4.0", label: "CatroGo 3.4", released_at: "2026-09-01", summary: "Chat completo: criptografia, anexos e figurinhas", ui_version: null, playable: true, sort_order: 1 },
-  { id: "2", app_version: "3.0.0", label: "CatroGo 3.0", released_at: "2026-07-15", summary: "Hiper atualização: IA, chamadas e painel de design", ui_version: null, playable: true, sort_order: 2 },
+  { id: "2", app_version: "3.0.0", label: "CatroGo 3.0", released_at: "2026-07-15", summary: "IA, chamadas e painel de design", ui_version: null, playable: true, sort_order: 2 },
   { id: "1", app_version: "2.0.0", label: "CatroGo 2.0", released_at: "2026-07-01", summary: "Mods, modpacks e eventos globais", ui_version: null, playable: true, sort_order: 3 },
-  { id: "0", app_version: "1.0.0", label: "CatroGo 1.0", released_at: "2026-06-01", summary: "Lançamento: chat, vídeos, shorts, games e loja", ui_version: null, playable: true, sort_order: 4 },
+  { id: "0", app_version: "1.0.0", label: "CatroGo 1.0", released_at: "2026-06-01", summary: "Lançamento: chat, IA e mods da comunidade", ui_version: null, playable: true, sort_order: 4 },
 ];
 
 /** Representação visual de uma versão histórica — isolada e somente leitura. */
@@ -109,7 +109,7 @@ function VersionPreview({ version }: { version: MuseumVersion }) {
         className="h-14 shrink-0 flex items-center justify-around border-t border-white/5 px-2"
         style={{ background: s.nav }}
       >
-        {["Chat", "Vídeos", "Games", "Loja", "Perfil"].map((label, i) => (
+        {["Chat", "IA", "Mods", "Premium", "Perfil"].map((label, i) => (
           <div key={label} className="flex flex-col items-center gap-0.5">
             <div className="h-5 w-5 rounded" style={{ background: i === 0 ? s.accent : "rgba(255,255,255,0.2)" }} />
             <span className="text-[9px]" style={{ color: i === 0 ? s.accent : "rgba(255,255,255,0.4)" }}>{label}</span>

@@ -65,8 +65,8 @@ function AuthPage() {
           <Orbit className="h-7 w-7" />
         </div>
         <div>
-          <h1 className="text-3xl font-bold tracking-tight">Cosmos Chat</h1>
-          <p className="text-sm text-muted-foreground">Mensagens com a IA Carlos integrada</p>
+          <h1 className="text-3xl font-bold tracking-tight">CATROGO</h1>
+          <p className="text-sm text-muted-foreground">Chat, IA e comunidade em um só app</p>
         </div>
       </div>
 
@@ -104,7 +104,7 @@ function AuthPage() {
         </Button>
       </div>
 
-      <p className="mt-6 text-xs text-muted-foreground">Cosmos Chat · Rede independente · Privacidade galáctica</p>
+      <p className="mt-6 text-xs text-muted-foreground">CATROGO · Rede independente · Privacidade galáctica</p>
     </div>
   );
 }

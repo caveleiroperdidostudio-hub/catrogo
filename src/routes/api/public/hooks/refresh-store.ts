@@ -49,7 +49,7 @@ async function aiItems(apiKey: string): Promise<GeneratedItem[]> {
         {
           role: "system",
           content:
-            "Você cria itens cosméticos para a loja rotativa de um super app brasileiro chamado Catrogo. Responda APENAS com JSON.",
+            "Você cria itens cosméticos para a loja rotativa de um super app brasileiro chamado CatroGo. Responda APENAS com JSON.",
         },
         {
           role: "user",

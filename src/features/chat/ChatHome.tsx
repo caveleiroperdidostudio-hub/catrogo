@@ -79,7 +79,7 @@ export function ChatHome() {
           sender_id: null,
           is_ai: true,
           content:
-            "Olá, viajante. Eu sou o Carlos, IA nativa do Cosmos Chat. Posso redigir mensagens, traduzir, resumir conversas, sugerir respostas e te invocar com @carlos em qualquer chat. Pra onde vamos?",
+            "Olá, viajante. Eu sou o Carlos, IA nativa do CatroGo. Posso redigir mensagens, traduzir, resumir conversas, sugerir respostas e te invocar com @carlos em qualquer chat. Pra onde vamos?",
         });
       }
     })();
@@ -99,7 +99,7 @@ export function ChatHome() {
               <Orbit className="h-4 w-4 text-primary" />
             </div>
             <span className="font-bold tracking-tight text-lg bg-gradient-to-r from-[var(--cosmic)] to-[var(--nebula)] bg-clip-text text-transparent">
-              Cosmos Chat
+              CATROGO
             </span>
           </div>
           <div className="flex items-center gap-1">
@@ -194,7 +194,7 @@ export function ChatHome() {
               <Sparkles className="h-12 w-12 text-[var(--nebula)]" />
             </div>
             <h2 className="text-2xl font-semibold mb-2 bg-gradient-to-r from-[var(--cosmic)] to-[var(--nebula)] bg-clip-text text-transparent">
-              Cosmos Chat
+              CATROGO
             </h2>
             <p className="text-muted-foreground max-w-sm">
               Selecione uma órbita para começar. Ou converse com{" "}

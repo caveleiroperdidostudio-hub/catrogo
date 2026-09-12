@@ -3,15 +3,10 @@ import { createContext, useContext, useMemo, useRef, type ReactNode } from "reac
 /** Páginas que a IA pode abrir. Rotas administrativas ficam de fora de propósito. */
 export const AI_ALLOWED_ROUTES = [
   { id: "chat", path: "/chat", label: "Chat", aliases: ["conversas", "mensagens", "chat"] },
-  { id: "ia", path: "/ia", label: "Catrogo IA", aliases: ["ia", "assistente"] },
-  { id: "mods", path: "/mods", label: "Mods", aliases: ["mods", "modpacks"] },
+  { id: "ia", path: "/ia", label: "CatroGo IA", aliases: ["ia", "assistente"] },
+  { id: "explore", path: "/explorar", label: "Explorar", aliases: ["explorar", "mods", "selos", "museu", "novidades"] },
   { id: "premium", path: "/premium", label: "Premium", aliases: ["premium", "assinatura"] },
-  { id: "verify", path: "/selos", label: "Selos", aliases: ["verificação", "selo"] },
-  { id: "updates", path: "/novidades", label: "Novidades", aliases: ["changelog", "novidades"] },
-  { id: "about", path: "/sobre", label: "Sobre o CatroGo", aliases: ["sobre", "versão", "interface"] },
-  { id: "museum", path: "/museu", label: "Museu", aliases: ["museu", "versões antigas"] },
-  { id: "settings", path: "/configuracoes", label: "Configurações", aliases: ["configurações", "ajustes"] },
-  { id: "profile", path: "/perfil", label: "Perfil", aliases: ["perfil", "minha conta"] },
+  { id: "profile", path: "/perfil", label: "Perfil", aliases: ["perfil", "minha conta", "configurações", "ajustes"] },
 ] as const;
 
 export type AppPageId = (typeof AI_ALLOWED_ROUTES)[number]["id"];
