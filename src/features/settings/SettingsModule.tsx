@@ -1,6 +1,6 @@
 import { useEffect, useState } from "react";
 import {
-  User, Shield, Bell, Palette, Play, Sparkles, Info, LogOut,
+  User, Shield, Bell, Palette, Package, Sparkles, Info, LogOut,
   Loader2, ChevronRight, Crown, Smartphone, Globe, Zap, Eye, Type,
 } from "lucide-react";
 import { useAuth } from "@/lib/auth-context";
@@ -16,7 +16,7 @@ import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { toast } from "sonner";
 import { APP_VERSION, uiLabel } from "@/lib/ctrg-ui";
 
-type Category = "account" | "profile" | "privacy" | "notifications" | "appearance" | "playback" | "ai" | "about";
+type Category = "account" | "profile" | "privacy" | "notifications" | "appearance" | "ai" | "about";
 
 const CATEGORIES: { id: Category; label: string; icon: typeof User }[] = [
   { id: "account", label: "Conta", icon: User },
@@ -24,7 +24,6 @@ const CATEGORIES: { id: Category; label: string; icon: typeof User }[] = [
   { id: "privacy", label: "Privacidade", icon: Shield },
   { id: "notifications", label: "Notificações", icon: Bell },
   { id: "appearance", label: "Aparência", icon: Palette },
-  { id: "playback", label: "Reprodução", icon: Play },
   { id: "ai", label: "IA", icon: Sparkles },
   { id: "about", label: "Sobre", icon: Info },
 ];
@@ -208,7 +207,7 @@ function PrivacySection() {
 
 function NotificationsSection() {
   const [push, setPush] = useState(false);
-  const [cats, setCats] = useState({ messages: true, followers: true, likes: true, replies: true, movies: true, updates: true, ai: true, system: true });
+  const [cats, setCats] = useState({ messages: true, followers: true, groups: true, mods: true, updates: true, ai: true, system: true });
 
   const toggle = (k: keyof typeof cats) => setCats({ ...cats, [k]: !cats[k] });
 
@@ -222,9 +221,8 @@ function NotificationsSection() {
       <SectionTitle>Categorias</SectionTitle>
       <Row icon={User} label="Mensagens"><Switch checked={cats.messages} onCheckedChange={() => toggle("messages")} /></Row>
       <Row icon={User} label="Seguidores"><Switch checked={cats.followers} onCheckedChange={() => toggle("followers")} /></Row>
-      <Row icon={User} label="Curtidas"><Switch checked={cats.likes} onCheckedChange={() => toggle("likes")} /></Row>
-      <Row icon={User} label="Respostas"><Switch checked={cats.replies} onCheckedChange={() => toggle("replies")} /></Row>
-      <Row icon={Play} label="Filmes"><Switch checked={cats.movies} onCheckedChange={() => toggle("movies")} /></Row>
+      <Row icon={User} label="Grupos"><Switch checked={cats.groups} onCheckedChange={() => toggle("groups")} /></Row>
+      <Row icon={Package} label="Mods"><Switch checked={cats.mods} onCheckedChange={() => toggle("mods")} /></Row>
       <Row icon={Zap} label="Atualizações"><Switch checked={cats.updates} onCheckedChange={() => toggle("updates")} /></Row>
       <Row icon={Sparkles} label="IA"><Switch checked={cats.ai} onCheckedChange={() => toggle("ai")} /></Row>
       <Row icon={Info} label="Sistema"><Switch checked={cats.system} onCheckedChange={() => toggle("system")} /></Row>
@@ -369,40 +367,6 @@ function AppearanceSection() {
   );
 }
 
-function PlaybackSection() {
-  const [quality, setQuality] = useState("auto");
-  const [autoplay, setAutoplay] = useState(true);
-  const [pip, setPip] = useState(true);
-  const [keepScreen, setKeepScreen] = useState(true);
-  const [speed, setSpeed] = useState(1);
-
-  return (
-    <div className="space-y-1">
-      <SectionTitle>Reprodução</SectionTitle>
-      <Row icon={Play} label="Qualidade padrão" desc={quality === "auto" ? "Automática" : quality}>
-        <ChevronRight className="h-4 w-4 text-muted-foreground" />
-      </Row>
-      <Row icon={Play} label="Reprodução automática" desc="Próximo vídeo ao terminar">
-        <Switch checked={autoplay} onCheckedChange={setAutoplay} />
-      </Row>
-      <Row icon={Play} label="Picture-in-Picture" desc="Mini player ao sair">
-        <Switch checked={pip} onCheckedChange={setPip} />
-      </Row>
-      <Row icon={Smartphone} label="Manter tela acesa" desc="Durante reprodução">
-        <Switch checked={keepScreen} onCheckedChange={setKeepScreen} />
-      </Row>
-
-      <SectionTitle>Velocidade</SectionTitle>
-      <div className="px-4 py-3 space-y-2">
-        <Slider value={[speed * 100]} min={50} max={200} step={25} onValueChange={(v) => setSpeed(v[0] / 100)} />
-        <div className="flex justify-between text-xs text-muted-foreground">
-          <span>0.5x</span><span>{speed.toFixed(2)}x</span><span>2x</span>
-        </div>
-      </div>
-    </div>
-  );
-}
-
 function AiSection() {
   const { flags } = useCtrgUi();
   const [confirmActions, setConfirmActions] = useState(true);
@@ -425,7 +389,7 @@ function AiSection() {
       <Row icon={User} label="Consultar perfil" desc="A IA pode ver suas informações">
         <Switch checked disabled />
       </Row>
-      <Row icon={Play} label="Buscar filmes" desc="A IA pode procurar filmes">
+      <Row icon={Package} label="Buscar mods" desc="A IA pode procurar mods">
         <Switch checked disabled />
       </Row>
       <Row icon={Bell} label="Ver notificações" desc="A IA pode ver suas notificações">
@@ -478,8 +442,10 @@ function AboutSection() {
   );
 }
 
-export function SettingsModule() {
-  const [cat, setCat] = useState<Category>("account");
+export function SettingsModule({ initialCategory }: { initialCategory?: string }) {
+  const [cat, setCat] = useState<Category>(
+    (initialCategory && CATEGORIES.some(c => c.id === initialCategory) ? initialCategory : "account") as Category
+  );
 
   return (
     <div className="flex h-full flex-col overflow-hidden">
@@ -514,7 +480,6 @@ export function SettingsModule() {
         {cat === "privacy" && <PrivacySection />}
         {cat === "notifications" && <NotificationsSection />}
         {cat === "appearance" && <AppearanceSection />}
-        {cat === "playback" && <PlaybackSection />}
         {cat === "ai" && <AiSection />}
         {cat === "about" && <AboutSection />}
       </div>

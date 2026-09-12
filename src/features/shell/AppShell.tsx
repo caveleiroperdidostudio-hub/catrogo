@@ -1,18 +1,14 @@
 import { useState, useEffect, useCallback } from "react";
-import { MessageCircle, User, Package, Gift, ShieldCheck, Crown, Sparkles, Rocket, BadgeCheck, Settings, Clock } from "lucide-react";
+import { MessageCircle, User, Compass, Crown, Sparkles, Gift, ShieldCheck } from "lucide-react";
 import { ChatHome } from "@/features/chat/ChatHome";
 import { ProfileModule } from "@/features/profile/ProfileModule";
-import { ModsModule } from "@/features/mods/ModsModule";
+import { ExploreModule } from "@/features/explore/ExploreModule";
 import { AiChatModule } from "@/features/ai/AiChatModule";
-import { UpdatesModule } from "@/features/updates/UpdatesModule";
 import { PremiumModule } from "@/features/premium/PremiumModule";
-import { VerificationModule } from "@/features/verification/VerificationModule";
 import { StaffPanel } from "@/features/admin/StaffPanel";
 import { AdminPanel } from "@/features/admin/AdminPanel";
 import { ChristmasMissions, EventCountdownBanner } from "@/features/admin/ChristmasMissions";
 import { ChannelView } from "@/features/profile/ChannelView";
-import { SettingsModule } from "@/features/settings/SettingsModule";
-import { MuseumModule } from "@/features/museum/MuseumModule";
 import { ChannelProvider } from "@/lib/channel-context";
 import { WalletProvider } from "@/lib/wallet-context";
 import { EventsProvider, useGlobalEvent } from "@/lib/events-context";
@@ -26,12 +22,8 @@ type ModuleId = AppPageId | "admin" | "missions" | "staff";
 const BASE_TABS: { id: ModuleId; label: string; icon: typeof MessageCircle }[] = [
   { id: "chat", label: "Chat", icon: MessageCircle },
   { id: "ia", label: "IA", icon: Sparkles },
-  { id: "mods", label: "Mods", icon: Package },
+  { id: "explore", label: "Explorar", icon: Compass },
   { id: "premium", label: "Premium", icon: Crown },
-  { id: "verify", label: "Selos", icon: BadgeCheck },
-  { id: "museum", label: "Museu", icon: Clock },
-  { id: "updates", label: "Novidades", icon: Rocket },
-  { id: "settings", label: "Ajustes", icon: Settings },
   { id: "profile", label: "Perfil", icon: User },
 ];
 
@@ -53,7 +45,6 @@ function ShellInner() {
     };
   }, []);
 
-  // Registra handler de navegação para a IA e AppNav
   const go = useCallback((id: string, section?: string): boolean => {
     if (!isAllowedPage(id)) return false;
     setActive(id as ModuleId);
@@ -67,7 +58,6 @@ function ShellInner() {
   if (isStaff || isOwner) tabs.push({ id: "staff", label: "Equipe", icon: ShieldCheck });
   if (isOwner) tabs.push({ id: "admin", label: "Comandos", icon: ShieldCheck });
 
-  // se sair do evento estando na aba de missões, volta ao chat
   useEffect(() => {
     if (!event && active === "missions") setActive("chat");
     if (!isOwner && active === "admin") setActive("chat");
@@ -80,21 +70,17 @@ function ShellInner() {
       <div key={active} className="page-transition flex-1 min-h-0 overflow-hidden">
         {active === "chat" && <ChatHome />}
         {active === "ia" && <AiChatModule />}
-        {active === "mods" && <ModsModule />}
+        {active === "explore" && <ExploreModule />}
         {active === "premium" && <PremiumModule />}
-        {active === "verify" && <VerificationModule />}
         {active === "staff" && <StaffPanel />}
-        {active === "updates" && <UpdatesModule />}
-        {active === "museum" && <MuseumModule />}
-        {active === "settings" && <SettingsModule />}
-        {active === "profile" && <ProfileModule />}
+        {active === "profile" && <ProfileModule initialSection={settingsSection} />}
         {active === "missions" && <ChristmasMissions />}
         {active === "admin" && <AdminPanel />}
       </div>
 
       <nav
         aria-label="Navegação principal"
-        className="shrink-0 border-t border-white/10 glass flex items-stretch justify-around px-1 pb-[env(safe-area-inset-bottom)] overflow-x-auto"
+        className="shrink-0 border-t border-white/10 glass flex items-stretch justify-around px-1 pb-[env(safe-area-inset-bottom)]"
         style={{ height: "calc(var(--ctrg-nav-height, 4rem) + env(safe-area-inset-bottom))" }}
       >
         {tabs.map((t) => {

@@ -1,4 +1,4 @@
-# Base44 Setup Notes — Catrogo
+# Base44 Setup Notes — CatroGo
 
 ## Stack
 - **Framework**: TanStack Start (React 19 + Vite 7 SSR) via `@lovable.dev/vite-tanstack-config`
@@ -14,6 +14,14 @@ docker compose -f docker-compose.base44.yml up -d
 - Health check: `curl http://localhost:3000/`
 - The app renders an auth/login page at `/auth` when no session exists
 
+## Navigation (5 tabs)
+- **Chat** — conversations, groups, calls, statuses
+- **IA** — CatroGo AI assistant
+- **Explorar** — hub for Mods, Selos, Museu, Novidades
+- **Premium** — subscription benefits and Pix payment
+- **Perfil** — profile + settings (account, privacy, appearance, etc.)
+- Conditional tabs: Natal (events), Equipe (staff), Comandos (owner only)
+
 ## Environment variables
 - `.env` (in repo) has public Supabase credentials: `SUPABASE_URL`, `SUPABASE_PUBLISHABLE_KEY`, `VITE_SUPABASE_URL`, `VITE_SUPABASE_PUBLISHABLE_KEY`
 - `SUPABASE_SERVICE_ROLE_KEY` — **user-provided secret**, needed for server-side Supabase operations (admin client in `src/integrations/supabase/client.server.ts`). Not required to boot; the auth page renders without it. Delivered via `/run/base44/app.env`.
@@ -25,3 +33,5 @@ docker compose -f docker-compose.base44.yml up -d
 - `src/server.ts` is the SSR entry (wraps TanStack Start's server entry with error handling)
 - `src/start.ts` configures the TanStack Start instance with Supabase auth middleware
 - `__VITE_ADDITIONAL_SERVER_ALLOWED_HOSTS` is passed bare in compose for Vite host allowlisting
+- Brand is standardized as **CATROGO** (not "Cosmos Chat" or "Catrogo")
+- "Cosmos" is a visual theme name, not a product name

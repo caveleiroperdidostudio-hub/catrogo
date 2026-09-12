@@ -1,7 +1,7 @@
 import { useEffect, useRef, useState } from "react";
 import { useServerFn } from "@tanstack/react-start";
 import ReactMarkdown from "react-markdown";
-import { Send, Loader2, Sparkles, Trash2 } from "lucide-react";
+import { Send, Loader2, Sparkles, Trash2, Copy, RotateCw, AlertCircle } from "lucide-react";
 import { toast } from "sonner";
 import { Button } from "@/components/ui/button";
 import { Textarea } from "@/components/ui/textarea";
@@ -10,16 +10,19 @@ import { aiNavigate } from "@/lib/ai-nav.functions";
 import { useAppNav, pageLabel } from "@/lib/app-nav";
 import { useCtrgUi, uiLabel } from "@/lib/ctrg-ui";
 
-type Msg = { role: "user" | "assistant"; content: string };
+type Msg = {
+  role: "user" | "assistant";
+  content: string;
+  error?: boolean;
+};
 
 const SUGGESTIONS = [
   "Como eu ganho CatCoins?",
-  "Me dê 5 ideias de shorts virais",
-  "Crie um conceito de jogo mobile",
   "Como faço uma chamada de vídeo?",
-  "Quero ver os filmes",
+  "Como criar um mod?",
   "Abra minhas configurações",
   "Qual Ctrg UI estou usando?",
+  "Abra os mods",
 ];
 
 const STORAGE_KEY = "catrogo-ai-chat";
@@ -56,13 +59,22 @@ export function AiChatModule() {
     taRef.current?.focus();
   }, []);
 
-  const send = async (text: string) => {
+  const send = async (text: string, retryIndex?: number) => {
     const content = text.trim();
     if (!content || busy) return;
-    const next: Msg[] = [...messages, { role: "user", content }];
-    setMessages(next);
+
+    // If retrying, replace the error message; otherwise append
+    if (retryIndex !== undefined) {
+      setMessages((prev) => prev.filter((_, i) => i !== retryIndex));
+    } else {
+      setMessages((prev) => [...prev, { role: "user", content }]);
+    }
     setInput("");
     setBusy(true);
+
+    const history = retryIndex !== undefined
+      ? messages.slice(0, retryIndex)
+      : [...messages, { role: "user" as const, content }];
 
     // Verifica se o usuário pediu para abrir uma tela (IA com navegação)
     let navHandled = false;
@@ -102,11 +114,16 @@ export function AiChatModule() {
     }
 
     try {
-      const r = await chat({ data: { messages: next.slice(-20) } });
+      const r = await chat({ data: { messages: history.slice(-20).map(m => ({ role: m.role, content: m.content })) } });
       setMessages((prev) => [...prev, { role: "assistant", content: r.reply || "…" }]);
     } catch (e) {
-      toast.error((e as Error).message ?? "Falha ao falar com a IA");
-      setMessages((prev) => [...prev, { role: "assistant", content: "⚠️ Não consegui responder agora. Tente novamente." }]);
+      const errMsg = (e as Error)?.message;
+      setMessages((prev) => [...prev, {
+        role: "assistant",
+        content: "⚠️ Não foi possível gerar a resposta. Verifique a conexão e tente novamente.",
+        error: true,
+      }]);
+      if (errMsg) toast.error(errMsg);
     } finally {
       setBusy(false);
       setTimeout(() => taRef.current?.focus(), 50);
@@ -122,6 +139,10 @@ export function AiChatModule() {
     }
   };
 
+  const copyMsg = (content: string) => {
+    navigator.clipboard.writeText(content).then(() => toast.success("Mensagem copiada"));
+  };
+
   return (
     <div className="flex h-full flex-col overflow-hidden">
       <div className="h-14 shrink-0 px-4 flex items-center gap-2 border-b border-white/5">
@@ -130,7 +151,7 @@ export function AiChatModule() {
         </div>
         <div className="flex-1">
           <div className="font-semibold leading-tight bg-gradient-to-r from-[var(--cosmic)] to-[var(--nebula)] bg-clip-text text-transparent">
-            Catrogo IA
+            CatroGo IA
           </div>
           <div className="text-[11px] text-muted-foreground">Assistente inteligente da plataforma</div>
         </div>
@@ -148,9 +169,9 @@ export function AiChatModule() {
               <Sparkles className="h-9 w-9 text-[var(--nebula)]" />
             </div>
             <div>
-              <h2 className="text-xl font-semibold">Fale com a Catrogo IA</h2>
+              <h2 className="text-xl font-semibold">Fale com a CatroGo IA</h2>
               <p className="text-sm text-muted-foreground max-w-xs mt-1">
-                Tire dúvidas, peça ideias, crie jogos e peça para abrir telas do app.
+                Tire dúvidas, peça ideias e peça para abrir telas do app.
               </p>
             </div>
             <div className="grid grid-cols-1 sm:grid-cols-2 gap-2 w-full max-w-md">
@@ -174,8 +195,40 @@ export function AiChatModule() {
                 {m.content}
               </div>
             ) : (
-              <div className="max-w-[90%] text-sm leading-relaxed prose prose-invert prose-sm prose-pre:bg-black/50 prose-pre:rounded-xl prose-code:text-[var(--nebula)] max-w-none">
-                <ReactMarkdown>{m.content}</ReactMarkdown>
+              <div className="max-w-[90%] space-y-2">
+                <div className={`text-sm leading-relaxed prose prose-invert prose-sm prose-pre:bg-black/50 prose-pre:rounded-xl prose-code:text-[var(--nebula)] max-w-none ${m.error ? "text-destructive" : ""}`}>
+                  {m.error ? (
+                    <div className="flex items-start gap-2 rounded-xl border border-destructive/30 bg-destructive/10 p-3">
+                      <AlertCircle className="h-4 w-4 shrink-0 mt-0.5 text-destructive" />
+                      <span>{m.content.replace(/^⚠️\s*/, "")}</span>
+                    </div>
+                  ) : (
+                    <ReactMarkdown>{m.content}</ReactMarkdown>
+                  )}
+                </div>
+                {!m.error && (
+                  <div className="flex gap-1">
+                    <button
+                      onClick={() => copyMsg(m.content)}
+                      className="flex items-center gap-1 rounded-lg px-2 py-1 text-[11px] text-muted-foreground hover:text-foreground hover:bg-white/5 transition"
+                    >
+                      <Copy className="h-3 w-3" /> Copiar
+                    </button>
+                  </div>
+                )}
+                {m.error && (
+                  <Button
+                    size="sm"
+                    variant="outline"
+                    onClick={() => {
+                      const prevUserMsg = messages.slice(0, i).reverse().find(m => m.role === "user");
+                      if (prevUserMsg) send(prevUserMsg.content, i);
+                    }}
+                    className="h-7 gap-1.5 text-xs"
+                  >
+                    <RotateCw className="h-3 w-3" /> Tentar novamente
+                  </Button>
+                )}
               </div>
             )}
           </div>
@@ -183,7 +236,7 @@ export function AiChatModule() {
 
         {busy && (
           <div className="flex items-center gap-2 text-sm text-muted-foreground">
-            <Loader2 className="h-4 w-4 animate-spin" /> Catrogo IA está pensando…
+            <Loader2 className="h-4 w-4 animate-spin" /> CatroGo IA está pensando…
           </div>
         )}
         <div ref={endRef} />
@@ -201,7 +254,7 @@ export function AiChatModule() {
                 send(input);
               }
             }}
-            placeholder="Pergunte qualquer coisa à Catrogo IA…"
+            placeholder="Pergunte qualquer coisa à CatroGo IA…"
             rows={1}
             className="flex-1 min-h-[44px] max-h-32 resize-none bg-white/5 border-white/10"
           />

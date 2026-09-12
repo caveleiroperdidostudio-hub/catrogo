@@ -91,7 +91,7 @@ export function SettingsSheet({ open, onOpenChange }: { open: boolean; onOpenCha
             <Ghost className="h-5 w-5 text-[var(--cosmic)]" /> Central de Privacidade
           </SheetTitle>
           <SheetDescription>
-            Modo Fantasma e burladores estilo mods. Tudo simulado neste protótipo — sem rede real envolvida.
+            Modo Fantasma, temas, wallpapers e personalização do Chat.
           </SheetDescription>
         </SheetHeader>
 
