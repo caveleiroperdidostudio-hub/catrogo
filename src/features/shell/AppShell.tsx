@@ -1,17 +1,10 @@
 import { useState, useEffect, useCallback } from "react";
-import { MessageCircle, Play, Clapperboard, Gamepad2, User, ShoppingBag, Package, Gift, ShieldCheck, Crown, Sparkles, Rocket, BadgeCheck, Film, GraduationCap, Shirt, Settings, Clock } from "lucide-react";
+import { MessageCircle, User, Package, Gift, ShieldCheck, Crown, Sparkles, Rocket, BadgeCheck, Settings, Clock } from "lucide-react";
 import { ChatHome } from "@/features/chat/ChatHome";
-import { VideoModule } from "@/features/video/VideoModule";
-import { ShortsModule } from "@/features/shorts/ShortsModule";
-import { GamesModule } from "@/features/games/GamesModule";
 import { ProfileModule } from "@/features/profile/ProfileModule";
-import { StoreModule } from "@/features/store/StoreModule";
 import { ModsModule } from "@/features/mods/ModsModule";
 import { AiChatModule } from "@/features/ai/AiChatModule";
 import { UpdatesModule } from "@/features/updates/UpdatesModule";
-import { MoviesModule } from "@/features/movies/MoviesModule";
-import { PersonalModule } from "@/features/personal/PersonalModule";
-import { SkinsModule } from "@/features/skins/SkinsModule";
 import { PremiumModule } from "@/features/premium/PremiumModule";
 import { VerificationModule } from "@/features/verification/VerificationModule";
 import { StaffPanel } from "@/features/admin/StaffPanel";
@@ -32,15 +25,8 @@ type ModuleId = AppPageId | "admin" | "missions" | "staff";
 
 const BASE_TABS: { id: ModuleId; label: string; icon: typeof MessageCircle }[] = [
   { id: "chat", label: "Chat", icon: MessageCircle },
-  { id: "movies", label: "Filmes", icon: Film },
-  { id: "video", label: "Vídeos", icon: Play },
-  { id: "shorts", label: "Shorts", icon: Clapperboard },
-  { id: "games", label: "Games", icon: Gamepad2 },
   { id: "ia", label: "IA", icon: Sparkles },
-  { id: "personal", label: "Personal", icon: GraduationCap },
-  { id: "skins", label: "Skins", icon: Shirt },
   { id: "mods", label: "Mods", icon: Package },
-  { id: "store", label: "Loja", icon: ShoppingBag },
   { id: "premium", label: "Premium", icon: Crown },
   { id: "verify", label: "Selos", icon: BadgeCheck },
   { id: "museum", label: "Museu", icon: Clock },
@@ -93,15 +79,8 @@ function ShellInner() {
       <EventCountdownBanner />
       <div key={active} className="page-transition flex-1 min-h-0 overflow-hidden">
         {active === "chat" && <ChatHome />}
-        {active === "movies" && <MoviesModule />}
-        {active === "personal" && <PersonalModule />}
-        {active === "skins" && <SkinsModule />}
-        {active === "video" && <VideoModule />}
-        {active === "shorts" && <ShortsModule />}
-        {active === "games" && <GamesModule />}
         {active === "ia" && <AiChatModule />}
         {active === "mods" && <ModsModule />}
-        {active === "store" && <StoreModule />}
         {active === "premium" && <PremiumModule />}
         {active === "verify" && <VerificationModule />}
         {active === "staff" && <StaffPanel />}

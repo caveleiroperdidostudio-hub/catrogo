@@ -3,15 +3,8 @@ import { createContext, useContext, useMemo, useRef, type ReactNode } from "reac
 /** Páginas que a IA pode abrir. Rotas administrativas ficam de fora de propósito. */
 export const AI_ALLOWED_ROUTES = [
   { id: "chat", path: "/chat", label: "Chat", aliases: ["conversas", "mensagens", "chat"] },
-  { id: "movies", path: "/filmes", label: "Filmes", aliases: ["filme", "filmes", "cinema"] },
-  { id: "video", path: "/videos", label: "Vídeos", aliases: ["video", "vídeos"] },
-  { id: "shorts", path: "/shorts", label: "Shorts", aliases: ["shorts", "curtos"] },
-  { id: "games", path: "/games", label: "Games", aliases: ["jogos", "games"] },
   { id: "ia", path: "/ia", label: "Catrogo IA", aliases: ["ia", "assistente"] },
-  { id: "personal", path: "/personal", label: "Personal", aliases: ["aulas", "estudos"] },
-  { id: "skins", path: "/skins", label: "Skins", aliases: ["skin", "skins", "avatar"] },
   { id: "mods", path: "/mods", label: "Mods", aliases: ["mods", "modpacks"] },
-  { id: "store", path: "/loja", label: "Loja", aliases: ["loja", "catcoins"] },
   { id: "premium", path: "/premium", label: "Premium", aliases: ["premium", "assinatura"] },
   { id: "verify", path: "/selos", label: "Selos", aliases: ["verificação", "selo"] },
   { id: "updates", path: "/novidades", label: "Novidades", aliases: ["changelog", "novidades"] },
