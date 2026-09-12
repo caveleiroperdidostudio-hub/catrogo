@@ -27,6 +27,18 @@ type ProviderRow = {
 /** Fallback usado quando o banco está indisponível. */
 const DEFAULTS: ProviderRow[] = [
   {
+    slug: "gemini",
+    name: "Google Gemini",
+    base_url: "https://generativelanguage.googleapis.com/v1beta/openai/chat/completions",
+    model: "gemini-2.0-flash",
+    secret_name: "GEMINI_API_KEY",
+    priority: 0,
+    enabled: true,
+    timeout_ms: 45000,
+    user_daily_limit: 0,
+    global_daily_limit: 0,
+  },
+  {
     slug: "lovable",
     name: "Lovable AI",
     base_url: LOVABLE_CHAT,
@@ -160,6 +172,10 @@ async function callProvider(p: ProviderRow, messages: AiMsg[], jsonMode: boolean
     const jk = process.env.JARVIS_API_KEY;
     if (jk) headers.Authorization = `Bearer ${jk}`;
     body.model = process.env.JARVIS_MODEL ?? p.model;
+  } else if (p.slug === "gemini") {
+    const key = process.env.GEMINI_API_KEY;
+    if (!key) return null;
+    headers.Authorization = `Bearer ${key}`;
   } else {
     const key = p.secret_name ? process.env[p.secret_name] : process.env.OPENAI_API_KEY;
     if (!key || !url) return null;
@@ -214,6 +230,36 @@ export async function aiJson<T>(messages: AiMsg[], fallback: T): Promise<T> {
 
 /** Gera uma imagem e devolve um data URL (png/jpeg base64). */
 export async function aiImage(prompt: string): Promise<string> {
+  // 1º tenta Google Gemini (gratuito)
+  const geminiKey = process.env.GEMINI_API_KEY;
+  if (geminiKey) {
+    try {
+      const res = await fetch(
+        `https://generativelanguage.googleapis.com/v1beta/models/gemini-2.0-flash-preview-image-generation:generateContent?key=${geminiKey}`,
+        {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({
+            contents: [{ parts: [{ text: prompt }] }],
+            generationConfig: { responseModalities: ["TEXT", "IMAGE"] },
+          }),
+        },
+      );
+      if (res.ok) {
+        const json = await res.json();
+        const parts = json?.candidates?.[0]?.content?.parts ?? [];
+        for (const part of parts) {
+          if (part.inlineData?.data) {
+            return `data:${part.inlineData.mimeType || "image/png"};base64,${part.inlineData.data}`;
+          }
+        }
+      }
+    } catch {
+      /* fall through to Lovable */
+    }
+  }
+
+  // 2º tenta Lovable
   const key = process.env.LOVABLE_API_KEY;
   if (!key) throw new Error("Geração de imagens indisponível agora.");
   const res = await fetch(LOVABLE_CHAT, {
@@ -235,6 +281,7 @@ export async function aiImage(prompt: string): Promise<string> {
 /** Provedores ativos (para exibir status na interface). */
 export function aiProviders() {
   return {
+    gemini: !!process.env.GEMINI_API_KEY,
     lovable: !!process.env.LOVABLE_API_KEY,
     jarvis: !!process.env.JARVIS_AI_URL,
     openai: !!process.env.OPENAI_API_KEY,

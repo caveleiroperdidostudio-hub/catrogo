@@ -23,6 +23,20 @@ CORES: hex (#ff0) ou nomes: vermelho, verde, azul, amarelo, roxo, rosa, branco, 
 A área do jogo tem 320x320. Posicione objetos dentro dessa área.
 Sempre inclua pelo menos um objeto controlado pelo jogador, uma forma de ganhar pontos e/ou de perder.`;
 
+async function callGemini(messages: { role: string; content: string }[]) {
+  const key = process.env.GEMINI_API_KEY;
+  if (!key) return null;
+  const res = await fetch("https://generativelanguage.googleapis.com/v1beta/openai/chat/completions", {
+    method: "POST",
+    headers: { "Content-Type": "application/json", Authorization: `Bearer ${key}` },
+    body: JSON.stringify({ model: "gemini-2.0-flash", messages }),
+  });
+  if (!res.ok) return null;
+  const json = await res.json();
+  const text = (json?.choices?.[0]?.message?.content ?? "") as string;
+  return text.trim() ? text : null;
+}
+
 async function callLovable(messages: { role: string; content: string }[]) {
   const key = process.env.LOVABLE_API_KEY;
   if (!key) return null;
@@ -57,7 +71,7 @@ async function callOpenAi(messages: { role: string; content: string }[]) {
 
 /** Tenta os provedores externos; retorna null se todos falharem (sem lançar erro). */
 async function tryGateway(messages: { role: string; content: string }[]): Promise<string | null> {
-  return (await callLovable(messages)) ?? (await callOpenAi(messages));
+  return (await callGemini(messages)) ?? (await callLovable(messages)) ?? (await callOpenAi(messages));
 }
 
 export const generateGame = createServerFn({ method: "POST" })
