@@ -505,8 +505,7 @@ a[href*="lovable.dev"] { display: none !important; }
     0 0 80px -12px color-mix(in oklab, var(--nebula) 35%, transparent);
 }
 [data-ctrg-mode="pro"] .glass {
-  backdrop-filter: blur(20px) saturate(160%);
-  -webkit-backdrop-filter: blur(20px) saturate(160%);
+  @apply backdrop-blur-2xl backdrop-saturate-150;
 }
 [data-ctrg-mode="pro"] .cosmic-glow {
   box-shadow:
@@ -566,4 +565,81 @@ a[href*="lovable.dev"] { display: none !important; }
   text-transform: uppercase;
   letter-spacing: 0.08em;
   color: var(--muted-foreground);
+}
+
+/* ================================================================
+   CTRG OS — Tema "Glass UI"
+   Vidro translúcido no estilo do iOS: superfícies frosted, brilho
+   especular nas bordas e navegação flutuante. Exclusivo do Ctrg OS.
+   ================================================================ */
+[data-ctrg-skin="glass"] {
+  --background: oklch(0.19 0.025 265);
+  --foreground: oklch(0.98 0.005 265);
+  --card: oklch(1 0 0 / 0.1);
+  --popover: oklch(0.24 0.025 265 / 0.92);
+  --secondary: oklch(1 0 0 / 0.08);
+  --secondary-foreground: oklch(0.97 0.005 265);
+  --muted: oklch(1 0 0 / 0.06);
+  --muted-foreground: oklch(0.82 0.015 265);
+  --border: oklch(1 0 0 / 0.16);
+  --input: oklch(1 0 0 / 0.14);
+  --radius: 1.125rem;
+
+  --ctrg-surface-1: oklch(1 0 0 / 0.07);
+  --ctrg-surface-2: oklch(1 0 0 / 0.1);
+  --ctrg-surface-3: oklch(1 0 0 / 0.14);
+}
+
+/* Fundo ambiente claro e difuso (sem o campo estelar denso) */
+[data-ctrg-skin="glass"] body {
+  background-color: var(--background);
+  background-image:
+    radial-gradient(58% 42% at 16% 6%, color-mix(in oklab, var(--cosmic) 42%, transparent), transparent 72%),
+    radial-gradient(52% 42% at 88% 20%, color-mix(in oklab, var(--nebula) 36%, transparent), transparent 72%),
+    radial-gradient(72% 48% at 50% 106%, color-mix(in oklab, var(--primary) 28%, transparent), transparent 72%);
+}
+
+[data-ctrg-skin="glass"] .chat-bg {
+  background-color: transparent;
+  background-image:
+    radial-gradient(60% 45% at 25% 12%, color-mix(in oklab, var(--cosmic) 22%, transparent), transparent 70%),
+    radial-gradient(55% 45% at 80% 82%, color-mix(in oklab, var(--nebula) 20%, transparent), transparent 70%);
+}
+
+/* Painéis frosted com brilho especular na borda superior */
+[data-ctrg-skin="glass"] .glass {
+  @apply backdrop-blur-3xl backdrop-saturate-150;
+  background-color: oklch(1 0 0 / 0.09);
+  border: 1px solid oklch(1 0 0 / 0.16);
+  box-shadow:
+    inset 0 1px 0 oklch(1 0 0 / 0.22),
+    0 12px 32px -16px oklch(0 0 0 / 0.55);
+}
+
+[data-ctrg-skin="glass"] .cosmic-glow {
+  box-shadow:
+    inset 0 1px 0 oklch(1 0 0 / 0.25),
+    0 0 24px -6px color-mix(in oklab, var(--cosmic) 55%, transparent);
+}
+
+/* Barra de navegação flutuante, como no iOS */
+[data-ctrg-skin="glass"] nav[aria-label="Navegação principal"] {
+  margin: 0 0.5rem 0.5rem;
+  border: 1px solid oklch(1 0 0 / 0.18);
+  border-radius: 1.5rem;
+  background-color: oklch(1 0 0 / 0.11);
+  @apply backdrop-blur-3xl backdrop-saturate-150;
+  box-shadow:
+    inset 0 1px 0 oklch(1 0 0 / 0.24),
+    0 16px 40px -18px oklch(0 0 0 / 0.6);
+}
+
+/* Cabeçalhos e cards ganham leveza no vidro */
+[data-ctrg-skin="glass"] .card-premium,
+[data-ctrg-skin="glass"] .ctrg-card-pro {
+  background: oklch(1 0 0 / 0.09);
+  border-color: oklch(1 0 0 / 0.16);
+  box-shadow:
+    inset 0 1px 0 oklch(1 0 0 / 0.2),
+    0 12px 32px -16px oklch(0 0 0 / 0.5);
 }

@@ -106,7 +106,7 @@ export function AiChatModule() {
     if (/ctrg\s*ui|interface/i.test(content) && /usando|versão|qual/i.test(content)) {
       setMessages((prev) => [...prev, {
         role: "assistant",
-        content: `Você está usando **${uiLabel(info)}**.\n\n- Versão do app: ${info.app_version}\n- Interface: ${info.kind === "pro" ? "Ctrg UI Pro" : "Ctrg UI"} ${info.ui_version}\n- Modo: ${info.ui_mode}`,
+        content: `Você está usando **${uiLabel(info)}**.\n\n- Versão do app: ${info.app_version}\n- Interface: ${info.kind === "pro" ? "Ctrg OS" : "Ctrg UI"} ${info.ui_version}\n- Modo: ${info.ui_mode}`,
       }]);
       setBusy(false);
       setTimeout(() => taRef.current?.focus(), 50);
