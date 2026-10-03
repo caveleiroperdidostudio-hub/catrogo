@@ -3,6 +3,7 @@ import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/lib/auth-context";
 
 export type UiMode = "STANDARD" | "PRO";
+export type SkinId = "cosmos" | "glass";
 
 export type CtrgUiInfo = {
   name: string;
@@ -37,8 +38,8 @@ const DEFAULT_PREFS: UiPrefs = {
 
 const DEFAULT_INFO: CtrgUiInfo = {
   name: "Ctrg UI",
-  ui_version: "4.0",
-  app_version: "4.0.0",
+  ui_version: "4.1",
+  app_version: "4.1.0",
   kind: "standard",
   ui_mode: "STANDARD",
   pro_available: false,
@@ -49,21 +50,24 @@ type Ctx = {
   prefs: UiPrefs;
   flags: Record<string, boolean>;
   loading: boolean;
+  /** Usuário tem o Ctrg OS (assinatura, dono ou administrador). */
   isPro: boolean;
+  isOs: boolean;
   savePrefs: (patch: Partial<UiPrefs>) => Promise<void>;
   refresh: () => Promise<void>;
 };
 
 const CtrgUiContext = createContext<Ctx | undefined>(undefined);
 
-export const APP_VERSION = "4.0.0";
+export const APP_VERSION = "4.1.0";
 
 export function CtrgUiProvider({ children }: { children: ReactNode }) {
-  const { session } = useAuth();
+  const { session, isOwner } = useAuth();
   const userId = session?.user?.id ?? null;
   const [info, setInfo] = useState<CtrgUiInfo>(DEFAULT_INFO);
   const [prefs, setPrefs] = useState<UiPrefs>(DEFAULT_PREFS);
   const [flags, setFlags] = useState<Record<string, boolean>>({});
+  const [isStaff, setIsStaff] = useState(false);
   const [loading, setLoading] = useState(true);
 
   const load = useCallback(async () => {
@@ -75,17 +79,19 @@ export function CtrgUiProvider({ children }: { children: ReactNode }) {
       return;
     }
 
-    const [{ data: prefRow }, { data: rpc }] = await Promise.all([
+    const [{ data: prefRow }, { data: rpc }, { data: staff }] = await Promise.all([
       supabase
         .from("ui_user_preferences")
         .select("ui_mode, skin, density, animations, effects, element_scale, language, color_scheme")
         .eq("user_id", userId)
         .maybeSingle(),
       supabase.rpc("current_ui_version"),
+      supabase.rpc("is_staff"),
     ]);
 
     if (prefRow) setPrefs({ ...DEFAULT_PREFS, ...(prefRow as Partial<UiPrefs>) });
     if (rpc) setInfo({ ...DEFAULT_INFO, ...(rpc as unknown as CtrgUiInfo) });
+    setIsStaff(staff === true);
     setLoading(false);
   }, [userId]);
 
@@ -104,17 +110,22 @@ export function CtrgUiProvider({ children }: { children: ReactNode }) {
     [prefs, userId],
   );
 
+  // Dono e administradores recebem o Ctrg OS de graça; o resto desbloqueia pela assinatura.
+  const isOs = (info.ui_mode === "PRO" && info.kind === "pro") || isOwner || isStaff;
+  const proActive = isOs && prefs.ui_mode === "PRO";
+
   // aplica tokens da Ctrg UI no documento
   useEffect(() => {
     if (typeof document === "undefined") return;
     const root = document.documentElement;
     root.dataset.ctrgUi = info.ui_version;
-    root.dataset.ctrgMode = info.ui_mode.toLowerCase();
+    root.dataset.ctrgMode = proActive ? "pro" : "standard";
+    root.dataset.ctrgSkin = isOs && prefs.skin === "glass" ? "glass" : "cosmos";
     root.dataset.density = prefs.density;
     root.dataset.animations = prefs.animations ? "on" : "off";
     root.dataset.effects = prefs.effects ? "on" : "off";
     root.style.setProperty("--ctrg-scale", String(prefs.element_scale));
-  }, [info.ui_mode, info.ui_version, prefs.animations, prefs.density, prefs.effects, prefs.element_scale]);
+  }, [info.ui_version, proActive, isOs, prefs.skin, prefs.animations, prefs.density, prefs.effects, prefs.element_scale]);
 
   const value = useMemo<Ctx>(
     () => ({
@@ -122,11 +133,12 @@ export function CtrgUiProvider({ children }: { children: ReactNode }) {
       prefs,
       flags,
       loading,
-      isPro: info.ui_mode === "PRO" && info.kind === "pro",
+      isPro: isOs,
+      isOs,
       savePrefs,
       refresh: load,
     }),
-    [info, prefs, flags, loading, savePrefs, load],
+    [info, prefs, flags, loading, isOs, savePrefs, load],
   );
 
   return <CtrgUiContext.Provider value={value}>{children}</CtrgUiContext.Provider>;
@@ -138,6 +150,7 @@ export function useCtrgUi() {
   return ctx;
 }
 
+/** Nome da experiência: Ctrg UI (gratuita) ou Ctrg OS (paga). */
 export function uiLabel(info: CtrgUiInfo) {
-  return `${info.kind === "pro" ? "Ctrg UI Pro" : "Ctrg UI"} ${info.ui_version}`;
+  return `${info.kind === "pro" ? "Ctrg OS" : "Ctrg UI"} ${info.ui_version}`;
 }

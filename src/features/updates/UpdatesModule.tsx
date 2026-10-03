@@ -8,14 +8,27 @@ type Version = { version: string; date: string; title: string; changes: Change[]
 // Mais recente primeiro
 export const CHANGELOG: Version[] = [
   {
+    version: "4.1.0",
+    date: "Outubro de 2026",
+    title: "Ctrg OS • Tema Glass UI & Pix automático",
+    changes: [
+      { type: "novo", text: "Ctrg UI (gratuita) e Ctrg OS (paga) agora são as duas experiências do app." },
+      { type: "novo", text: "Glass UI: tema exclusivo do Ctrg OS com vidro translúcido no estilo do iPhone." },
+      { type: "novo", text: "Dono e administradores recebem o Ctrg OS de graça." },
+      { type: "novo", text: "Pix automático: QR Code e Copia e Cola já preenchidos com R$ 15,63 — sem digitar nada." },
+      { type: "melhoria", text: "Ctrg OS mensal por R$ 15,63." },
+      { type: "melhoria", text: "Interface mais limpa: personalização, temas e informações do app reunidas em Perfil → Configurações." },
+    ],
+  },
+  {
     version: "4.0.0",
     date: "Setembro de 2026",
     title: "Ctrg UI • Sistema de Design, Museu & IA com Navegação",
     changes: [
       { type: "novo", text: "Ctrg UI: sistema de design oficial do CatroGo com tokens centralizados." },
-      { type: "novo", text: "Ctrg UI Pro: experiência premium com efeitos visuais e animações exclusivas." },
+      { type: "novo", text: "Ctrg OS: experiência premium com efeitos visuais e animações exclusivas." },
       { type: "novo", text: "Sistema de versionamento da interface que acompanha a versão do aplicativo." },
-      { type: "novo", text: "Prêmio do App: desbloqueio do Ctrg UI Pro validado no backend." },
+      { type: "novo", text: "Liberação de interface validada no backend." },
       { type: "novo", text: "Modo Museu: viaje no tempo e experimente versões antigas do CatroGo." },
       { type: "novo", text: "IA com navegação: peça para a IA abrir configurações, mods e mais." },
       { type: "novo", text: "Configurações redesenhadas com categorias: Conta, Perfil, Privacidade, etc." },

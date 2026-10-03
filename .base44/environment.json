@@ -4,8 +4,20 @@
   "startCommand": "docker compose -f docker-compose.base44.yml up -d",
   "secrets": [
     {
+      "name": "VITE_SUPABASE_URL",
+      "description": "URL do projeto do seu Supabase (Dashboard → Project Settings → API → Project URL), no formato https://xxxxxxxx.supabase.co. O app usa essa URL e deriva SUPABASE_URL / VITE_SUPABASE_PROJECT_ID a partir dela ao iniciar.",
+      "requiredAtBoot": true,
+      "generatedForDevelopment": false
+    },
+    {
+      "name": "VITE_SUPABASE_PUBLISHABLE_KEY",
+      "description": "Chave pública 'anon' / 'publishable' do projeto (Dashboard → Project Settings → API → anon public). Também é usada como SUPABASE_PUBLISHABLE_KEY no servidor.",
+      "requiredAtBoot": true,
+      "generatedForDevelopment": false
+    },
+    {
       "name": "SUPABASE_SERVICE_ROLE_KEY",
-      "description": "Supabase service role key (server-side) — from your Supabase project Dashboard → Settings → API → service_role secret. Needed for server-side database operations.",
+      "description": "Chave 'service_role' do projeto (Dashboard → Project Settings → API). Necessária apenas para operações administrativas no servidor — o login funciona sem ela, então pode preencher depois.",
       "requiredAtBoot": false,
       "generatedForDevelopment": false
     }

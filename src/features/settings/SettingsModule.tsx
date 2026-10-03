@@ -36,7 +36,7 @@ const THEMES: { id: ThemeAccent; label: string; color: string }[] = [
   { id: "eclipse", label: "Eclipse", color: "oklch(0.55 0.04 280)" },
 ];
 
-function Row({ icon: Icon, label, desc, children }: { icon: typeof User; label: string; desc?: string; children: React.ReactNode }) {
+function Row({ icon: Icon, label, desc, children }: { icon: typeof User; label: string; desc?: string; children?: React.ReactNode }) {
   return (
     <div className="flex items-center gap-3 px-4 py-3">
       <div className="flex h-9 w-9 shrink-0 items-center justify-center rounded-xl bg-white/5 border border-white/10">
@@ -232,45 +232,58 @@ function NotificationsSection() {
 
 function AppearanceSection() {
   const { theme, setTheme, appearance, setAppearance } = useSettings();
-  const { prefs, savePrefs, isPro, info, flags } = useCtrgUi();
+  const { prefs, savePrefs, isPro, info } = useCtrgUi();
 
   const updatePrefs = (patch: Partial<UiPrefs>) => savePrefs(patch);
 
   return (
     <div className="space-y-1">
-      <SectionTitle>Ctrg UI</SectionTitle>
+      <SectionTitle>Sistema</SectionTitle>
       <div className="px-4 py-3">
-        <div className="flex items-center justify-between rounded-2xl glass border border-white/10 p-4">
-          <div>
+        <div className="flex items-center justify-between gap-3 rounded-2xl glass border border-white/10 p-4">
+          <div className="min-w-0">
             <div className="text-sm font-semibold flex items-center gap-2">
               {isPro ? <Crown className="h-4 w-4 text-amber-400" /> : <Palette className="h-4 w-4 text-primary" />}
               {uiLabel(info)}
             </div>
             <div className="text-xs text-muted-foreground mt-0.5">
-              {isPro ? "Experiência premium ativa" : "Modo padrão"}
+              {isPro ? "Ctrg OS desbloqueado" : "Ctrg UI gratuita"}
             </div>
           </div>
-          <div className="flex gap-2">
+          <div className="flex shrink-0 gap-2">
             <Button
               size="sm"
               variant={prefs.ui_mode === "STANDARD" ? "default" : "outline"}
               onClick={() => updatePrefs({ ui_mode: "STANDARD" })}
             >
-              Padrão
+              Ctrg UI
             </Button>
             <Button
               size="sm"
               variant={prefs.ui_mode === "PRO" ? "default" : "outline"}
-              onClick={() => isPro ? updatePrefs({ ui_mode: "PRO" }) : toast.info("Ctrg UI Pro requer o Prêmio do App")}
+              onClick={() => isPro ? updatePrefs({ ui_mode: "PRO" }) : toast.info("O Ctrg OS é liberado pela assinatura")}
               className={isPro ? "" : "opacity-50"}
             >
-              <Crown className="h-3.5 w-3.5 mr-1" /> Pro
+              <Crown className="h-3.5 w-3.5 mr-1" /> Ctrg OS
             </Button>
           </div>
         </div>
       </div>
 
-      <SectionTitle>Tema</SectionTitle>
+      <SectionTitle>Glass UI · Ctrg OS</SectionTitle>
+      <Row
+        icon={Sparkles}
+        label="Tema Glass UI"
+        desc={isPro ? "Vidro translúcido no estilo do iPhone" : "Incluído no Ctrg OS"}
+      >
+        <Switch
+          checked={prefs.skin === "glass"}
+          disabled={!isPro}
+          onCheckedChange={(v) => isPro ? updatePrefs({ skin: v ? "glass" : "cosmos" }) : toast.info("O tema Glass UI faz parte do Ctrg OS")}
+        />
+      </Row>
+
+      <SectionTitle>Cor de destaque</SectionTitle>
       <div className="px-4 py-2 flex gap-2 overflow-x-auto scrollbar-none">
         {THEMES.map((t) => (
           <button
@@ -419,7 +432,7 @@ function AboutSection() {
       <Row icon={Palette} label="Sistema visual" desc={uiLabel(info)}>
         <span className="text-xs text-muted-foreground">{info.kind === "pro" ? "Pro" : "Padrão"}</span>
       </Row>
-      <Row icon={Crown} label="Ctrg UI Pro" desc={isPro ? "Desbloqueado" : "Bloqueado — requer Prêmio do App"}>
+      <Row icon={Crown} label="Ctrg OS" desc={isPro ? "Desbloqueado" : "Bloqueado — requer assinatura"}>
         {isPro ? <Crown className="h-4 w-4 text-amber-400" /> : <Shield className="h-4 w-4 text-muted-foreground" />}
       </Row>
       <Row icon={Info} label="Plataforma" desc="CatroGo Platform" />
