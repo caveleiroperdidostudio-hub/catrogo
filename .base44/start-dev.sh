@@ -22,7 +22,7 @@ if [ -n "$VITE_SUPABASE_URL" ] && [ -n "$VITE_SUPABASE_PUBLISHABLE_KEY" ]; then
   } > .env.local
   export SUPABASE_URL="$VITE_SUPABASE_URL"
   export SUPABASE_PUBLISHABLE_KEY="$VITE_SUPABASE_PUBLISHABLE_KEY"
-  echo "[catrogo] Supabase credentials loaded from the platform env (project: $PROJECT_ID)"
+  echo "[catrogo] Supabase project in use: $PROJECT_ID (platform secrets override the repo .env)"
 else
   echo "[catrogo] No platform Supabase credentials yet — falling back to the repo .env"
 fi
