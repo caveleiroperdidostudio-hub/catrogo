@@ -9,10 +9,16 @@
 // Additionally, you should also exclude this file from your linter and/or formatter to prevent it from being checked or modified.
 
 import { Route as rootRouteImport } from './routes/__root'
+import { Route as GlassRouteImport } from './routes/glass'
 import { Route as AuthRouteImport } from './routes/auth'
 import { Route as IndexRouteImport } from './routes/index'
 import { Route as ApiPublicHooksRefreshStoreRouteImport } from './routes/api/public/hooks/refresh-store'
 
+const GlassRoute = GlassRouteImport.update({
+  id: '/glass',
+  path: '/glass',
+  getParentRoute: () => rootRouteImport,
+} as any)
 const AuthRoute = AuthRouteImport.update({
   id: '/auth',
   path: '/auth',
@@ -33,35 +39,46 @@ const ApiPublicHooksRefreshStoreRoute =
 export interface FileRoutesByFullPath {
   '/': typeof IndexRoute
   '/auth': typeof AuthRoute
+  '/glass': typeof GlassRoute
   '/api/public/hooks/refresh-store': typeof ApiPublicHooksRefreshStoreRoute
 }
 export interface FileRoutesByTo {
   '/': typeof IndexRoute
   '/auth': typeof AuthRoute
+  '/glass': typeof GlassRoute
   '/api/public/hooks/refresh-store': typeof ApiPublicHooksRefreshStoreRoute
 }
 export interface FileRoutesById {
   __root__: typeof rootRouteImport
   '/': typeof IndexRoute
   '/auth': typeof AuthRoute
+  '/glass': typeof GlassRoute
   '/api/public/hooks/refresh-store': typeof ApiPublicHooksRefreshStoreRoute
 }
 export interface FileRouteTypes {
   fileRoutesByFullPath: FileRoutesByFullPath
-  fullPaths: '/' | '/auth' | '/api/public/hooks/refresh-store'
+  fullPaths: '/' | '/auth' | '/glass' | '/api/public/hooks/refresh-store'
   fileRoutesByTo: FileRoutesByTo
-  to: '/' | '/auth' | '/api/public/hooks/refresh-store'
-  id: '__root__' | '/' | '/auth' | '/api/public/hooks/refresh-store'
+  to: '/' | '/auth' | '/glass' | '/api/public/hooks/refresh-store'
+  id: '__root__' | '/' | '/auth' | '/glass' | '/api/public/hooks/refresh-store'
   fileRoutesById: FileRoutesById
 }
 export interface RootRouteChildren {
   IndexRoute: typeof IndexRoute
   AuthRoute: typeof AuthRoute
+  GlassRoute: typeof GlassRoute
   ApiPublicHooksRefreshStoreRoute: typeof ApiPublicHooksRefreshStoreRoute
 }
 
 declare module '@tanstack/react-router' {
   interface FileRoutesByPath {
+    '/glass': {
+      id: '/glass'
+      path: '/glass'
+      fullPath: '/glass'
+      preLoaderRoute: typeof GlassRouteImport
+      parentRoute: typeof rootRouteImport
+    }
     '/auth': {
       id: '/auth'
       path: '/auth'
@@ -89,6 +106,7 @@ declare module '@tanstack/react-router' {
 const rootRouteChildren: RootRouteChildren = {
   IndexRoute: IndexRoute,
   AuthRoute: AuthRoute,
+  GlassRoute: GlassRoute,
   ApiPublicHooksRefreshStoreRoute: ApiPublicHooksRefreshStoreRoute,
 }
 export const routeTree = rootRouteImport

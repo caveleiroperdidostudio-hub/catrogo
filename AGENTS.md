@@ -52,3 +52,9 @@ docker compose -f docker-compose.base44.yml up -d
 - The user created a NEW Supabase project but skipped providing its credentials. Until `VITE_SUPABASE_URL` + `VITE_SUPABASE_PUBLISHABLE_KEY` are set on the Base44 Secrets page, the app keeps pointing at the dead host and auth cannot be verified — the authenticated screens (Perfil → Configurações, Ctrg OS) stay unverifiable.
 - The new project is still EMPTY once connected: the 30 SQL files in `supabase/migrations/` must be applied in filename order (they create `profiles`, the signup trigger, RLS policies, feature flags, Ctrg UI/OS seeds). Without them login may work but the app has no tables.
 - Also check the new project's Auth settings: add the preview origin (`https://3000-$BASE44_PUBLIC_HOST_SUFFIX`) to the redirect allowlist, and note that with "Confirm email" ON, signup returns no session until the address is confirmed.
+
+## Glass Lens Dock (showcase público)
+- Rota pública `/glass` (sem login — útil porque o Supabase morto impede autenticar) renderiza `src/features/glass/GlassLensDock.tsx`, isolado em fundo preto: cápsula de vidro com ícone de grade, botão "+" e botão de três pontos.
+- A lente é uma cópia ampliada da camada de ícones (`.glass-dock__world`) dentro de um bloco `overflow: hidden`, alinhada por transformação em tempo real (origem em `x + lensW/2`). O layout real nunca muda.
+- A mola é um integrador massa-mola-amortecedor em `requestAnimationFrame` (stiffness 150 / damping 15), não um bezier — por isso há overshoot elástico.
+- Estilos em `src/styles.css` (bloco "Glass Lens Dock"). O `backdrop-filter` vem de utilitários Tailwind (`@apply backdrop-blur-*`), nunca escrito à mão (ver a peculiaridade acima).

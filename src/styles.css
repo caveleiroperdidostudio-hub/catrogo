@@ -914,3 +914,193 @@ a[href*="lovable.dev"] { display: none !important; }
     box-shadow var(--ctrg-dur-normal) ease,
     border-color var(--ctrg-dur-normal) ease;
 }
+
+/* ==========================================================================
+   Glass Lens Dock — cápsula de vidro com lente líquida deslizante.
+   A lente (`.glass-dock__lens`) contém uma cópia ampliada da camada de ícones
+   (`.glass-dock__world`); a ampliação e o deslocamento são aplicados por
+   transformação em tempo real, então o layout original nunca se altera.
+   ========================================================================== */
+.glass-dock-stage {
+  position: relative;
+  display: grid;
+  place-items: center;
+  min-height: 100dvh;
+  padding: 3rem 0;
+  background: #000;
+  overflow: hidden;
+}
+
+.glass-dock {
+  --dock-w: min(92vw, 30rem);
+  --dock-h: 4.25rem;
+  --lens-w: 3.55rem;
+  --lens-h: 3.55rem;
+  --lens-top: calc((var(--dock-h) - var(--lens-h)) / 2);
+  position: relative;
+  width: var(--dock-w);
+  height: var(--dock-h);
+  border-radius: 999px;
+  overflow: hidden;
+  isolation: isolate;
+  background:
+    linear-gradient(180deg, oklch(1 0 0 / 0.07), oklch(1 0 0 / 0.015) 52%, oklch(1 0 0 / 0.045)),
+    oklch(0.235 0.004 270 / 0.55);
+  box-shadow:
+    inset 0 0 0 1px oklch(1 0 0 / 0.09),
+    inset 0 1px 0 oklch(1 0 0 / 0.16),
+    inset 0 -1px 0 oklch(0 0 0 / 0.5),
+    0 30px 60px -24px oklch(0 0 0 / 0.95),
+    0 2px 10px -4px oklch(0 0 0 / 0.85);
+  @apply backdrop-blur-2xl backdrop-saturate-150;
+}
+
+.glass-dock__icons {
+  position: absolute;
+  inset: 0;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 0 1.1rem;
+}
+
+.glass-dock__slot {
+  display: grid;
+  place-items: center;
+  flex: none;
+  margin: 0;
+  padding: 0;
+  border: 0;
+  width: 2.35rem;
+  height: 2.35rem;
+  background: transparent;
+  color: oklch(1 0 0 / 0.5);
+  -webkit-tap-highlight-color: transparent;
+  transition: color 220ms ease, box-shadow 220ms ease;
+}
+
+.glass-dock__slot--plus {
+  width: 2.7rem;
+  height: 2.7rem;
+  border-radius: 0.95rem;
+  color: oklch(1 0 0 / 0.66);
+  background: oklch(1 0 0 / 0.055);
+  box-shadow: inset 0 0 0 1px oklch(1 0 0 / 0.08), inset 0 1px 0 oklch(1 0 0 / 0.12);
+}
+
+.glass-dock__slot--round {
+  border-radius: 999px;
+  color: oklch(1 0 0 / 0.66);
+  background: oklch(1 0 0 / 0.055);
+  box-shadow: inset 0 0 0 1px oklch(1 0 0 / 0.08), inset 0 1px 0 oklch(1 0 0 / 0.12);
+}
+
+/* A lente: bolha de vidro que refrata o que passa por baixo. */
+.glass-dock__lens {
+  position: absolute;
+  left: 0;
+  top: var(--lens-top);
+  width: var(--lens-w);
+  height: var(--lens-h);
+  border-radius: 999px;
+  overflow: hidden;
+  isolation: isolate;
+  pointer-events: none;
+  will-change: transform;
+  background:
+    radial-gradient(120% 120% at 30% 20%, oklch(1 0 0 / 0.12), oklch(1 0 0 / 0.015) 46%, oklch(1 0 0 / 0.05) 100%);
+  box-shadow:
+    inset 0 0 0 1px oklch(1 0 0 / 0.24),
+    inset 0 1px 2px oklch(1 0 0 / 0.5),
+    inset 0 -2px 6px oklch(1 0 0 / 0.1),
+    inset 0 -9px 16px -7px oklch(0 0 0 / 0.4),
+    0 14px 30px -12px oklch(0 0 0 / 0.9),
+    0 0 28px -6px oklch(1 0 0 / 0.12);
+  @apply backdrop-blur-[3px] backdrop-brightness-[1.18] backdrop-saturate-[1.5];
+}
+
+.glass-dock__world {
+  position: absolute;
+  left: 0;
+  top: calc(-1 * var(--lens-top));
+  width: var(--dock-w);
+  height: var(--dock-h);
+  pointer-events: none;
+  will-change: transform;
+}
+
+/* Dentro da lente os elementos ficam iluminados, levemente desfocados. */
+.glass-dock__icons--refracted {
+  filter: blur(0.3px) brightness(1.28) saturate(1.06) drop-shadow(0 0 5px oklch(1 0 0 / 0.22));
+}
+
+.glass-dock__icons--refracted .glass-dock__slot {
+  color: oklch(1 0 0 / 0.97);
+}
+
+.glass-dock__icons--refracted .glass-dock__slot--plus,
+.glass-dock__icons--refracted .glass-dock__slot--round {
+  color: oklch(1 0 0);
+  background: oklch(1 0 0 / 0.09);
+  box-shadow: inset 0 0 0 1px oklch(1 0 0 / 0.14), inset 0 1px 0 oklch(1 0 0 / 0.18);
+}
+
+.glass-dock__chroma,
+.glass-dock__prism,
+.glass-dock__sheen {
+  position: absolute;
+  inset: 0;
+  border-radius: inherit;
+  pointer-events: none;
+}
+
+/* Aberração cromática RGB discreta nas extremidades. */
+.glass-dock__chroma {
+  opacity: 0.75;
+  mix-blend-mode: screen;
+  box-shadow:
+    inset 2px 0 6px -3px oklch(0.7 0.24 18 / 0.55),
+    inset -2px 0 6px -3px oklch(0.7 0.2 250 / 0.55),
+    inset 0 2px 6px -3px oklch(0.85 0.17 95 / 0.35),
+    inset 0 -2px 6px -3px oklch(0.8 0.18 165 / 0.35);
+}
+
+/* Aresta iridescente que respira devagar. */
+.glass-dock__prism {
+  padding: 1.5px;
+  background: conic-gradient(
+    from 205deg,
+    oklch(0.83 0.16 205 / 0.9),
+    oklch(0.72 0.22 320 / 0.85),
+    oklch(0.9 0.14 95 / 0.6),
+    oklch(0.82 0.17 160 / 0.65),
+    oklch(0.83 0.16 205 / 0.9)
+  );
+  -webkit-mask: linear-gradient(#000 0 0) content-box, linear-gradient(#000 0 0);
+  -webkit-mask-composite: xor;
+  mask: linear-gradient(#000 0 0) content-box, linear-gradient(#000 0 0);
+  mask-composite: exclude;
+  mix-blend-mode: screen;
+  filter: blur(0.45px);
+  opacity: 0.3;
+  animation: glass-dock-prism 7s ease-in-out infinite alternate;
+}
+
+@keyframes glass-dock-prism {
+  from { opacity: 0.2; }
+  to { opacity: 0.42; }
+}
+
+/* Brilho especular e reflexo suave na superfície do vidro. */
+.glass-dock__sheen {
+  opacity: 0.75;
+  mix-blend-mode: screen;
+  background:
+    radial-gradient(42% 36% at 30% 20%, oklch(1 0 0 / 0.38), oklch(1 0 0 / 0) 72%),
+    radial-gradient(58% 46% at 74% 88%, oklch(1 0 0 / 0.14), oklch(1 0 0 / 0) 74%),
+    linear-gradient(180deg, oklch(1 0 0 / 0.1), oklch(1 0 0 / 0) 36%);
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .glass-dock__prism { animation: none; }
+}
