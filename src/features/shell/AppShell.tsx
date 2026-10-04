@@ -1,4 +1,4 @@
-import { useState, useEffect, useCallback } from "react";
+import { useState, useEffect, useCallback, type CSSProperties } from "react";
 import { MessageCircle, User, Compass, Crown, Sparkles, Gift, ShieldCheck } from "lucide-react";
 import { ChatHome } from "@/features/chat/ChatHome";
 import { ProfileModule } from "@/features/profile/ProfileModule";
@@ -86,7 +86,7 @@ function ShellInner() {
           gridTemplateColumns: `repeat(${tabs.length}, minmax(0, 1fr))`,
           "--ctrg-tab-count": tabs.length,
           "--ctrg-active-tab": Math.max(0, tabs.findIndex((tab) => tab.id === active)),
-        } as React.CSSProperties}
+        } as CSSProperties}
       >
         <span className="ctrg-liquid-nav-indicator" aria-hidden="true" />
         {tabs.map((t) => {
