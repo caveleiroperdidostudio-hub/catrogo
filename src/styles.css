@@ -597,6 +597,12 @@ a[href*="lovable.dev"] { display: none !important; }
   --ctrg-dur-fast: 0.18s;
   --ctrg-dur-normal: 0.42s;
   --ctrg-dur-slow: 0.68s;
+
+  /* Mola real (oscilador amortecido, ~2,8% de ultrapassagem e assentamento
+     gradual) — troca o overshoot simétrico de bezier por aceleração e parada
+     naturais. Usada em todo movimento do vidro. */
+  --ctrg-spring: linear(0, 0.0275, 0.0969, 0.1914, 0.2982, 0.4081, 0.5143, 0.6124, 0.7, 0.7757, 0.8394, 0.8915, 0.9329, 0.9649, 0.9886, 1.0056, 1.0169, 1.0239, 1.0274, 1.0284, 1.0276, 1.0256, 1.0229, 1.0199, 1.0168, 1.0138, 1.011, 1.0085, 1.0064, 1.0046, 1.0031, 1.0019, 1.001, 1.0003, 0.9998, 0.9995, 0.9993, 0.9992, 0.9992, 0.9992, 0.9993);
+  --ctrg-spring-dur: 0.56s;
 }
 
 /* O vidro precisa de conteúdo cromático atrás para a refração ser visível. */
@@ -606,8 +612,22 @@ a[href*="lovable.dev"] { display: none !important; }
     linear-gradient(145deg, color-mix(in oklab, var(--cosmic) 26%, transparent), transparent 38%),
     linear-gradient(320deg, color-mix(in oklab, var(--nebula) 20%, transparent), transparent 46%),
     linear-gradient(180deg, oklch(0.23 0.035 264), oklch(0.12 0.028 278));
-  background-size: 140% 140%, 150% 150%, 100% 100%;
-  animation: ctrg-glass-atmosphere 18s var(--ctrg-ease) infinite alternate;
+}
+
+/* A deriva atmosférica vive numa camada fixa animada só por transform:
+   antes ela animava background-position no body, o que repintava a viewport
+   inteira a cada quadro e engasgava o resto das animações do vidro. */
+[data-ctrg-skin="glass"] body::after {
+  content: "";
+  position: fixed;
+  inset: -25%;
+  z-index: -1;
+  pointer-events: none;
+  will-change: transform;
+  background-image:
+    radial-gradient(ellipse 60% 50% at 22% 26%, color-mix(in oklab, var(--cosmic) 30%, transparent), transparent 70%),
+    radial-gradient(ellipse 55% 45% at 78% 74%, color-mix(in oklab, var(--nebula) 24%, transparent), transparent 72%);
+  animation: ctrg-glass-drift 20s var(--ctrg-ease) infinite alternate;
 }
 
 [data-ctrg-skin="glass"] .chat-bg {
@@ -617,9 +637,9 @@ a[href*="lovable.dev"] { display: none !important; }
     linear-gradient(335deg, color-mix(in oklab, var(--nebula) 13%, transparent), transparent 52%);
 }
 
-@keyframes ctrg-glass-atmosphere {
-  from { background-position: 0% 0%, 100% 100%, 0 0; }
-  to { background-position: 18% 8%, 82% 90%, 0 0; }
+@keyframes ctrg-glass-drift {
+  from { transform: translate3d(-2.5%, -2%, 0) scale(1.02); }
+  to { transform: translate3d(2.5%, 2%, 0) scale(1.07); }
 }
 
 /* Painéis espessos: desfoque, sombra interna e reflexo na aresta. */
@@ -686,25 +706,91 @@ a[href*="lovable.dev"] { display: none !important; }
   pointer-events: none;
 }
 
+/* O "thumb" é uma lente líquida: fica acima dos ícones e os refrata pelo
+   backdrop-filter, com aresta espectral e brilho especular que varre a cápsula.
+   A translação usa a mola real — ele ultrapassa o alvo e assenta, em vez de
+   voltar com o overshoot simétrico do bezier antigo. */
 [data-ctrg-skin="glass"] .ctrg-liquid-nav-indicator {
   display: block;
   position: absolute;
-  z-index: 0;
+  z-index: 20;
   top: 0.28rem;
   bottom: 0.28rem;
   left: 0.34rem;
   width: calc((100% - 0.68rem) / var(--ctrg-tab-count));
-  border-radius: 1.35rem;
+  border-radius: 999px;
+  overflow: hidden;
+  pointer-events: none;
+  isolation: isolate;
   transform: translateX(calc(var(--ctrg-active-tab) * 100%));
-  transition: transform 0.58s cubic-bezier(0.34, 1.56, 0.64, 1), width 0.3s var(--ctrg-ease);
+  transition:
+    transform var(--ctrg-spring-dur) var(--ctrg-spring),
+    width var(--ctrg-dur-normal) var(--ctrg-ease);
   background:
-    linear-gradient(150deg, oklch(0.99 0.008 230 / 0.34), transparent 44%),
-    color-mix(in oklab, var(--primary) 24%, oklch(0.97 0.01 245 / 0.12));
-  border: 1px solid oklch(0.99 0.008 230 / 0.34);
+    linear-gradient(150deg, oklch(0.99 0.008 230 / 0.3), transparent 46%),
+    color-mix(in oklab, var(--primary) 22%, oklch(0.97 0.01 245 / 0.1));
+  border: 1px solid oklch(0.99 0.008 230 / 0.3);
+  @apply backdrop-blur-[1.5px] backdrop-saturate-200 backdrop-brightness-125;
   box-shadow:
-    inset 0 1px 1px oklch(0.99 0.008 230 / 0.5),
-    inset 0 -8px 14px color-mix(in oklab, var(--primary) 9%, transparent),
-    0 8px 20px -12px var(--ctrg-glass-shadow);
+    inset 0 1px 1px oklch(0.99 0.008 230 / 0.55),
+    inset 0 -1px 1px oklch(0.99 0.008 230 / 0.18),
+    inset 0 -10px 16px color-mix(in oklab, var(--primary) 10%, transparent),
+    0 10px 22px -12px var(--ctrg-glass-shadow);
+}
+
+/* Aresta espectral (refração) — anel fino que acompanha o raio da cápsula. */
+[data-ctrg-skin="glass"] .ctrg-liquid-nav-indicator::before {
+  content: "";
+  position: absolute;
+  inset: 0;
+  border-radius: inherit;
+  pointer-events: none;
+  padding: 1.5px;
+  background: conic-gradient(from 200deg,
+    oklch(0.86 0.17 205 / 0.85),
+    oklch(0.72 0.24 325 / 0.8),
+    oklch(0.88 0.15 95 / 0.7),
+    oklch(0.8 0.19 160 / 0.6),
+    oklch(0.86 0.17 205 / 0.85));
+  -webkit-mask: linear-gradient(#000 0 0) content-box, linear-gradient(#000 0 0);
+  -webkit-mask-composite: xor;
+  mask: linear-gradient(#000 0 0) content-box, linear-gradient(#000 0 0);
+  mask-composite: exclude;
+  opacity: 0.5;
+  mix-blend-mode: screen;
+  filter: blur(0.5px);
+  animation: ctrg-prism-breathe 6s ease-in-out infinite alternate;
+}
+
+/* Brilho especular que varre a lente como líquido (só transform/opacity). */
+[data-ctrg-skin="glass"] .ctrg-liquid-nav-indicator::after {
+  content: "";
+  position: absolute;
+  top: -45%;
+  bottom: -45%;
+  width: 38%;
+  pointer-events: none;
+  background: linear-gradient(90deg, transparent, oklch(0.99 0.01 230 / 0.34), transparent);
+  animation: ctrg-caustic 6.5s var(--ctrg-ease) infinite;
+}
+
+@keyframes ctrg-prism-breathe {
+  from { opacity: 0.34; }
+  to { opacity: 0.62; }
+}
+
+@keyframes ctrg-caustic {
+  0% { transform: rotate(14deg) translateX(-190%); opacity: 0; }
+  18% { opacity: 0.85; }
+  50% { transform: rotate(14deg) translateX(160%); opacity: 0.45; }
+  82% { opacity: 0.85; }
+  100% { transform: rotate(14deg) translateX(190%); opacity: 0; }
+}
+
+/* Ao tocar uma aba a lente se achata como líquido e volta com a mola. */
+[data-ctrg-skin="glass"] .ctrg-liquid-nav:has(.ctrg-nav-item:active) .ctrg-liquid-nav-indicator {
+  transition-duration: var(--ctrg-dur-fast), var(--ctrg-spring-dur);
+  transform: translateX(calc(var(--ctrg-active-tab) * 100%)) scale(1.06, 0.93);
 }
 
 [data-ctrg-skin="glass"] .ctrg-nav-item {
@@ -713,6 +799,9 @@ a[href*="lovable.dev"] { display: none !important; }
 }
 
 [data-ctrg-skin="glass"] .ctrg-nav-item:active { transform: scale(0.84); }
+[data-ctrg-skin="glass"] .ctrg-nav-item svg {
+  transition: transform var(--ctrg-spring-dur) var(--ctrg-spring), filter var(--ctrg-dur-normal) ease;
+}
 [data-ctrg-skin="glass"] .ctrg-nav-item[aria-current="page"] svg {
   filter: drop-shadow(0 2px 5px color-mix(in oklab, var(--primary) 46%, transparent));
   transform: translateY(-1px) scale(1.08);
@@ -803,6 +892,25 @@ a[href*="lovable.dev"] { display: none !important; }
 }
 
 @media (prefers-reduced-motion: reduce) {
-  [data-ctrg-skin="glass"] body { animation: none; }
-  [data-ctrg-skin="glass"] .ctrg-liquid-nav-indicator { transition: none; }
+  [data-ctrg-skin="glass"] body::after { animation: none; }
+  [data-ctrg-skin="glass"] .ctrg-liquid-nav-indicator,
+  [data-ctrg-skin="glass"] .ctrg-liquid-nav-indicator::before,
+  [data-ctrg-skin="glass"] .ctrg-liquid-nav-indicator::after { animation: none; transition: none; }
+}
+
+/* Entradas do vidro terminam com a mesma mola: sem parada seca no fim. */
+[data-ctrg-skin="glass"] .page-transition {
+  animation: page-enter var(--ctrg-spring-dur) var(--ctrg-spring);
+}
+[data-ctrg-skin="glass"] .ctrg-modal-enter {
+  animation: ctrg-modal-enter var(--ctrg-spring-dur) var(--ctrg-spring);
+}
+[data-ctrg-skin="glass"] .ctrg-tab-enter {
+  animation: ctrg-tab-enter var(--ctrg-spring-dur) var(--ctrg-spring);
+}
+[data-ctrg-skin="glass"] .card-interactive {
+  transition:
+    transform var(--ctrg-spring-dur) var(--ctrg-spring),
+    box-shadow var(--ctrg-dur-normal) ease,
+    border-color var(--ctrg-dur-normal) ease;
 }
