@@ -14,7 +14,8 @@
 - [x] Aba Premium com chaves Pix (CPF 07533111273 / e-mail petrosakiles@gmail.com) e envio de comprovante
 - [x] Dono aprova/concede premium de graça a qualquer usuário
 - [x] Aba Premium no menu + ajuste de tela (ViewportProvider)
-- [ ] Mais benefícios premium ao longo do tempo (badge, limites maiores, temas exclusivos)
+- [x] Glass UI líquido exclusivo do Ctrg OS, inspirado nas referências enviadas
+- [ ] Mais benefícios premium ao longo do tempo (badge e limites maiores)
 
 ## Política de conteúdo
 - Filmes só com conteúdo próprio, licenciado ou em domínio público (campo obrigatório de direitos no upload).

@@ -147,7 +147,7 @@ export function PremiumModule() {
             </div>
 
             <div className="flex flex-col items-center gap-3">
-              <div className="rounded-2xl bg-white p-3">
+              <div className="ctrg-qr-glass rounded-2xl p-3">
                 <QRCodeSVG value={pixPayload} size={168} level="M" bgColor="#ffffff" fgColor="#0b0b12" />
               </div>
               <div className="w-full space-y-1.5">

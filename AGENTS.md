@@ -43,7 +43,7 @@ docker compose -f docker-compose.base44.yml up -d
 ## Ctrg UI (gratuita) e Ctrg OS (paga)
 - `src/lib/ctrg-ui.tsx` is the source of truth: `uiLabel()` names the experiences, `isPro` / `isOs` decides access.
 - Ctrg UI is the free experience; Ctrg OS is the paid one (R$ 15,63/month). The owner (`OWNER_EMAIL` in `src/lib/auth-context.tsx`) and staff (`supabase.rpc("is_staff")`) get Ctrg OS for free.
-- The **Glass UI** theme lives in `src/styles.css` under `[data-ctrg-skin="glass"]` and is only applied when `isOs` is true.
+- Shared `ctrg-*` control classes let the Ctrg OS skin apply liquid-glass depth and motion without changing feature logic.
 - Pix: `src/lib/pix.ts` builds the BR Code (Copia e Cola) in the browser with the amount already embedded; the QR uses `qrcode.react`. Payment confirmation is still manual (owner approval panel) — there is no bank webhook.
 - `supabase/migrations/20261003000000_ctrg_os_glass_ui.sql` registers UI version 4.1 and the new feature flags; it must be applied to the Supabase project.
 

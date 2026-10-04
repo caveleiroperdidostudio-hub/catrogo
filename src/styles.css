@@ -569,77 +569,240 @@ a[href*="lovable.dev"] { display: none !important; }
 
 /* ================================================================
    CTRG OS — Tema "Glass UI"
-   Vidro translúcido no estilo do iOS: superfícies frosted, brilho
-   especular nas bordas e navegação flutuante. Exclusivo do Ctrg OS.
+   Vidro líquido: refração simulada, brilho especular e movimento
+   elástico. Exclusivo do Ctrg OS.
    ================================================================ */
 [data-ctrg-skin="glass"] {
-  --background: oklch(0.19 0.025 265);
+  --background: oklch(0.17 0.028 267);
   --foreground: oklch(0.98 0.005 265);
-  --card: oklch(1 0 0 / 0.1);
-  --popover: oklch(0.24 0.025 265 / 0.92);
-  --secondary: oklch(1 0 0 / 0.08);
+  --card: oklch(0.98 0.012 245 / 0.105);
+  --popover: oklch(0.24 0.025 265 / 0.78);
+  --secondary: oklch(0.98 0.012 245 / 0.095);
   --secondary-foreground: oklch(0.97 0.005 265);
-  --muted: oklch(1 0 0 / 0.06);
-  --muted-foreground: oklch(0.82 0.015 265);
-  --border: oklch(1 0 0 / 0.16);
-  --input: oklch(1 0 0 / 0.14);
+  --muted: oklch(0.98 0.012 245 / 0.07);
+  --muted-foreground: oklch(0.84 0.014 258);
+  --border: oklch(0.98 0.012 245 / 0.22);
+  --input: oklch(0.98 0.012 245 / 0.16);
   --radius: 1.125rem;
 
-  --ctrg-surface-1: oklch(1 0 0 / 0.07);
-  --ctrg-surface-2: oklch(1 0 0 / 0.1);
-  --ctrg-surface-3: oklch(1 0 0 / 0.14);
+  --ctrg-surface-1: oklch(0.98 0.012 245 / 0.075);
+  --ctrg-surface-2: oklch(0.98 0.012 245 / 0.11);
+  --ctrg-surface-3: oklch(0.98 0.012 245 / 0.16);
+  --ctrg-glass-edge: oklch(0.99 0.008 240 / 0.38);
+  --ctrg-glass-edge-soft: oklch(0.96 0.018 255 / 0.16);
+  --ctrg-glass-shadow: oklch(0.04 0.025 275 / 0.52);
+  --ctrg-glass-shine: oklch(0.99 0.01 230 / 0.28);
+  --ctrg-glass-tint: color-mix(in oklab, var(--primary) 10%, transparent);
+  --ctrg-nav-height: 4.15rem;
+  --ctrg-dur-fast: 0.18s;
+  --ctrg-dur-normal: 0.42s;
+  --ctrg-dur-slow: 0.68s;
 }
 
-/* Fundo ambiente claro e difuso (sem o campo estelar denso) */
+/* O vidro precisa de conteúdo cromático atrás para a refração ser visível. */
 [data-ctrg-skin="glass"] body {
   background-color: var(--background);
   background-image:
-    radial-gradient(58% 42% at 16% 6%, color-mix(in oklab, var(--cosmic) 42%, transparent), transparent 72%),
-    radial-gradient(52% 42% at 88% 20%, color-mix(in oklab, var(--nebula) 36%, transparent), transparent 72%),
-    radial-gradient(72% 48% at 50% 106%, color-mix(in oklab, var(--primary) 28%, transparent), transparent 72%);
+    linear-gradient(145deg, color-mix(in oklab, var(--cosmic) 26%, transparent), transparent 38%),
+    linear-gradient(320deg, color-mix(in oklab, var(--nebula) 20%, transparent), transparent 46%),
+    linear-gradient(180deg, oklch(0.23 0.035 264), oklch(0.12 0.028 278));
+  background-size: 140% 140%, 150% 150%, 100% 100%;
+  animation: ctrg-glass-atmosphere 18s var(--ctrg-ease) infinite alternate;
 }
 
 [data-ctrg-skin="glass"] .chat-bg {
-  background-color: transparent;
+  background-color: oklch(0.12 0.025 275 / 0.26);
   background-image:
-    radial-gradient(60% 45% at 25% 12%, color-mix(in oklab, var(--cosmic) 22%, transparent), transparent 70%),
-    radial-gradient(55% 45% at 80% 82%, color-mix(in oklab, var(--nebula) 20%, transparent), transparent 70%);
+    linear-gradient(155deg, color-mix(in oklab, var(--cosmic) 14%, transparent), transparent 45%),
+    linear-gradient(335deg, color-mix(in oklab, var(--nebula) 13%, transparent), transparent 52%);
 }
 
-/* Painéis frosted com brilho especular na borda superior */
+@keyframes ctrg-glass-atmosphere {
+  from { background-position: 0% 0%, 100% 100%, 0 0; }
+  to { background-position: 18% 8%, 82% 90%, 0 0; }
+}
+
+/* Painéis espessos: desfoque, sombra interna e reflexo na aresta. */
 [data-ctrg-skin="glass"] .glass {
   @apply backdrop-blur-3xl backdrop-saturate-150;
-  background-color: oklch(1 0 0 / 0.09);
-  border: 1px solid oklch(1 0 0 / 0.16);
+  position: relative;
+  isolation: isolate;
+  background:
+    linear-gradient(150deg, var(--ctrg-glass-shine), transparent 42%),
+    color-mix(in oklab, var(--card) 88%, var(--ctrg-glass-tint));
+  border: 1px solid var(--ctrg-glass-edge-soft);
   box-shadow:
-    inset 0 1px 0 oklch(1 0 0 / 0.22),
-    0 12px 32px -16px oklch(0 0 0 / 0.55);
+    inset 0 1px 0 var(--ctrg-glass-edge),
+    inset 0 -1px 0 oklch(0.06 0.02 275 / 0.25),
+    0 16px 38px -20px var(--ctrg-glass-shadow);
 }
 
 [data-ctrg-skin="glass"] .cosmic-glow {
   box-shadow:
-    inset 0 1px 0 oklch(1 0 0 / 0.25),
-    0 0 24px -6px color-mix(in oklab, var(--cosmic) 55%, transparent);
+    inset 0 1px 0 var(--ctrg-glass-edge),
+    0 0 26px -8px color-mix(in oklab, var(--cosmic) 58%, transparent),
+    0 12px 32px -18px var(--ctrg-glass-shadow);
 }
 
-/* Barra de navegação flutuante, como no iOS */
-[data-ctrg-skin="glass"] nav[aria-label="Navegação principal"] {
-  margin: 0 0.5rem 0.5rem;
-  border: 1px solid oklch(1 0 0 / 0.18);
-  border-radius: 1.5rem;
-  background-color: oklch(1 0 0 / 0.11);
+/* Navegação funciona em todos os temas; no Glass vira uma cápsula líquida. */
+.ctrg-liquid-nav {
+  position: relative;
+  display: grid;
+  align-items: stretch;
+  padding: 0.3rem 0.34rem calc(0.3rem + env(safe-area-inset-bottom));
+  border-top: 1px solid var(--border);
+}
+
+.ctrg-liquid-nav-indicator { display: none; }
+
+[data-ctrg-skin="glass"] .ctrg-liquid-nav {
+  margin: 0 0.42rem max(0.42rem, env(safe-area-inset-bottom));
+  padding: 0.3rem 0.34rem;
+  height: var(--ctrg-nav-height) !important;
+  border: 1px solid var(--ctrg-glass-edge-soft);
+  border-radius: 1.65rem;
+  overflow: hidden;
+  background:
+    linear-gradient(165deg, oklch(0.99 0.006 230 / 0.22), transparent 38%),
+    oklch(0.96 0.012 245 / 0.105);
   @apply backdrop-blur-3xl backdrop-saturate-150;
   box-shadow:
-    inset 0 1px 0 oklch(1 0 0 / 0.24),
-    0 16px 40px -18px oklch(0 0 0 / 0.6);
+    inset 0 1px 0 oklch(0.99 0.006 230 / 0.42),
+    inset 0 -1px 0 oklch(0.06 0.025 275 / 0.24),
+    0 20px 46px -18px var(--ctrg-glass-shadow);
+}
+
+[data-ctrg-skin="glass"] .ctrg-liquid-nav::after {
+  content: "";
+  position: absolute;
+  z-index: 3;
+  top: 0.14rem;
+  left: 12%;
+  width: 44%;
+  height: 0.1rem;
+  border-radius: 999px;
+  background: linear-gradient(90deg, transparent, oklch(0.99 0.008 220 / 0.7), transparent);
+  opacity: 0.75;
+  pointer-events: none;
+}
+
+[data-ctrg-skin="glass"] .ctrg-liquid-nav-indicator {
+  display: block;
+  position: absolute;
+  z-index: 0;
+  top: 0.28rem;
+  bottom: 0.28rem;
+  left: 0.34rem;
+  width: calc((100% - 0.68rem) / var(--ctrg-tab-count));
+  border-radius: 1.35rem;
+  transform: translateX(calc(var(--ctrg-active-tab) * 100%));
+  transition: transform 0.58s cubic-bezier(0.34, 1.56, 0.64, 1), width 0.3s var(--ctrg-ease);
+  background:
+    linear-gradient(150deg, oklch(0.99 0.008 230 / 0.34), transparent 44%),
+    color-mix(in oklab, var(--primary) 24%, oklch(0.97 0.01 245 / 0.12));
+  border: 1px solid oklch(0.99 0.008 230 / 0.34);
+  box-shadow:
+    inset 0 1px 1px oklch(0.99 0.008 230 / 0.5),
+    inset 0 -8px 14px color-mix(in oklab, var(--primary) 9%, transparent),
+    0 8px 20px -12px var(--ctrg-glass-shadow);
+}
+
+[data-ctrg-skin="glass"] .ctrg-nav-item {
+  border-radius: 1.25rem;
+  transition: transform var(--ctrg-dur-fast) var(--ctrg-ease), color var(--ctrg-dur-normal) ease;
+}
+
+[data-ctrg-skin="glass"] .ctrg-nav-item:active { transform: scale(0.84); }
+[data-ctrg-skin="glass"] .ctrg-nav-item[aria-current="page"] svg {
+  filter: drop-shadow(0 2px 5px color-mix(in oklab, var(--primary) 46%, transparent));
+  transform: translateY(-1px) scale(1.08);
+}
+
+/* Botões e campos compartilhados ganham pressão e refração. */
+[data-ctrg-skin="glass"] .ctrg-control {
+  position: relative;
+  overflow: hidden;
+  border-color: var(--ctrg-glass-edge-soft);
+  box-shadow: inset 0 1px 0 var(--ctrg-glass-edge), 0 8px 18px -14px var(--ctrg-glass-shadow);
+  transition: transform var(--ctrg-dur-fast) var(--ctrg-ease), box-shadow var(--ctrg-dur-normal) ease, background-color var(--ctrg-dur-normal) ease;
+}
+[data-ctrg-skin="glass"] .ctrg-control::after {
+  content: "";
+  position: absolute;
+  inset: 1px 16% auto;
+  height: 1px;
+  background: var(--ctrg-glass-edge);
+  opacity: 0.7;
+  pointer-events: none;
+}
+[data-ctrg-skin="glass"] .ctrg-control:active { transform: scale(0.93); }
+
+[data-ctrg-skin="glass"] .ctrg-input,
+[data-ctrg-skin="glass"] textarea,
+[data-ctrg-skin="glass"] [role="combobox"] {
+  @apply backdrop-blur-xl backdrop-saturate-150;
+  background-color: var(--ctrg-surface-1);
+  border-color: var(--ctrg-glass-edge-soft);
+  box-shadow: inset 0 1px 0 oklch(0.99 0.008 230 / 0.2), inset 0 -8px 18px oklch(0.05 0.02 275 / 0.08);
+}
+
+[data-ctrg-skin="glass"] .ctrg-liquid-switch {
+  @apply backdrop-blur-xl backdrop-saturate-150;
+  height: 1.55rem;
+  width: 2.8rem;
+  border: 1px solid var(--ctrg-glass-edge-soft);
+  box-shadow: inset 0 1px 0 var(--ctrg-glass-edge), inset 0 -5px 12px oklch(0.04 0.02 275 / 0.2);
+  transition: background-color var(--ctrg-dur-normal) ease, transform var(--ctrg-dur-fast) var(--ctrg-ease);
+}
+[data-ctrg-skin="glass"] .ctrg-liquid-switch:active { transform: scaleX(1.08) scaleY(0.92); }
+[data-ctrg-skin="glass"] .ctrg-liquid-switch > span {
+  height: 1.18rem;
+  width: 1.18rem;
+  background: linear-gradient(145deg, oklch(0.99 0.008 230 / 0.96), oklch(0.85 0.018 250 / 0.86));
+  box-shadow: inset 0 1px 0 oklch(1 0 0 / 0.82), 0 3px 9px oklch(0.04 0.025 275 / 0.36);
+}
+[data-ctrg-skin="glass"] .ctrg-liquid-switch > span[data-state="checked"] { transform: translateX(1.25rem); }
+
+[data-ctrg-skin="glass"] .ctrg-glass-row {
+  border: 1px solid transparent;
+}
+[data-ctrg-skin="glass"] .ctrg-glass-row:hover,
+[data-ctrg-skin="glass"] .ctrg-glass-row:focus-visible {
+  background: var(--ctrg-surface-1);
+  border-color: var(--ctrg-glass-edge-soft);
+  box-shadow: inset 0 1px 0 oklch(0.99 0.008 230 / 0.16);
+}
+[data-ctrg-skin="glass"] .ctrg-glass-row:active { transform: scale(0.975); }
+
+[data-ctrg-skin="glass"] .ctrg-qr-glass {
+  background: oklch(0.99 0.004 240 / 0.94);
+  border: 1px solid oklch(1 0 0 / 0.75);
+  box-shadow: inset 0 1px 0 oklch(1 0 0 / 0.9), 0 16px 36px -16px var(--ctrg-glass-shadow);
 }
 
 /* Cabeçalhos e cards ganham leveza no vidro */
 [data-ctrg-skin="glass"] .card-premium,
 [data-ctrg-skin="glass"] .ctrg-card-pro {
-  background: oklch(1 0 0 / 0.09);
-  border-color: oklch(1 0 0 / 0.16);
+  background: linear-gradient(150deg, var(--ctrg-glass-shine), transparent 42%), var(--ctrg-surface-2);
+  border-color: var(--ctrg-glass-edge-soft);
   box-shadow:
-    inset 0 1px 0 oklch(1 0 0 / 0.2),
-    0 12px 32px -16px oklch(0 0 0 / 0.5);
+    inset 0 1px 0 var(--ctrg-glass-edge),
+    0 16px 38px -18px var(--ctrg-glass-shadow);
+}
+
+@media (max-width: 380px) {
+  [data-ctrg-skin="glass"] .ctrg-liquid-nav {
+    margin-inline: 0.25rem;
+    padding-inline: 0.2rem;
+  }
+  [data-ctrg-skin="glass"] .ctrg-liquid-nav-indicator {
+    left: 0.2rem;
+    width: calc((100% - 0.4rem) / var(--ctrg-tab-count));
+  }
+  .ctrg-liquid-nav .ctrg-nav-item span { font-size: 0.55rem; }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  [data-ctrg-skin="glass"] body { animation: none; }
+  [data-ctrg-skin="glass"] .ctrg-liquid-nav-indicator { transition: none; }
 }

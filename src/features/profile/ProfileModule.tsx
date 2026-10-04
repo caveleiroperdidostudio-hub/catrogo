@@ -39,7 +39,7 @@ export function ProfileModule({ initialSection }: { initialSection?: string }) {
   if (showSettings) {
     return (
       <div className="flex h-full flex-col overflow-hidden">
-        <div className="h-12 shrink-0 flex items-center gap-2 px-3 border-b border-white/5 bg-background/80 backdrop-blur">
+        <div className="glass h-12 shrink-0 flex items-center gap-2 px-3 border-b border-white/5">
           <button onClick={() => setShowSettings(false)} className="flex items-center gap-1.5 text-sm font-medium text-primary">
             <ChevronRight className="h-4 w-4 rotate-180" /> Perfil
           </button>
@@ -53,7 +53,7 @@ export function ProfileModule({ initialSection }: { initialSection?: string }) {
 
   return (
     <div className="flex h-full flex-col overflow-hidden">
-      <div className="h-12 flex items-center px-4 border-b border-white/5">
+      <div className="glass h-12 flex items-center px-4 border-b border-white/5">
         <span className="font-semibold flex-1">Perfil</span>
         <Button size="icon" variant="ghost" onClick={signOut} title="Sair">
           <LogOut className="h-4 w-4" />
@@ -106,7 +106,7 @@ function ProfileLink({ icon: Icon, label, desc, onClick }: { icon: typeof UserIc
   return (
     <button
       onClick={onClick}
-      className="w-full flex items-center gap-3 rounded-xl px-3 py-3 transition hover:bg-white/5"
+      className="ctrg-glass-row w-full flex items-center gap-3 rounded-xl px-3 py-3 transition"
     >
       <div className="flex h-9 w-9 shrink-0 items-center justify-center rounded-xl bg-white/5 border border-white/10">
         <Icon className="h-4 w-4 text-muted-foreground" />

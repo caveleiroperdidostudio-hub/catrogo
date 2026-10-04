@@ -1,4 +1,4 @@
-import { useState, useEffect, useCallback } from "react";
+import { useState, useEffect, useCallback, type CSSProperties } from "react";
 import { MessageCircle, User, Compass, Crown, Sparkles, Gift, ShieldCheck } from "lucide-react";
 import { ChatHome } from "@/features/chat/ChatHome";
 import { ProfileModule } from "@/features/profile/ProfileModule";
@@ -80,9 +80,15 @@ function ShellInner() {
 
       <nav
         aria-label="Navegação principal"
-        className="shrink-0 border-t border-white/10 glass flex items-stretch justify-around px-1 pb-[env(safe-area-inset-bottom)]"
-        style={{ height: "calc(var(--ctrg-nav-height, 4rem) + env(safe-area-inset-bottom))" }}
+        className="ctrg-liquid-nav glass shrink-0"
+        style={{
+          height: "calc(var(--ctrg-nav-height, 4rem) + env(safe-area-inset-bottom))",
+          gridTemplateColumns: `repeat(${tabs.length}, minmax(0, 1fr))`,
+          "--ctrg-tab-count": tabs.length,
+          "--ctrg-active-tab": Math.max(0, tabs.findIndex((tab) => tab.id === active)),
+        } as CSSProperties}
       >
+        <span className="ctrg-liquid-nav-indicator" aria-hidden="true" />
         {tabs.map((t) => {
           const Icon = t.icon;
           const isActive = active === t.id;
@@ -92,11 +98,8 @@ function ShellInner() {
               onClick={() => setActive(t.id)}
               aria-label={t.label}
               aria-current={isActive ? "page" : undefined}
-              className="ctrg-nav-item group relative flex flex-1 min-w-[var(--ctrg-nav-item-min,52px)] flex-col items-center justify-center gap-0.5"
+              className="ctrg-nav-item group relative z-10 flex min-w-0 flex-col items-center justify-center gap-0.5"
             >
-              {isActive && (
-                <span className="absolute top-0 h-0.5 w-8 rounded-full bg-primary cosmic-glow" aria-hidden="true" />
-              )}
               <Icon
                 className={`h-5 w-5 transition-all duration-200 ${
                   isActive ? "text-primary scale-110" : "text-muted-foreground group-hover:text-foreground"
