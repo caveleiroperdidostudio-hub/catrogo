@@ -58,4 +58,3 @@ docker compose -f docker-compose.base44.yml up -d
 - A lente é uma cópia ampliada da camada de ícones (`.glass-dock__world`) dentro de um bloco `overflow: hidden`, alinhada por transformação em tempo real (origem em `x + lensW/2`). O layout real nunca muda.
 - A mola é um integrador massa-mola-amortecedor em `requestAnimationFrame` (stiffness 150 / damping 15), não um bezier — por isso há overshoot elástico.
 - Estilos em `src/styles.css` (bloco "Glass Lens Dock"). O `backdrop-filter` vem de utilitários Tailwind (`@apply backdrop-blur-*`), nunca escrito à mão (ver a peculiaridade acima).
-- Verificação sem a aba do preview: `docker run --network host zenika/alpine-chrome:with-puppeteer` + `puppeteer-core` apontando para `http://localhost:3000/glass`.
