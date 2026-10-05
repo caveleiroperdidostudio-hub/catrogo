@@ -9,14 +9,14 @@
 // Additionally, you should also exclude this file from your linter and/or formatter to prevent it from being checked or modified.
 
 import { Route as rootRouteImport } from './routes/__root'
-import { Route as GlassRouteImport } from './routes/glass'
-import { Route as AuthRouteImport } from './routes/auth'
 import { Route as IndexRouteImport } from './routes/index'
+import { Route as AuthRouteImport } from './routes/auth'
+import { Route as GlassRouteImport } from './routes/glass'
 import { Route as ApiPublicHooksRefreshStoreRouteImport } from './routes/api/public/hooks/refresh-store'
 
-const GlassRoute = GlassRouteImport.update({
-  id: '/glass',
-  path: '/glass',
+const IndexRoute = IndexRouteImport.update({
+  id: '/',
+  path: '/',
   getParentRoute: () => rootRouteImport,
 } as any)
 const AuthRoute = AuthRouteImport.update({
@@ -24,9 +24,9 @@ const AuthRoute = AuthRouteImport.update({
   path: '/auth',
   getParentRoute: () => rootRouteImport,
 } as any)
-const IndexRoute = IndexRouteImport.update({
-  id: '/',
-  path: '/',
+const GlassRoute = GlassRouteImport.update({
+  id: '/glass',
+  path: '/glass',
   getParentRoute: () => rootRouteImport,
 } as any)
 const ApiPublicHooksRefreshStoreRoute =
@@ -72,11 +72,11 @@ export interface RootRouteChildren {
 
 declare module '@tanstack/react-router' {
   interface FileRoutesByPath {
-    '/glass': {
-      id: '/glass'
-      path: '/glass'
-      fullPath: '/glass'
-      preLoaderRoute: typeof GlassRouteImport
+    '/': {
+      id: '/'
+      path: '/'
+      fullPath: '/'
+      preLoaderRoute: typeof IndexRouteImport
       parentRoute: typeof rootRouteImport
     }
     '/auth': {
@@ -86,11 +86,11 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof AuthRouteImport
       parentRoute: typeof rootRouteImport
     }
-    '/': {
-      id: '/'
-      path: '/'
-      fullPath: '/'
-      preLoaderRoute: typeof IndexRouteImport
+    '/glass': {
+      id: '/glass'
+      path: '/glass'
+      fullPath: '/glass'
+      preLoaderRoute: typeof GlassRouteImport
       parentRoute: typeof rootRouteImport
     }
     '/api/public/hooks/refresh-store': {
