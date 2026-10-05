@@ -56,5 +56,5 @@ docker compose -f docker-compose.base44.yml up -d
 ## Glass Lens Dock (showcase público)
 - Rota pública `/glass` (sem login — útil porque o Supabase morto impede autenticar) renderiza `src/features/glass/GlassLensDock.tsx`, isolado em fundo preto: cápsula de vidro com ícone de grade, botão "+" e botão de três pontos.
 - A lente é uma cópia ampliada da camada de ícones (`.glass-dock__world`) dentro de um bloco `overflow: hidden`, alinhada por transformação em tempo real (origem em `x + lensW/2`). O layout real nunca muda.
-- A mola é um integrador massa-mola-amortecedor em `requestAnimationFrame` (stiffness 150 / damping 15), não um bezier — por isso há overshoot elástico.
+- A lente usa mola física e Pointer Events; acompanha o arraste e encaixa no item mais próximo ao soltar.
 - Estilos em `src/styles.css` (bloco "Glass Lens Dock"). O `backdrop-filter` vem de utilitários Tailwind (`@apply backdrop-blur-*`), nunca escrito à mão (ver a peculiaridade acima).
