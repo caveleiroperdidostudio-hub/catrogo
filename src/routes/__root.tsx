@@ -6,6 +6,7 @@ import {
   useRouter,
   HeadContent,
   Scripts,
+  type ErrorComponentProps,
 } from "@tanstack/react-router";
 import { Toaster } from "sonner";
 import { useEffect } from "react";
@@ -46,9 +47,10 @@ function NotFoundComponent() {
   );
 }
 
-function ErrorComponent({ error, reset }: { error: Error; reset: () => void }) {
+function ErrorComponent({ error, reset }: ErrorComponentProps) {
   console.error(error);
   const router = useRouter();
+  const message = error instanceof Error ? error.message : "Ocorreu um erro inesperado.";
   return (
     <div className="flex min-h-[100dvh] items-center justify-center bg-background px-6">
       <div className="page-transition max-w-md text-center">
@@ -58,7 +60,7 @@ function ErrorComponent({ error, reset }: { error: Error; reset: () => void }) {
         <h1 className="font-display text-xl font-semibold text-foreground">
           Distorção temporal detectada
         </h1>
-        <p className="mt-2 break-words text-sm text-muted-foreground">{error.message}</p>
+        <p className="mt-2 break-words text-sm text-muted-foreground">{message}</p>
         <div className="mt-7 flex items-center justify-center gap-3">
           <button
             onClick={() => { router.invalidate(); reset(); }}
