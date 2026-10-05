@@ -1,4 +1,4 @@
-import { useCallback, useEffect, useLayoutEffect, useRef } from "react";
+import { useCallback, useEffect, useLayoutEffect, useRef, type PointerEvent as ReactPointerEvent } from "react";
 
 /**
  * Cápsula de vidro com lente líquida deslizante.
@@ -81,6 +81,10 @@ export function GlassLensDock() {
   const xRef = useRef(0);
   const vRef = useRef(0);
   const targetRef = useRef(0);
+  const draggingRef = useRef(false);
+  const movedRef = useRef(false);
+  const dragStartXRef = useRef(0);
+  const resumeAutoAtRef = useRef(0);
 
   const setSlot = useCallback((i: number, el: HTMLButtonElement | null) => {
     slotEls.current[i] = el;
@@ -90,6 +94,39 @@ export function GlassLensDock() {
     const next = targetsRef.current[i];
     if (next !== undefined) targetRef.current = next;
   }, []);
+
+  const dragTo = useCallback((clientX: number) => {
+    const bar = barRef.current;
+    if (!bar || !lensWRef.current) return;
+    const rect = bar.getBoundingClientRect();
+    const next = clamp(clientX - rect.left - lensWRef.current / 2, 0, rect.width - lensWRef.current);
+    targetRef.current = next;
+  }, []);
+
+  const handlePointerDown = useCallback((event: ReactPointerEvent<HTMLDivElement>) => {
+    if (event.button !== 0) return;
+    draggingRef.current = true;
+    movedRef.current = false;
+    dragStartXRef.current = event.clientX;
+    event.currentTarget.setPointerCapture(event.pointerId);
+    dragTo(event.clientX);
+  }, [dragTo]);
+
+  const handlePointerMove = useCallback((event: ReactPointerEvent<HTMLDivElement>) => {
+    if (!draggingRef.current) return;
+    if (Math.abs(event.clientX - dragStartXRef.current) > 4) movedRef.current = true;
+    dragTo(event.clientX);
+  }, [dragTo]);
+
+  const finishDrag = useCallback((event: ReactPointerEvent<HTMLDivElement>) => {
+    if (!draggingRef.current) return;
+    draggingRef.current = false;
+    resumeAutoAtRef.current = performance.now() + HOLD_MS * 2;
+    if (event.currentTarget.hasPointerCapture(event.pointerId)) event.currentTarget.releasePointerCapture(event.pointerId);
+    const nearest = targetsRef.current.reduce((best, target, index, targets) =>
+      Math.abs(target - targetRef.current) < Math.abs(targets[best] - targetRef.current) ? index : best, 0);
+    goTo(nearest);
+  }, [goTo]);
 
   /* Mede as posições reais dos elementos para que a lente pare exatamente
      sobre o centro de cada um, em qualquer largura de tela. */
@@ -169,6 +206,7 @@ export function GlassLensDock() {
     let index = 1;
     let dir = 1;
     const id = window.setInterval(() => {
+      if (draggingRef.current || performance.now() < resumeAutoAtRef.current) return;
       const count = targetsRef.current.length;
       if (count < 2) return;
       index += dir;
@@ -186,7 +224,7 @@ export function GlassLensDock() {
 
   return (
     <div className="glass-dock-stage">
-      <div className="glass-dock" ref={barRef}>
+      <div className="glass-dock" ref={barRef} onPointerDown={handlePointerDown} onPointerMove={handlePointerMove} onPointerUp={finishDrag} onPointerCancel={finishDrag}>
         <div className="glass-dock__icons">
           {SLOTS.map((slot, i) => (
             <button
@@ -195,7 +233,13 @@ export function GlassLensDock() {
               aria-label={slot.label}
               className={`glass-dock__slot ${slot.variant}`}
               ref={(el) => setSlot(i, el)}
-              onClick={() => goTo(i)}
+              onClick={() => {
+                if (movedRef.current) {
+                  movedRef.current = false;
+                  return;
+                }
+                goTo(i);
+              }}
             >
               {slot.glyph}
             </button>
