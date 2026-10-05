@@ -1,4 +1,4 @@
-import { useState, useEffect, useCallback, type CSSProperties } from "react";
+import { useState, useEffect, useCallback, useRef, type CSSProperties, type PointerEvent as ReactPointerEvent } from "react";
 import { MessageCircle, User, Compass, Crown, Sparkles, Gift, ShieldCheck } from "lucide-react";
 import { ChatHome } from "@/features/chat/ChatHome";
 import { ProfileModule } from "@/features/profile/ProfileModule";
@@ -34,6 +34,8 @@ function ShellInner() {
   const [active, setActive] = useState<ModuleId>("chat");
   const [settingsSection, setSettingsSection] = useState<string | undefined>(undefined);
   const [isStaff, setIsStaff] = useState(false);
+  const navRef = useRef<HTMLElement>(null);
+  const dragRef = useRef({ active: false, moved: false, startX: 0, index: 0 });
 
   useEffect(() => {
     let alive = true;
@@ -64,6 +66,43 @@ function ShellInner() {
     if (!isStaff && !isOwner && active === "staff") setActive("chat");
   }, [event, isOwner, isStaff, active]);
 
+  const updateDrag = useCallback((clientX: number) => {
+    const nav = navRef.current;
+    if (!nav || tabs.length === 0) return;
+    const rect = nav.getBoundingClientRect();
+    const inset = window.innerWidth <= 380 ? 3.2 : 5.44;
+    const trackWidth = Math.max(rect.width - inset * 2, 0);
+    const itemWidth = trackWidth / tabs.length;
+    const center = Math.min(Math.max(clientX - rect.left - inset, itemWidth / 2), trackWidth - itemWidth / 2);
+    const offset = center - itemWidth / 2;
+    dragRef.current.index = Math.min(tabs.length - 1, Math.max(0, Math.round(offset / itemWidth)));
+    nav.style.setProperty("--ctrg-drag-offset", `${offset}px`);
+  }, [tabs]);
+
+  const handleNavPointerDown = useCallback((event: ReactPointerEvent<HTMLElement>) => {
+    if (event.button !== 0) return;
+    dragRef.current = { active: true, moved: false, startX: event.clientX, index: 0 };
+    event.currentTarget.setPointerCapture(event.pointerId);
+    event.currentTarget.dataset.dragging = "true";
+    updateDrag(event.clientX);
+  }, [updateDrag]);
+
+  const handleNavPointerMove = useCallback((event: ReactPointerEvent<HTMLElement>) => {
+    if (!dragRef.current.active) return;
+    if (Math.abs(event.clientX - dragRef.current.startX) > 5) dragRef.current.moved = true;
+    updateDrag(event.clientX);
+  }, [updateDrag]);
+
+  const finishNavDrag = useCallback((event: ReactPointerEvent<HTMLElement>) => {
+    if (!dragRef.current.active) return;
+    dragRef.current.active = false;
+    const chosen = tabs[dragRef.current.index];
+    if (dragRef.current.moved && chosen) setActive(chosen.id);
+    event.currentTarget.removeAttribute("data-dragging");
+    event.currentTarget.style.removeProperty("--ctrg-drag-offset");
+    if (event.currentTarget.hasPointerCapture(event.pointerId)) event.currentTarget.releasePointerCapture(event.pointerId);
+  }, [tabs]);
+
   return (
     <div className="app-viewport relative flex flex-col overflow-hidden bg-background safe-top">
       <EventCountdownBanner />
@@ -79,8 +118,13 @@ function ShellInner() {
       </div>
 
       <nav
+        ref={navRef}
         aria-label="Navegação principal"
         className="ctrg-liquid-nav glass shrink-0"
+        onPointerDown={handleNavPointerDown}
+        onPointerMove={handleNavPointerMove}
+        onPointerUp={finishNavDrag}
+        onPointerCancel={finishNavDrag}
         style={{
           height: "calc(var(--ctrg-nav-height, 4rem) + env(safe-area-inset-bottom))",
           gridTemplateColumns: `repeat(${tabs.length}, minmax(0, 1fr))`,
@@ -95,7 +139,13 @@ function ShellInner() {
           return (
             <button
               key={t.id}
-              onClick={() => setActive(t.id)}
+              onClick={() => {
+                if (dragRef.current.moved) {
+                  dragRef.current.moved = false;
+                  return;
+                }
+                setActive(t.id);
+              }}
               aria-label={t.label}
               aria-current={isActive ? "page" : undefined}
               className="ctrg-nav-item group relative z-10 flex min-w-0 flex-col items-center justify-center gap-0.5"
