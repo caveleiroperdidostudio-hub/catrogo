@@ -1,5 +1,12 @@
 # CatroGo — Roadmap
 
+## Atualização focada em comunicação
+- [ ] Renovar lista e pesquisa de conversas sem indicadores falsos
+- [ ] Refinar cabeçalho, mensagens, anexos e campo de digitação preservando os fluxos
+- [ ] Central de aparência de chats com prévia, restauração e preferências privadas
+- [ ] Variações Glass premium e movimento reduzido
+- [ ] Verificar segurança existente e testar os fluxos disponíveis
+
 ## Em andamento
 - [x] Player oficial (CatroPlayer) ligado aos Filmes + continuar assistindo (`movie_progress`)
 - [x] Campos de licença nos filmes (detentor dos direitos / contrato)
