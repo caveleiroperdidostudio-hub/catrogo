@@ -16,6 +16,9 @@ import { NotificationsProvider } from "@/lib/notifications-context";
 import { useAuth } from "@/lib/auth-context";
 import { supabase } from "@/integrations/supabase/client";
 import { AppNavProvider, useAppNav, isAllowedPage, type AppPageId } from "@/lib/app-nav";
+import { MotionProvider, useMotion } from "@/lib/motion-context";
+import { UpdateIntro } from "@/features/updates/UpdateIntro";
+import { LATEST_VERSION } from "@/features/updates/UpdatesModule";
 
 type ModuleId = AppPageId | "admin" | "missions" | "staff";
 
@@ -28,9 +31,12 @@ const BASE_TABS: { id: ModuleId; label: string; icon: typeof MessageCircle }[] =
 ];
 
 function ShellInner() {
-  const { isOwner } = useAuth();
+  const { isOwner, session } = useAuth();
   const { event } = useGlobalEvent();
   const { register } = useAppNav();
+  const { play } = useMotion();
+  const [intro, setIntro] = useState(false);
+  const introKey = session?.user?.id ? `nuv:intro-seen:${session.user.id}` : null;
   const [active, setActive] = useState<ModuleId>("chat");
   const [settingsSection, setSettingsSection] = useState<string | undefined>(undefined);
   const [isStaff, setIsStaff] = useState(false);
@@ -50,10 +56,38 @@ function ShellInner() {
   const go = useCallback((id: string, section?: string): boolean => {
     if (!isAllowedPage(id)) return false;
     setActive(id as ModuleId);
+    play("tab_change");
     if (section) setSettingsSection(section);
     return true;
-  }, []);
+  }, [play]);
   useEffect(() => { register(go); }, [register, go]);
+
+  // Animação de abertura: uma vez por sessão.
+  const openedRef = useRef(false);
+  useEffect(() => {
+    if (openedRef.current) return;
+    openedRef.current = true;
+    play("app_open");
+  }, [play]);
+
+  // Boas-vindas da versão: aparece uma vez por conta, a cada atualização.
+  useEffect(() => {
+    if (!introKey) return;
+    try {
+      if (localStorage.getItem(introKey) !== LATEST_VERSION.version) setIntro(true);
+    } catch { /* armazenamento bloqueado */ }
+  }, [introKey]);
+
+  useEffect(() => {
+    const show = () => setIntro(true);
+    window.addEventListener("nuv:show-intro", show);
+    return () => window.removeEventListener("nuv:show-intro", show);
+  }, []);
+
+  const closeIntro = useCallback(() => {
+    setIntro(false);
+    try { if (introKey) localStorage.setItem(introKey, LATEST_VERSION.version); } catch { /* ignore */ }
+  }, [introKey]);
 
   const tabs = [...BASE_TABS];
   if (event) tabs.push({ id: "missions", label: "Natal", icon: Gift });
@@ -105,6 +139,7 @@ function ShellInner() {
 
   return (
     <div className="app-viewport relative flex flex-col overflow-hidden bg-background safe-top">
+      {intro && <UpdateIntro version={LATEST_VERSION} onClose={closeIntro} />}
       <EventCountdownBanner />
       <div key={active} className="page-transition flex-1 min-h-0 overflow-hidden">
         {active === "chat" && <ChatHome />}
@@ -145,6 +180,7 @@ function ShellInner() {
                   return;
                 }
                 setActive(t.id);
+                play("tab_change");
               }}
               aria-label={t.label}
               aria-current={isActive ? "page" : undefined}
@@ -177,7 +213,9 @@ export function AppShell() {
         <NotificationsProvider>
           <ChannelProvider render={(userId, close) => <ChannelView userId={userId} onClose={close} />}>
             <AppNavProvider>
-              <ShellInner />
+              <MotionProvider>
+                <ShellInner />
+              </MotionProvider>
             </AppNavProvider>
           </ChannelProvider>
         </NotificationsProvider>

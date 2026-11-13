@@ -19,6 +19,13 @@ export type PrivacyFlags = {
 
 export type EphemeralSetting = number;
 
+/** Permissões que o usuário dá para a IA agir dentro do app. */
+export type AiPermissions = {
+  canNavigate: boolean;
+  canAct: boolean;
+  askBeforeAct: boolean;
+};
+
 export type ChatWallpaper = {
   type: "gradient" | "image" | "video";
   value: string; // CSS background for gradient, URL for image/video
@@ -52,6 +59,8 @@ type SettingsValue = {
   setTheme: (t: ThemeAccent) => void;
   privacy: PrivacyFlags;
   setPrivacy: (p: PrivacyFlags) => void;
+  ai: AiPermissions;
+  setAi: (p: Partial<AiPermissions>) => void;
   ephemeral: Record<string, EphemeralSetting>;
   setEphemeral: (convId: string, seconds: EphemeralSetting) => void;
   locks: Record<string, string>;
@@ -85,6 +94,7 @@ type Persisted = {
   readThrough: Record<string, string>;
   theme: ThemeAccent;
   privacy: PrivacyFlags;
+  ai: AiPermissions;
   ephemeral: Record<string, number>;
   locks: Record<string, string>;
   wallpaper: string;
@@ -113,6 +123,7 @@ const DEFAULTS: Persisted = {
     ghostLastSeen: false, ghostOnline: false, ghostTyping: false, ghostRecording: false,
     antiDelete: true, bypassViewOnce: true,
   },
+  ai: { canNavigate: true, canAct: false, askBeforeAct: true },
   ephemeral: {},
   locks: {},
   wallpaper: DEFAULT_WALLPAPER,
@@ -153,6 +164,7 @@ function loadInitial(storage: string): Persisted {
       ...DEFAULTS,
       ...parsed,
       chatWallpaper: { ...DEFAULTS.chatWallpaper, ...(parsed.chatWallpaper ?? {}) },
+      ai: { ...DEFAULTS.ai, ...(parsed.ai ?? {}) },
       appearance: { ...DEFAULT_APPEARANCE, ...(parsed.appearance ?? {}) },
       contactWallpapers: parsed.contactWallpapers ?? {},
       chatAppearance: normalizeChatAppearance(parsed.chatAppearance ?? { bubble: parsed.appearance?.bubbleStyle ?? "round" }),
@@ -263,6 +275,8 @@ export function SettingsProvider({ children }: { children: ReactNode }) {
     setTheme: (t) => setState((s) => ({ ...s, theme: t })),
     privacy: state.privacy,
     setPrivacy: (p) => setState((s) => ({ ...s, privacy: p })),
+    ai: state.ai,
+    setAi: (p) => setState((s) => ({ ...s, ai: { ...s.ai, ...p } })),
     ephemeral: state.ephemeral,
     setEphemeral: (convId, seconds) =>
       setState((s) => {

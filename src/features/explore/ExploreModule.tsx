@@ -1,14 +1,13 @@
 import { useState } from "react";
 import {
-  Package, BadgeCheck, Clock, Rocket, ArrowLeft,
+  Package, BadgeCheck, Rocket, ArrowLeft,
   type LucideIcon,
 } from "lucide-react";
 import { ModsModule } from "@/features/mods/ModsModule";
 import { VerificationModule } from "@/features/verification/VerificationModule";
-import { MuseumModule } from "@/features/museum/MuseumModule";
 import { UpdatesModule } from "@/features/updates/UpdatesModule";
 
-type SectionId = "mods" | "verify" | "museum" | "updates";
+type SectionId = "mods" | "verify" | "updates";
 
 type Section = {
   id: SectionId;
@@ -21,8 +20,7 @@ type Section = {
 const SECTIONS: Section[] = [
   { id: "mods", label: "Mods", desc: "Explore, crie e instale mods da comunidade", icon: Package, color: "oklch(0.72 0.16 215)" },
   { id: "verify", label: "Selos", desc: "Solicite selos de verificação e identidade", icon: BadgeCheck, color: "oklch(0.7 0.15 230)" },
-  { id: "museum", label: "Museu", desc: "Viaje pela história do app", icon: Clock, color: "oklch(0.65 0.2 295)" },
-  { id: "updates", label: "Novidades", desc: "Veja o que mudou a cada versão", icon: Rocket, color: "oklch(0.78 0.18 70)" },
+  { id: "updates", label: "Atualizações", desc: "Veja o que mudou a cada versão", icon: Rocket, color: "oklch(0.78 0.18 70)" },
 ];
 
 export function ExploreModule() {
@@ -34,11 +32,8 @@ export function ExploreModule() {
   if (active === "verify") {
     return <SectionWrapper title="Selos" onBack={() => setActive(null)}><VerificationModule /></SectionWrapper>;
   }
-  if (active === "museum") {
-    return <SectionWrapper title="Museu" onBack={() => setActive(null)}><MuseumModule /></SectionWrapper>;
-  }
   if (active === "updates") {
-    return <SectionWrapper title="Novidades" onBack={() => setActive(null)}><UpdatesModule /></SectionWrapper>;
+    return <SectionWrapper title="Atualizações" onBack={() => setActive(null)}><UpdatesModule /></SectionWrapper>;
   }
 
   return (
@@ -49,7 +44,7 @@ export function ExploreModule() {
         </div>
         <div className="flex-1">
           <div className="font-semibold leading-tight">Explorar</div>
-          <div className="text-[11px] text-muted-foreground">Mods, selos, museu e novidades</div>
+          <div className="text-[11px] text-muted-foreground">Mods, selos e atualizações do app</div>
         </div>
       </div>
 

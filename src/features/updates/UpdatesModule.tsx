@@ -3,10 +3,25 @@ import { Rocket, ChevronLeft, ChevronRight, Check, Sparkles, History } from "luc
 import { Button } from "@/components/ui/button";
 
 type Change = { type: "novo" | "melhoria" | "correção"; text: string };
-type Version = { version: string; date: string; title: string; changes: Change[] };
+export type ChangelogVersion = { version: string; date: string; title: string; changes: Change[] };
 
 // Mais recente primeiro
-export const CHANGELOG: Version[] = [
+export const CHANGELOG: ChangelogVersion[] = [
+  {
+    version: "4.2.0",
+    date: "Novembro de 2026",
+    title: "Nuv • Animações sob medida, IA sem pausa e interface mais limpa",
+    changes: [
+      { type: "novo", text: "Animação de boas-vindas mostrando tudo que chegou nesta versão." },
+      { type: "novo", text: "Editar animações: use seus próprios vídeos, fotos e sons ao abrir o app, trocar de aba ou enviar mensagem." },
+      { type: "novo", text: "Botão para ativar ou desativar animações e escolher a intensidade (suave, normal ou viva)." },
+      { type: "novo", text: "IA reserva: quando as IAs do app ficam sem créditos, a Nuv IA continua respondendo e abrindo telas." },
+      { type: "novo", text: "Permissões da IA nas configurações: deixe a assistente abrir telas e mudar ajustes do app." },
+      { type: "melhoria", text: "Animações mais fluidas no Ctrg UI e ainda mais expressivas no Ctrg OS." },
+      { type: "melhoria", text: "Explorar mais enxuto, com o painel de atualizações em destaque." },
+      { type: "correção", text: "Removidas opções que não funcionavam nas configurações e o modo Museu." },
+    ],
+  },
   {
     version: "4.1.0",
     date: "Outubro de 2026",
@@ -139,6 +154,8 @@ export const CHANGELOG: Version[] = [
   },
 ];
 
+export const LATEST_VERSION = CHANGELOG[0];
+
 const TYPE_STYLE: Record<Change["type"], string> = {
   novo: "bg-emerald-500/15 text-emerald-400 border-emerald-500/30",
   melhoria: "bg-sky-500/15 text-sky-400 border-sky-500/30",
@@ -158,7 +175,7 @@ export function UpdatesModule() {
         </div>
         <div className="flex-1">
           <div className="font-semibold leading-tight">Atualizações</div>
-          <div className="text-[11px] text-muted-foreground">Tudo que chegou ao CatroGo</div>
+          <div className="text-[11px] text-muted-foreground">Tudo que chegou ao Nuv</div>
         </div>
       </div>
 
@@ -227,10 +244,13 @@ export function UpdatesModule() {
           </ul>
         </div>
 
-        {!isLatest && (
-          <div className="rounded-xl border border-amber-500/30 bg-amber-500/10 p-3 text-xs text-amber-300">
-            🏛️ <strong>Modo museu</strong> — você está lendo uma versão antiga do CatroGo. Este histórico é somente leitura.
-          </div>
+        {isLatest && (
+          <button
+            onClick={() => window.dispatchEvent(new Event("nuv:show-intro"))}
+            className="w-full rounded-xl border border-white/10 bg-white/5 py-2.5 text-sm font-medium text-foreground transition hover:bg-white/10"
+          >
+            ▶︎ Rever a animação de novidades
+          </button>
         )}
 
         <p className="text-center text-[11px] text-muted-foreground">

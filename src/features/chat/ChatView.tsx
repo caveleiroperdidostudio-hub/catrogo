@@ -32,6 +32,7 @@ import {
 } from "@/lib/e2ee";
 import { uploadFile, signedUrl, mediaKind, humanSize } from "@/lib/media";
 import { StickerPicker, StickerImg, type StickerRow } from "./StickerPicker";
+import { useMotion } from "@/lib/motion-context";
 
 const QUICK_REACTIONS = ["❤️", "😂", "😮", "😢", "🙏", "👍", "🚀"];
 
@@ -83,6 +84,7 @@ const isCarlosName = (n: string | null) => n === "Carlos" || n === "Jarvis IA";
 
 export function ChatView({ conversationId, onBack }: { conversationId: string; onBack: () => void }) {
   const { user } = useAuth();
+  const { play: playMotion } = useMotion();
   const {
     privacy, ephemeral, setEphemeral, locks, lockChat, unlockChat, isUnlockedNow, markUnlockedNow,
     chatWallpaper: globalWallpaper, appearance, contactWallpapers, setContactWallpaper,
@@ -357,6 +359,7 @@ export function ChatView({ conversationId, onBack }: { conversationId: string; o
 
     setSending(false);
     if (error) { toast.error(error.message); setText(content); return; }
+    playMotion("message_sent");
     if (!header?.isAi) {
       const preview = enc ? "🔒 Nova mensagem" : content.slice(0, 180);
       notifyNewMessage({ data: { conversationId, preview } }).catch(() => {});

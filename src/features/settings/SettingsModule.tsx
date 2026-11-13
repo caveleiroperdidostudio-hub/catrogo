@@ -1,7 +1,7 @@
 import { useEffect, useState } from "react";
 import {
-  User, Shield, Bell, Palette, Package, Sparkles, Info, LogOut,
-  Loader2, ChevronRight, Crown, Smartphone, Globe, Zap, Eye, Type,
+  User, Shield, Palette, Sparkles, Info, LogOut,
+  Loader2, ChevronRight, Crown, Smartphone, Zap, Eye, Type, Play,
 } from "lucide-react";
 import { useAuth } from "@/lib/auth-context";
 import { useSettings, type ThemeAccent } from "@/lib/settings-context";
@@ -15,15 +15,17 @@ import { Slider } from "@/components/ui/slider";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { toast } from "sonner";
 import { APP_VERSION, uiLabel } from "@/lib/ctrg-ui";
+import { AnimationsEditor } from "@/features/settings/AnimationsEditor";
+import { LOCAL_CAPABILITIES } from "@/lib/local-assistant";
 
-type Category = "account" | "profile" | "privacy" | "notifications" | "appearance" | "ai" | "about";
+type Category = "account" | "profile" | "privacy" | "appearance" | "animations" | "ai" | "about";
 
 const CATEGORIES: { id: Category; label: string; icon: typeof User }[] = [
   { id: "account", label: "Conta", icon: User },
   { id: "profile", label: "Perfil", icon: Smartphone },
   { id: "privacy", label: "Privacidade", icon: Shield },
-  { id: "notifications", label: "Notificações", icon: Bell },
   { id: "appearance", label: "Aparência", icon: Palette },
+  { id: "animations", label: "Animações", icon: Zap },
   { id: "ai", label: "IA", icon: Sparkles },
   { id: "about", label: "Sobre", icon: Info },
 ];
@@ -100,12 +102,6 @@ function AccountSection() {
       </div>
 
       <SectionTitle>Sessão</SectionTitle>
-      <Row icon={Globe} label="Dispositivos conectados" desc="Gerenciar sessões ativas">
-        <ChevronRight className="h-4 w-4 text-muted-foreground" />
-      </Row>
-      <Row icon={Shield} label="Autenticação" desc="Senha e segurança">
-        <ChevronRight className="h-4 w-4 text-muted-foreground" />
-      </Row>
       <div className="px-4 py-3">
         <Button variant="destructive" className="w-full" onClick={signOut}>
           <LogOut className="h-4 w-4 mr-2" /> Sair da conta
@@ -137,7 +133,6 @@ function ProfileSection() {
           <AvatarImage src={profile?.avatar_url ?? undefined} />
           <AvatarFallback className="text-2xl">{(profile?.display_name ?? "?").charAt(0).toUpperCase()}</AvatarFallback>
         </Avatar>
-        <Button variant="outline" size="sm">Alterar foto</Button>
       </div>
       <div className="px-4 py-2 space-y-3">
         <div className="space-y-1.5">
@@ -149,16 +144,6 @@ function ProfileSection() {
         </Button>
       </div>
 
-      <SectionTitle>Personalização</SectionTitle>
-      <Row icon={Palette} label="Tema do perfil" desc="Cor de destaque e banner">
-        <ChevronRight className="h-4 w-4 text-muted-foreground" />
-      </Row>
-      <Row icon={Type} label="Estilo dos cards" desc="Layout e aparência">
-        <ChevronRight className="h-4 w-4 text-muted-foreground" />
-      </Row>
-      <Row icon={Crown} label="Badges e verificação" desc="Selos no perfil">
-        <ChevronRight className="h-4 w-4 text-muted-foreground" />
-      </Row>
     </div>
   );
 }
@@ -201,31 +186,6 @@ function PrivacySection() {
       <Row icon={User} label="Quem pode enviar mensagens" desc={whoCanMsg === "todos" ? "Todos" : "Apenas contatos"}>
         <Switch checked={whoCanMsg === "todos"} onCheckedChange={(v) => setWhoCanMsg(v ? "todos" : "contatos")} />
       </Row>
-    </div>
-  );
-}
-
-function NotificationsSection() {
-  const [push, setPush] = useState(false);
-  const [cats, setCats] = useState({ messages: true, followers: true, groups: true, mods: true, updates: true, ai: true, system: true });
-
-  const toggle = (k: keyof typeof cats) => setCats({ ...cats, [k]: !cats[k] });
-
-  return (
-    <div className="space-y-1">
-      <SectionTitle>Notificações push</SectionTitle>
-      <Row icon={Bell} label="Notificações push" desc="Receber notificações no dispositivo">
-        <Switch checked={push} onCheckedChange={setPush} />
-      </Row>
-
-      <SectionTitle>Categorias</SectionTitle>
-      <Row icon={User} label="Mensagens"><Switch checked={cats.messages} onCheckedChange={() => toggle("messages")} /></Row>
-      <Row icon={User} label="Seguidores"><Switch checked={cats.followers} onCheckedChange={() => toggle("followers")} /></Row>
-      <Row icon={User} label="Grupos"><Switch checked={cats.groups} onCheckedChange={() => toggle("groups")} /></Row>
-      <Row icon={Package} label="Mods"><Switch checked={cats.mods} onCheckedChange={() => toggle("mods")} /></Row>
-      <Row icon={Zap} label="Atualizações"><Switch checked={cats.updates} onCheckedChange={() => toggle("updates")} /></Row>
-      <Row icon={Sparkles} label="IA"><Switch checked={cats.ai} onCheckedChange={() => toggle("ai")} /></Row>
-      <Row icon={Info} label="Sistema"><Switch checked={cats.system} onCheckedChange={() => toggle("system")} /></Row>
     </div>
   );
 }
@@ -300,9 +260,6 @@ function AppearanceSection() {
       </div>
 
       <SectionTitle>Interface</SectionTitle>
-      <Row icon={Zap} label="Animações" desc="Transições e microinterações">
-        <Switch checked={prefs.animations} onCheckedChange={(v) => updatePrefs({ animations: v })} />
-      </Row>
       <Row icon={Sparkles} label="Efeitos visuais" desc="Glow e blur premium">
         <Switch checked={prefs.effects} onCheckedChange={(v) => updatePrefs({ effects: v })} />
       </Row>
@@ -381,36 +338,37 @@ function AppearanceSection() {
 }
 
 function AiSection() {
-  const { flags } = useCtrgUi();
-  const [confirmActions, setConfirmActions] = useState(true);
-  const [aiPrivacy, setAiPrivacy] = useState(true);
+  const { ai, setAi } = useSettings();
 
   return (
     <div className="space-y-1">
-      <SectionTitle>Assistente</SectionTitle>
-      <Row icon={Sparkles} label="Navegação por IA" desc="A IA pode abrir telas do app">
-        <Switch checked={flags.ai_navigation_enabled !== false} onCheckedChange={() => {}} />
+      <SectionTitle>Permissões da Nuv IA</SectionTitle>
+      <Row icon={Sparkles} label="Abrir telas" desc="A IA pode levar você até uma área do app">
+        <Switch checked={ai.canNavigate} onCheckedChange={(v) => setAi({ canNavigate: v })} />
       </Row>
-      <Row icon={Shield} label="Confirmar ações" desc="Pedir confirmação antes de ações destrutivas">
-        <Switch checked={confirmActions} onCheckedChange={setConfirmActions} />
+      <Row icon={Zap} label="Agir no app" desc="A IA pode mudar ajustes, como ligar ou desligar animações">
+        <Switch checked={ai.canAct} onCheckedChange={(v) => setAi({ canAct: v })} />
       </Row>
-      <Row icon={Eye} label="Privacidade da IA" desc="Não compartilhar dados sensíveis">
-        <Switch checked={aiPrivacy} onCheckedChange={setAiPrivacy} />
+      <Row icon={Shield} label="Pedir confirmação" desc="Mostrar um aviso antes de cada ação da IA">
+        <Switch checked={ai.askBeforeAct} onCheckedChange={(v) => setAi({ askBeforeAct: v })} />
       </Row>
 
-      <SectionTitle>Permissões</SectionTitle>
-      <Row icon={User} label="Consultar perfil" desc="A IA pode ver suas informações">
-        <Switch checked disabled />
-      </Row>
-      <Row icon={Package} label="Buscar mods" desc="A IA pode procurar mods">
-        <Switch checked disabled />
-      </Row>
-      <Row icon={Bell} label="Ver notificações" desc="A IA pode ver suas notificações">
-        <Switch checked disabled />
-      </Row>
-      <Row icon={Globe} label="Abrir páginas" desc="A IA pode navegar no app">
-        <Switch checked={flags.ai_navigation_enabled !== false} disabled />
-      </Row>
+      <SectionTitle>O que a IA faz hoje</SectionTitle>
+      <div className="px-4 py-2 space-y-1.5">
+        {LOCAL_CAPABILITIES.map((capability) => (
+          <div key={capability} className="flex items-center gap-2 text-sm text-muted-foreground">
+            <span className="h-1.5 w-1.5 rounded-full bg-primary" aria-hidden="true" />
+            {capability}
+          </div>
+        ))}
+      </div>
+
+      <div className="px-4 py-3">
+        <p className="text-[11px] leading-relaxed text-muted-foreground">
+          Se as IAs do app ficarem sem créditos, a Nuv IA entra em <strong>modo reserva</strong>:
+          responde as dúvidas frequentes e continua abrindo telas, sem interromper você.
+        </p>
+      </div>
     </div>
   );
 }
@@ -437,20 +395,21 @@ function AboutSection() {
       </Row>
       <Row icon={Info} label="Plataforma" desc="Nuv Platform" />
 
-      <SectionTitle>Explorar</SectionTitle>
-      <Row icon={Zap} label="Histórico de versões" desc="Novidades e mudanças">
+      <SectionTitle>Atualizações</SectionTitle>
+      <button
+        type="button"
+        onClick={() => window.dispatchEvent(new Event("nuv:show-intro"))}
+        className="flex w-full items-center gap-3 px-4 py-3 text-left transition hover:bg-white/5"
+      >
+        <div className="flex h-9 w-9 shrink-0 items-center justify-center rounded-xl bg-primary/15 border border-primary/30">
+          <Play className="h-4 w-4 text-primary" />
+        </div>
+        <div className="min-w-0 flex-1">
+          <div className="text-sm font-medium">Rever a animação de novidades</div>
+          <div className="text-xs text-muted-foreground">Tudo que chegou nesta versão</div>
+        </div>
         <ChevronRight className="h-4 w-4 text-muted-foreground" />
-      </Row>
-      <Row icon={Smartphone} label="Museu" desc="Experimente versões antigas">
-        <ChevronRight className="h-4 w-4 text-muted-foreground" />
-      </Row>
-      <Row icon={Info} label="Créditos" desc="Quem construiu o Nuv">
-        <ChevronRight className="h-4 w-4 text-muted-foreground" />
-      </Row>
-
-      <SectionTitle>Legal</SectionTitle>
-      <Row icon={Shield} label="Termos de uso"><ChevronRight className="h-4 w-4 text-muted-foreground" /></Row>
-      <Row icon={Shield} label="Política de privacidade"><ChevronRight className="h-4 w-4 text-muted-foreground" /></Row>
+      </button>
     </div>
   );
 }
@@ -491,8 +450,8 @@ export function SettingsModule({ initialCategory }: { initialCategory?: string }
         {cat === "account" && <AccountSection />}
         {cat === "profile" && <ProfileSection />}
         {cat === "privacy" && <PrivacySection />}
-        {cat === "notifications" && <NotificationsSection />}
         {cat === "appearance" && <AppearanceSection />}
+        {cat === "animations" && <AnimationsEditor />}
         {cat === "ai" && <AiSection />}
         {cat === "about" && <AboutSection />}
       </div>

@@ -9,6 +9,9 @@ import { platformAssistant } from "@/lib/game-ai.functions";
 import { aiNavigate } from "@/lib/ai-nav.functions";
 import { useAppNav, pageLabel } from "@/lib/app-nav";
 import { useCtrgUi, uiLabel } from "@/lib/ctrg-ui";
+import { useSettings } from "@/lib/settings-context";
+import { useMotion } from "@/lib/motion-context";
+import { localAssistantReply, type LocalAction } from "@/lib/local-assistant";
 
 type Msg = {
   role: "user" | "assistant";
@@ -32,6 +35,9 @@ export function AiChatModule() {
   const navigate = useServerFn(aiNavigate);
   const { go } = useAppNav();
   const { info } = useCtrgUi();
+  const { ai } = useSettings();
+  const { setPrefs: setMotionPrefs } = useMotion();
+  const [pending, setPending] = useState<LocalAction | null>(null);
   const [messages, setMessages] = useState<Msg[]>(() => {
     if (typeof window === "undefined") return [];
     try {
@@ -55,6 +61,22 @@ export function AiChatModule() {
     endRef.current?.scrollIntoView({ behavior: "smooth" });
   }, [messages]);
 
+  const push = (content: string) =>
+    setMessages((prev) => [...prev, { role: "assistant", content }]);
+
+  const runAction = (action: LocalAction) => {
+    if (action.type === "motion") {
+      setMotionPrefs({ enabled: action.enabled });
+      return;
+    }
+    go(action.page);
+  };
+
+  const actionLabel = (action: LocalAction) =>
+    action.type === "motion"
+      ? action.enabled ? "Ativar as animações do app?" : "Desativar as animações do app?"
+      : `Abrir ${pageLabel(action.page)}?`;
+
   const send = async (text: string, retryIndex?: number) => {
     const content = text.trim();
     if (!content || busy) return;
@@ -72,38 +94,25 @@ export function AiChatModule() {
       ? messages.slice(0, retryIndex)
       : [...messages, { role: "user" as const, content }];
 
-    // Verifica se o usuário pediu para abrir uma tela (IA com navegação)
-    let navHandled = false;
-    try {
-      const nav = await navigate({ data: { message: content } });
-      if (nav.page) {
-        const label = pageLabel(nav.page);
-        const navigated = go(nav.page);
-        if (navigated) {
-          navHandled = true;
-          const sayText = nav.say ?? `Abrindo ${label}…`;
-          setMessages((prev) => [...prev, {
-            role: "assistant",
-            content: `🔗 ${sayText}\n\nVocê foi levado para **${label}**.`,
-          }]);
+    // 1. Navegação da IA do app (só com permissão ligada nas configurações)
+    if (ai.canNavigate) {
+      try {
+        const nav = await navigate({ data: { message: content } });
+        if (nav.page && go(nav.page)) {
+          const label = pageLabel(nav.page);
+          push(`🔗 ${nav.say ?? `Abrindo ${label}…`}\n\nVocê foi levado para **${label}**.`);
+          setBusy(false);
+          setTimeout(() => taRef.current?.focus(), 50);
+          return;
         }
+      } catch {
+        /* navegação opcional — não interrompe o chat */
       }
-    } catch {
-      /* navegação opcional — não interrompe o chat */
     }
 
-    if (navHandled) {
-      setBusy(false);
-      setTimeout(() => taRef.current?.focus(), 50);
-      return;
-    }
-
-    // Resposta especial: "Qual Ctrg UI estou usando?"
+    // 2. Resposta especial: "Qual Ctrg UI estou usando?"
     if (/ctrg\s*ui|interface/i.test(content) && /usando|versão|qual/i.test(content)) {
-      setMessages((prev) => [...prev, {
-        role: "assistant",
-        content: `Você está usando **${uiLabel(info)}**.\n\n- Versão do app: ${info.app_version}\n- Interface: ${info.kind === "pro" ? "Ctrg OS" : "Ctrg UI"} ${info.ui_version}\n- Modo: ${info.ui_mode}`,
-      }]);
+      push(`Você está usando **${uiLabel(info)}**.\n\n- Versão do app: ${info.app_version}\n- Interface: ${info.kind === "pro" ? "Ctrg OS" : "Ctrg UI"} ${info.ui_version}\n- Modo: ${info.ui_mode}`);
       setBusy(false);
       setTimeout(() => taRef.current?.focus(), 50);
       return;
@@ -111,15 +120,25 @@ export function AiChatModule() {
 
     try {
       const r = await chat({ data: { messages: history.slice(-20).map(m => ({ role: m.role, content: m.content })) } });
-      setMessages((prev) => [...prev, { role: "assistant", content: r.reply || "…" }]);
-    } catch (e) {
-      const errMsg = (e as Error)?.message;
-      setMessages((prev) => [...prev, {
-        role: "assistant",
-        content: "⚠️ Não foi possível gerar a resposta. Verifique a conexão e tente novamente.",
-        error: true,
-      }]);
-      if (errMsg) toast.error(errMsg);
+      push(r.reply || "…");
+    } catch {
+      // 3. Todas as IAs do app falharam (créditos/rede): a reserva local assume.
+      const local = localAssistantReply(content);
+      push(local.reply);
+      if (local.action) {
+        const permitted = local.action.type === "navigate" ? ai.canNavigate : ai.canAct;
+        if (!permitted) {
+          push(
+            local.action.type === "navigate"
+              ? "Para eu abrir telas, ligue **deixar a IA abrir telas** em Configurações → IA."
+              : "Para eu mudar ajustes do app, ligue **deixar a IA agir no app** em Configurações → IA.",
+          );
+        } else if (ai.askBeforeAct) {
+          setPending(local.action);
+        } else {
+          runAction(local.action);
+        }
+      }
     } finally {
       setBusy(false);
       setTimeout(() => taRef.current?.focus(), 50);
@@ -239,6 +258,23 @@ export function AiChatModule() {
       </div>
 
       <div className="border-t border-white/10 p-3 pb-[max(0.75rem,env(safe-area-inset-bottom))]">
+        {pending && (
+          <div className="mb-2 flex items-center gap-2 rounded-xl border border-primary/30 bg-primary/10 p-2.5">
+            <span className="min-w-0 flex-1 text-xs">{actionLabel(pending)}</span>
+            <Button
+              size="sm"
+              onClick={() => {
+                runAction(pending);
+                setPending(null);
+              }}
+            >
+              Permitir
+            </Button>
+            <Button size="sm" variant="ghost" onClick={() => setPending(null)}>
+              Cancelar
+            </Button>
+          </div>
+        )}
         <div className="flex items-end gap-2">
           <Textarea
             ref={taRef}

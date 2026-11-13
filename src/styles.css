@@ -1191,3 +1191,203 @@ a[href*="lovable.dev"] { display: none !important; }
     linear-gradient(90deg, color-mix(in oklab, var(--foreground) 5%, transparent) 1px, transparent 1px);
   background-size: 22px 22px;
 }
+
+/* ================================================================
+   MOVIMENTO — animações do Nuv
+   Controlado por `data-motion` (ligado/desligado nas Configurações) e
+   `data-motion-intensity` (suave / normal / viva).
+   ================================================================ */
+:root {
+  --motion-speed: 1;
+  --motion-ease: cubic-bezier(0.22, 1, 0.36, 1);
+  --motion-dur-fast: calc(0.16s * var(--motion-speed));
+  --motion-dur: calc(0.3s * var(--motion-speed));
+  --motion-dur-slow: calc(0.5s * var(--motion-speed));
+}
+
+@keyframes nuv-page-in {
+  from { opacity: 0; transform: translateY(10px); }
+  to { opacity: 1; transform: translateY(0); }
+}
+
+/* Ctrg UI padrão: entrada curta e seca, sem custo de blur. */
+[data-motion="on"] .page-transition {
+  animation: nuv-page-in var(--motion-dur) var(--motion-ease) both;
+}
+[data-motion="on"] .ctrg-tab-enter {
+  animation: nuv-page-in var(--motion-dur-fast) var(--motion-ease) both;
+}
+
+/* Ctrg OS: entrada com profundidade — desfoque que assenta e brilho. */
+@keyframes nuv-pro-page-in {
+  from { opacity: 0; transform: translateY(14px) scale(0.985); filter: blur(8px); }
+  60% { filter: blur(0); }
+  to { opacity: 1; transform: translateY(0) scale(1); filter: blur(0); }
+}
+[data-motion="on"][data-ctrg-mode="pro"] .page-transition {
+  animation: nuv-pro-page-in calc(var(--motion-dur-slow) * 1.1) var(--motion-ease) both;
+}
+[data-motion="on"][data-ctrg-mode="pro"] .ctrg-tab-enter {
+  animation: nuv-pro-page-in var(--motion-dur) var(--motion-ease) both;
+}
+
+/* Microinterações compartilhadas */
+@keyframes nuv-nav-pop {
+  0% { transform: scale(1); }
+  45% { transform: scale(0.86); }
+  100% { transform: scale(1); }
+}
+[data-motion="on"] .ctrg-nav-item:active > svg {
+  animation: nuv-nav-pop var(--motion-dur-fast) var(--motion-ease);
+}
+[data-motion="on"] .card-interactive {
+  transition: transform var(--motion-dur-fast) var(--motion-ease), border-color var(--motion-dur-fast) ease,
+    background-color var(--motion-dur-fast) ease;
+}
+[data-motion="on"] .card-interactive:active {
+  transform: scale(0.985);
+}
+
+/* Movimento desligado: nada anima e nada desliza. */
+[data-motion="off"] *,
+[data-motion="off"] *::before,
+[data-motion="off"] *::after {
+  animation-duration: 0.01ms !important;
+  animation-iteration-count: 1 !important;
+  transition-duration: 0.01ms !important;
+  scroll-behavior: auto !important;
+}
+
+/* --- Camada das animações personalizadas ------------------------- */
+.motion-overlay {
+  position: fixed;
+  inset: 0;
+  z-index: 80;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  overflow: hidden;
+  pointer-events: none;
+  background: transparent;
+}
+[data-motion="on"] .motion-overlay {
+  animation: nuv-overlay-in 220ms var(--motion-ease) both;
+}
+@keyframes nuv-overlay-in {
+  from { opacity: 0; }
+  to { opacity: 1; }
+}
+
+/* --- Animação de novidades (abertura da versão) ------------------- */
+.nuv-intro {
+  position: fixed;
+  inset: 0;
+  z-index: 120;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  overflow-y: auto;
+  padding: 3.5rem 0;
+  background:
+    radial-gradient(ellipse 70% 60% at 50% 8%, oklch(0.36 0.16 290 / 0.55), transparent 70%),
+    linear-gradient(180deg, oklch(0.13 0.03 285), oklch(0.09 0.02 275));
+}
+
+.nuv-intro__aurora {
+  position: absolute;
+  inset: -25%;
+  pointer-events: none;
+  background:
+    radial-gradient(ellipse 45% 40% at 30% 30%, oklch(0.6 0.2 295 / 0.35), transparent 70%),
+    radial-gradient(ellipse 45% 40% at 72% 68%, oklch(0.55 0.22 260 / 0.32), transparent 72%);
+  filter: blur(36px);
+  opacity: 0.85;
+}
+.nuv-intro--animated .nuv-intro__aurora {
+  animation: nuv-aurora-drift 14s var(--motion-ease) infinite alternate;
+}
+@keyframes nuv-aurora-drift {
+  from { transform: translate3d(-3%, -2%, 0) scale(1); }
+  to { transform: translate3d(3%, 2%, 0) scale(1.08); }
+}
+
+.nuv-intro__orbit {
+  position: absolute;
+  inset: 0;
+  display: grid;
+  place-items: center;
+  pointer-events: none;
+}
+.nuv-intro__core {
+  width: 168px;
+  height: 168px;
+  border-radius: 50%;
+  background: radial-gradient(circle at 34% 28%, oklch(0.34 0.02 280), oklch(0.09 0.01 270) 64%);
+  box-shadow:
+    inset -14px -16px 34px oklch(0 0 0 / 0.7),
+    0 0 70px -12px oklch(0.6 0.2 295 / 0.55);
+}
+.nuv-intro__ring {
+  position: absolute;
+  width: 330px;
+  height: 330px;
+  border-radius: 50%;
+  background: conic-gradient(from 200deg, #c4b5fd, #6366f1 35%, #0000ff 60%, #c4b5fd 100%);
+  -webkit-mask: radial-gradient(farthest-side, transparent calc(100% - 22px), #000 calc(100% - 20px));
+  mask: radial-gradient(farthest-side, transparent calc(100% - 22px), #000 calc(100% - 20px));
+  transform: rotateX(72deg) rotate(-14deg);
+  opacity: 0.9;
+}
+.nuv-intro--animated .nuv-intro__ring {
+  animation: nuv-orbit-spin 9s linear infinite;
+}
+@keyframes nuv-orbit-spin {
+  from { transform: rotateX(72deg) rotate(-14deg) rotate(0deg); }
+  to { transform: rotateX(72deg) rotate(-14deg) rotate(360deg); }
+}
+
+.nuv-intro__item {
+  display: flex;
+  align-items: flex-start;
+  gap: 0.5rem;
+  border-radius: 0.9rem;
+  border: 1px solid oklch(1 0 0 / 0.12);
+  background: oklch(1 0 0 / 0.06);
+  padding: 0.6rem 0.75rem;
+  opacity: 0;
+  transform: translateY(12px);
+  transition: opacity 320ms ease, transform 320ms var(--motion-ease);
+}
+.nuv-intro__item.is-in {
+  opacity: 1;
+  transform: translateY(0);
+}
+.nuv-intro:not(.nuv-intro--animated) .nuv-intro__item {
+  opacity: 1;
+  transform: none;
+  transition: none;
+}
+
+.nuv-intro__tag {
+  flex-shrink: 0;
+  margin-top: 0.1rem;
+  border-radius: 9999px;
+  border: 1px solid;
+  padding: 0 0.4rem;
+  font-size: 9px;
+  font-weight: 700;
+  letter-spacing: 0.04em;
+  text-transform: uppercase;
+}
+.nuv-intro__tag--novo { background: oklch(0.62 0.16 155 / 0.2); border-color: oklch(0.7 0.16 155 / 0.5); color: oklch(0.85 0.14 155); }
+.nuv-intro__tag--melhoria { background: oklch(0.62 0.15 235 / 0.2); border-color: oklch(0.7 0.15 235 / 0.5); color: oklch(0.88 0.1 235); }
+.nuv-intro__tag--correção { background: oklch(0.72 0.16 75 / 0.2); border-color: oklch(0.78 0.16 75 / 0.5); color: oklch(0.9 0.12 75); }
+
+@media (prefers-reduced-motion: reduce) {
+  [data-motion] .page-transition,
+  [data-motion] .ctrg-tab-enter,
+  .nuv-intro--animated .nuv-intro__ring,
+  .nuv-intro--animated .nuv-intro__aurora {
+    animation: none !important;
+  }
+}

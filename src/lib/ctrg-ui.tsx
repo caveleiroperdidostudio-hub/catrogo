@@ -38,8 +38,8 @@ const DEFAULT_PREFS: UiPrefs = {
 
 const DEFAULT_INFO: CtrgUiInfo = {
   name: "Ctrg UI",
-  ui_version: "4.1",
-  app_version: "4.1.0",
+  ui_version: "4.2",
+  app_version: "4.2.0",
   kind: "standard",
   ui_mode: "STANDARD",
   pro_available: false,
@@ -59,7 +59,7 @@ type Ctx = {
 
 const CtrgUiContext = createContext<Ctx | undefined>(undefined);
 
-export const APP_VERSION = "4.1.0";
+export const APP_VERSION = "4.2.0";
 
 export function CtrgUiProvider({ children }: { children: ReactNode }) {
   const { session, isOwner } = useAuth();

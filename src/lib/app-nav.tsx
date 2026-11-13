@@ -4,7 +4,7 @@ import { createContext, useContext, useMemo, useRef, type ReactNode } from "reac
 export const AI_ALLOWED_ROUTES = [
   { id: "chat", path: "/chat", label: "Chat", aliases: ["conversas", "mensagens", "chat"] },
   { id: "ia", path: "/ia", label: "Nuv IA", aliases: ["ia", "assistente"] },
-  { id: "explore", path: "/explorar", label: "Explorar", aliases: ["explorar", "mods", "selos", "museu", "novidades"] },
+  { id: "explore", path: "/explorar", label: "Explorar", aliases: ["explorar", "mods", "selos", "atualizações", "novidades"] },
   { id: "premium", path: "/premium", label: "Premium", aliases: ["premium", "assinatura"] },
   { id: "profile", path: "/perfil", label: "Perfil", aliases: ["perfil", "minha conta", "configurações", "ajustes"] },
 ] as const;
