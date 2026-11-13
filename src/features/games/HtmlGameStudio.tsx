@@ -91,7 +91,7 @@ export function HtmlGameStudio({
       id: gameId,
       userId: user.id,
       title: title.trim(),
-      description: existing?.game.description ?? "Jogo em HTML criado com a IA do CatroGo",
+      description: existing?.game.description ?? "Jogo em HTML criado com a IA do Nuv",
       sourceCode: html,
       engine: "html",
       price,
@@ -126,7 +126,7 @@ export function HtmlGameStudio({
       const url = URL.createObjectURL(blob);
       const a = document.createElement("a");
       a.href = url;
-      a.download = `${(title.trim() || "jogo-catrogo").replace(/[^\w-]+/g, "-").toLowerCase()}.html`;
+      a.download = `${(title.trim() || "jogo-nuv").replace(/[^\w-]+/g, "-").toLowerCase()}.html`;
       a.click();
       URL.revokeObjectURL(url);
       toast.success(`Jogo exportado! -${GAME_COSTS.export} hypes`);
@@ -148,7 +148,7 @@ export function HtmlGameStudio({
       }
       await persist({ publish: true });
       setPublished(true);
-      toast.success(published ? "Atualização publicada!" : `Publicado no CatroGo! -${GAME_COSTS.publish} hypes`);
+      toast.success(published ? "Atualização publicada!" : `Publicado no Nuv! -${GAME_COSTS.publish} hypes`);
       onPublished?.();
       onClose();
     } catch (e) {
@@ -163,7 +163,7 @@ export function HtmlGameStudio({
       <div className="h-12 shrink-0 flex items-center gap-2 px-4 border-b border-white/10">
         <Wand2 className="h-5 w-5 text-primary" />
         <span className="font-semibold flex-1 truncate">
-          {existing ? "Ajustar jogo com a IA" : "IA de Jogos do CatroGo"}
+          {existing ? "Ajustar jogo com a IA" : "IA de Jogos do Nuv"}
         </span>
         {html && (
           <>

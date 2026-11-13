@@ -55,10 +55,6 @@ export function AiChatModule() {
     endRef.current?.scrollIntoView({ behavior: "smooth" });
   }, [messages]);
 
-  useEffect(() => {
-    taRef.current?.focus();
-  }, []);
-
   const send = async (text: string, retryIndex?: number) => {
     const content = text.trim();
     if (!content || busy) return;
@@ -151,12 +147,12 @@ export function AiChatModule() {
         </div>
         <div className="flex-1">
           <div className="font-semibold leading-tight bg-gradient-to-r from-[var(--cosmic)] to-[var(--nebula)] bg-clip-text text-transparent">
-            CatroGo IA
+            Nuv IA
           </div>
           <div className="text-[11px] text-muted-foreground">Assistente inteligente da plataforma</div>
         </div>
         {messages.length > 0 && (
-          <Button size="icon" variant="ghost" className="h-9 w-9" onClick={clear} title="Limpar conversa">
+          <Button size="icon" variant="ghost" className="h-9 w-9" onClick={clear} aria-label="Limpar conversa" title="Limpar conversa">
             <Trash2 className="h-4 w-4 text-muted-foreground" />
           </Button>
         )}
@@ -169,7 +165,7 @@ export function AiChatModule() {
               <Sparkles className="h-9 w-9 text-[var(--nebula)]" />
             </div>
             <div>
-              <h2 className="text-xl font-semibold">Fale com a CatroGo IA</h2>
+              <h2 className="text-xl font-semibold">Fale com a Nuv IA</h2>
               <p className="text-sm text-muted-foreground max-w-xs mt-1">
                 Tire dúvidas, peça ideias e peça para abrir telas do app.
               </p>
@@ -236,7 +232,7 @@ export function AiChatModule() {
 
         {busy && (
           <div className="flex items-center gap-2 text-sm text-muted-foreground">
-            <Loader2 className="h-4 w-4 animate-spin" /> CatroGo IA está pensando…
+            <Loader2 className="h-4 w-4 animate-spin" /> Nuv IA está pensando…
           </div>
         )}
         <div ref={endRef} />
@@ -254,7 +250,7 @@ export function AiChatModule() {
                 send(input);
               }
             }}
-            placeholder="Pergunte qualquer coisa à CatroGo IA…"
+            placeholder="Pergunte qualquer coisa à Nuv IA…"
             rows={1}
             className="flex-1 min-h-[44px] max-h-32 resize-none bg-white/5 border-white/10"
           />

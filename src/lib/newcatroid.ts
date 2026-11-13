@@ -1,5 +1,5 @@
 /**
- * Newcatroid — linguagem de jogos do Catrogo (v1)
+ * Newcatroid — linguagem de jogos do Nuv (v1)
  *
  * Linha a linha. Comentários começam com "#".
  * As cores aceitam hex (#ff0) ou nomes básicos.

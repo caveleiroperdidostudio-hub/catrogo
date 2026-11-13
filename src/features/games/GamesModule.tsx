@@ -87,7 +87,7 @@ export function GamesModule() {
       const imported = await saveGame({
         userId: user.id,
         title: file.name.replace(/\.html?$/i, "").slice(0, 60) || "Jogo importado",
-        description: "Jogo importado para o CatroGo",
+        description: "Jogo importado para o Nuv",
         sourceCode: text,
         engine: "html",
         published: false,
@@ -174,7 +174,7 @@ export function GamesModule() {
       {studioNode}
       <div className="h-12 flex items-center gap-2 px-4 border-b border-white/5">
         <Gamepad2 className="h-5 w-5 text-[var(--nebula)]" />
-        <span className="font-semibold flex-1 truncate">Catrogo Games</span>
+        <span className="font-semibold flex-1 truncate">Nuv Games</span>
         <input
           ref={importRef}
           type="file"

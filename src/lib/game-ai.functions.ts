@@ -75,7 +75,7 @@ export const generateGame = createServerFn({ method: "POST" })
 
 /* ---------------- Assistente de chat (jogos + vídeos) ---------------- */
 
-const CHAT_SYSTEM = `Você é o "CatroGo IA", um assistente criativo amigável que conversa em português do Brasil. Você ajuda usuários a:
+const CHAT_SYSTEM = `Você é o "Nuv IA", um assistente criativo amigável que conversa em português do Brasil. Você ajuda usuários a:
 1. Criar JOGOS na linguagem Newcatroid (descrita abaixo) — pode gerar o jogo inteiro, explicar linha a linha, ensinar a lógica, corrigir bugs e melhorar o código.
 2. Ter IDEIAS criativas: conceitos de jogos, nomes de canais, estratégias de crescimento e brainstorming em geral.
 
@@ -166,13 +166,13 @@ export const generateHtmlGame = createServerFn({ method: "POST" })
   });
 
 
-/* ---------------- Assistente geral da plataforma (Catrogo IA) ---------------- */
+/* ---------------- Assistente geral da plataforma (Nuv IA) ---------------- */
 
-const PLATFORM_SYSTEM = `Você é a "CatroGo IA", a inteligência artificial nativa e oficial do app CatroGo — uma plataforma social brasileira que reúne: chat em tempo real (com chamadas de voz e vídeo), IA, mods da comunidade, selos de verificação, perfil personalizado e eventos globais.
+const PLATFORM_SYSTEM = `Você é a "Nuv IA", a inteligência artificial nativa e oficial do app Nuv — uma plataforma social brasileira que reúne: chat em tempo real (com chamadas de voz e vídeo), IA, mods da comunidade, selos de verificação, perfil personalizado e eventos globais.
 
 Seu papel:
 - Responder QUALQUER dúvida do usuário de forma clara, rápida e amigável, em português do Brasil.
-- Explicar como usar os recursos do CatroGo (chat, chamadas, mods, selos, premium, configurações, etc.).
+- Explicar como usar os recursos do Nuv (chat, chamadas, mods, selos, premium, configurações, etc.).
 - Ajudar com ideias criativas: conceitos, brainstorming, estratégias de crescimento.
 - Ajudar com programação, texto, resumos, traduções e brainstorming em geral.
 

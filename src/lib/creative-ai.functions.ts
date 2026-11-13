@@ -44,11 +44,11 @@ export const aiStickerIdeas = createServerFn({ method: "POST" })
 
 /* ---------------- IA curadora de Mods ---------------- */
 
-const MOD_SYSTEM = `Você é a "IA Curadora de Mods" do CatroGo. Mods são arquivos HTML/JS autônomos que rodam num sandbox (iframe) dentro do app.
+const MOD_SYSTEM = `Você é a "IA Curadora de Mods" do Nuv. Mods são arquivos HTML/JS autônomos que rodam num sandbox (iframe) dentro do app.
 Sua função: revisar, corrigir e MELHORAR o mod recebido.
 Responda APENAS JSON válido no formato:
 {"quality": 0-100, "review": "análise curta em pt-BR com pontos fortes e o que foi corrigido", "code": "<!DOCTYPE html>... o mod completo, corrigido e melhorado ..."}
-REGRAS do código: um único arquivo HTML com CSS e JS embutidos, responsivo (mobile + PC), sem dependências externas nem CDNs, sem acesso a rede, sem localStorage do app, comentado em português, visual escuro/galáctico combinando com o CatroGo.`;
+REGRAS do código: um único arquivo HTML com CSS e JS embutidos, responsivo (mobile + PC), sem dependências externas nem CDNs, sem acesso a rede, sem localStorage do app, comentado em português, visual escuro/galáctico combinando com o Nuv.`;
 
 export const aiReviewMod = createServerFn({ method: "POST" })
   .middleware([requireSupabaseAuth])

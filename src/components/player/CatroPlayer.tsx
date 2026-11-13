@@ -40,7 +40,7 @@ function fmt(s: number) {
   return h > 0 ? `${h}:${String(m).padStart(2, "0")}:${String(sec).padStart(2, "0")}` : `${m}:${String(sec).padStart(2, "0")}`;
 }
 
-/** Reprodutor oficial do CatroGo: responsivo, com PiP, qualidades, legendas e modo cinema. */
+/** Reprodutor oficial do Nuv: responsivo, com PiP, qualidades, legendas e modo cinema. */
 export function CatroPlayer({
   title, subtitle, sources, subtitles = [], poster, startAt = 0,
   onProgress, onEnded, onNext, onClose,

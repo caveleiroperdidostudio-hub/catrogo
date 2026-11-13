@@ -1,4 +1,4 @@
-# Base44 Setup Notes — CatroGo
+# Base44 Setup Notes — Nuv
 
 ## Stack
 - **Framework**: TanStack Start (React 19 + Vite 7 SSR) via `@lovable.dev/vite-tanstack-config`
@@ -16,7 +16,7 @@ docker compose -f docker-compose.base44.yml up -d
 
 ## Navigation (5 tabs)
 - **Chat** — conversations, groups, calls, statuses
-- **IA** — CatroGo AI assistant
+- **IA** — Nuv AI assistant
 - **Explorar** — hub for Mods, Selos, Museu, Novidades
 - **Ctrg OS** — assinatura, QR/Copia e Cola Pix (R$ 15,63/mês) e painel de aprovação do dono
 - **Perfil** — profile + settings (account, privacy, appearance, etc.)
@@ -36,7 +36,7 @@ docker compose -f docker-compose.base44.yml up -d
 - `src/server.ts` is the SSR entry (wraps TanStack Start's server entry with error handling)
 - `src/start.ts` configures the TanStack Start instance with Supabase auth middleware
 - `__VITE_ADDITIONAL_SERVER_ALLOWED_HOSTS` is passed bare in compose for Vite host allowlisting
-- Brand is standardized as **CATROGO** (not "Cosmos Chat" or "Catrogo")
+- Brand: **Nuv**; CATROGO and Cosmos Chat are legacy names
 - "Cosmos" is a visual theme name, not a product name
 - Hand-written `backdrop-filter` in `src/styles.css` is rewritten by the CSS pipeline to `-webkit-backdrop-filter` only, which current Chrome does not support. Use Tailwind utilities (`@apply backdrop-blur-3xl backdrop-saturate-150`) instead — those emit both properties and actually blur.
 

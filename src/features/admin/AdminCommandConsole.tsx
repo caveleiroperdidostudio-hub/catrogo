@@ -63,7 +63,7 @@ export function AdminCommandConsole({ onClose }: { onClose: () => void }) {
   // boot banner
   useEffect(() => {
     push("sys", "╔══════════════════════════════════════╗");
-    push("sys", "  CATROGO • PAINEL DE COMANDOS (DONO)");
+    push("sys", "  NUV • PAINEL DE COMANDOS (DONO)");
     push("sys", "╚══════════════════════════════════════╝");
     push("out", 'Digite "/help" para ver todos os comandos.');
     push("out", "Use /criar evento ou /criar commando para criar os seus próprios.");

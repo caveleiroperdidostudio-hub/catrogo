@@ -1,5 +1,5 @@
 /**
- * Núcleo de IA do CatroGo.
+ * Núcleo de IA do Nuv.
  * A ordem dos provedores, modelos, tempo limite e limites diários vêm da
  * tabela `ai_providers` (configurável no painel da equipe). As chaves ficam
  * sempre no servidor, em segredos (LOVABLE_API_KEY, OPENAI_API_KEY,

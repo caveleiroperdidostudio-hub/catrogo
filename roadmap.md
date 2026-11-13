@@ -1,5 +1,12 @@
 # CatroGo — Roadmap
 
+## Nova identidade e interface limpa
+- [ ] Concluir e conectar a personalização das conversas
+- [ ] Simplificar navegação, lista de conversas, conversa e Configurações com acessibilidade
+- [ ] Remover indicadores de presença ou entrega sem confirmação real
+- [ ] Aplicar o novo nome e a logo enviada em todo o app, incluindo ícone e metadados
+- [ ] Testar os fluxos principais no celular e no desktop
+
 ## Atualização focada em comunicação
 - [ ] Renovar lista e pesquisa de conversas sem indicadores falsos
 - [ ] Refinar cabeçalho, mensagens, anexos e campo de digitação preservando os fluxos

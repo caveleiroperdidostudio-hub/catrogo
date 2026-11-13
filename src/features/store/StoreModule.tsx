@@ -101,7 +101,7 @@ export function StoreModule() {
     <div className="flex h-full flex-col overflow-hidden">
       <div className="h-14 flex items-center gap-2 px-4 border-b border-white/5">
         <ShoppingBag className="h-5 w-5 text-primary" />
-        <span className="font-semibold flex-1">Loja Catrogo</span>
+        <span className="font-semibold flex-1">Loja Nuv</span>
         <span className="flex items-center gap-1.5 rounded-full bg-amber-500/15 text-amber-400 px-3 py-1 text-sm font-semibold">
           <Coins className="h-4 w-4" /> {balanceLabel}
         </span>

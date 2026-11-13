@@ -21,7 +21,7 @@ type Section = {
 const SECTIONS: Section[] = [
   { id: "mods", label: "Mods", desc: "Explore, crie e instale mods da comunidade", icon: Package, color: "oklch(0.72 0.16 215)" },
   { id: "verify", label: "Selos", desc: "Solicite selos de verificação e identidade", icon: BadgeCheck, color: "oklch(0.7 0.15 230)" },
-  { id: "museum", label: "Museu", desc: "Viaje pelo tempo do CatroGo", icon: Clock, color: "oklch(0.65 0.2 295)" },
+  { id: "museum", label: "Museu", desc: "Viaje pela história do app", icon: Clock, color: "oklch(0.65 0.2 295)" },
   { id: "updates", label: "Novidades", desc: "Veja o que mudou a cada versão", icon: Rocket, color: "oklch(0.78 0.18 70)" },
 ];
 

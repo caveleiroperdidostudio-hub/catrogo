@@ -1,7 +1,7 @@
 import { createContext, useContext, useEffect, useMemo, useState } from "react";
 
 /**
- * Camada global de layout responsivo do CatroGo.
+ * Camada global de layout responsivo do Nuv.
  * Mede a viewport real (incluindo visualViewport / teclado virtual),
  * publica variáveis CSS e expõe os breakpoints para qualquer tela.
  */

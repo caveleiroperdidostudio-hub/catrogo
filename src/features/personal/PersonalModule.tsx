@@ -113,7 +113,7 @@ export function PersonalModule() {
         </div>
         <div className="flex-1">
           <div className="font-semibold leading-tight">IA Personal</div>
-          <div className="text-[11px] text-muted-foreground">Idiomas e treinos com a IA do CatroGo</div>
+          <div className="text-[11px] text-muted-foreground">Idiomas e treinos com a IA do Nuv</div>
         </div>
       </div>
 

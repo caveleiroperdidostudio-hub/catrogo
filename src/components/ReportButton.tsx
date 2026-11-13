@@ -69,7 +69,7 @@ export function ReportButton({
       <DialogContent className="max-w-sm">
         <DialogHeader>
           <DialogTitle>Denunciar</DialogTitle>
-          <DialogDescription>Sua denúncia é enviada em sigilo para a equipe do CatroGo.</DialogDescription>
+          <DialogDescription>Sua denúncia é enviada em sigilo para a equipe do Nuv.</DialogDescription>
         </DialogHeader>
         <div className="grid grid-cols-1 gap-1.5">
           {REASONS.map((r) => (
