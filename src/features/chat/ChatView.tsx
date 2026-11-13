@@ -1,7 +1,8 @@
-import { useEffect, useMemo, useRef, useState } from "react";
+import { useEffect, useMemo, useRef, useState, type CSSProperties } from "react";
 import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/lib/auth-context";
 import { useSettings, verifyPin, TICK_GLYPHS } from "@/lib/settings-context";
+import { chatAppearanceAttributes } from "@/lib/chat-appearance";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -85,8 +86,10 @@ export function ChatView({ conversationId, onBack }: { conversationId: string; o
   const {
     privacy, ephemeral, setEphemeral, locks, lockChat, unlockChat, isUnlockedNow, markUnlockedNow,
     chatWallpaper: globalWallpaper, appearance, contactWallpapers, setContactWallpaper,
+    chatAppearance, conversationAppearance,
   } = useSettings();
   const chatWallpaper = contactWallpapers[conversationId] ?? globalWallpaper;
+  const chatLook = conversationAppearance[conversationId] ?? chatAppearance;
   const [call, setCall] = useState<null | { mode: CallMode; sessionId: string; isCaller: boolean }>(null);
   const [recording, setRecording] = useState(false);
   const recHandleRef = useRef<RecordingHandle | null>(null);
@@ -190,7 +193,7 @@ export function ChatView({ conversationId, onBack }: { conversationId: string; o
       if (!c) return;
       const isAi = !c.is_group && isCarlosName(c.name);
       let displayName = isAi ? "Carlos" : (c.name ?? "Conversa");
-      let subtitle = isAi ? "IA Carlos · sempre orbitando" : c.is_group ? "Grupo" : "online";
+      let subtitle = isAi ? "Assistente do Nuv" : c.is_group ? "Grupo" : "";
       let otherUserId: string | null = null;
       if (!c.is_group && !isAi) {
         const { data: others } = await supabase
@@ -198,13 +201,12 @@ export function ChatView({ conversationId, onBack }: { conversationId: string; o
         otherUserId = others?.[0]?.user_id ?? null;
         if (otherUserId) {
           const { data: p } = await supabase.from("profiles").select("display_name, avatar_url, about").eq("id", otherUserId).maybeSingle();
-          if (p) { displayName = p.display_name; subtitle = p.about ?? "online"; c.avatar_url = c.avatar_url ?? p.avatar_url; }
+          if (p) { displayName = p.display_name; subtitle = p.about ?? ""; c.avatar_url = c.avatar_url ?? p.avatar_url; }
         }
       } else if (c.is_group) {
         const { count } = await supabase.from("conversation_members").select("*", { count: "exact", head: true }).eq("conversation_id", conversationId);
         subtitle = `${count ?? 0} membros`;
       }
-      if (privacy.ghostOnline && subtitle === "online") subtitle = "—";
       setHeader({ id: c.id, is_group: c.is_group, name: c.name, avatar_url: c.avatar_url, displayName, subtitle, isAi, otherUserId });
     })();
   }, [conversationId, user, privacy.ghostOnline]);
@@ -245,12 +247,12 @@ export function ChatView({ conversationId, onBack }: { conversationId: string; o
     const body = messages
       .map((m) => `[${format(new Date(m.created_at), "dd/MM/yyyy HH:mm")}] ${who(m)}: ${m.deleted_at ? "(mensagem apagada)" : textOf(m)}`)
       .join("\n");
-    const head = `Conversa do CatroGo — ${header?.displayName ?? "Conversa"}\nExportada em ${format(new Date(), "dd/MM/yyyy HH:mm")}\n\n`;
+    const head = `Conversa no Nuv — ${header?.displayName ?? "Conversa"}\nExportada em ${format(new Date(), "dd/MM/yyyy HH:mm")}\n\n`;
     const blob = new Blob([head + body], { type: "text/plain;charset=utf-8" });
     const url = URL.createObjectURL(blob);
     const a = document.createElement("a");
     a.href = url;
-    a.download = `catrogo-${(header?.displayName ?? "conversa").replace(/[^\w-]+/g, "-").toLowerCase()}.txt`;
+    a.download = `nuv-${(header?.displayName ?? "conversa").replace(/[^\w-]+/g, "-").toLowerCase()}.txt`;
     a.click();
     URL.revokeObjectURL(url);
     toast.success("Conversa exportada");
@@ -599,7 +601,7 @@ export function ChatView({ conversationId, onBack }: { conversationId: string; o
       <div className="flex-1 flex flex-col items-center justify-center text-center p-6 gap-4">
         <Lock className="h-12 w-12 text-[var(--cosmic)]" />
         <h3 className="font-semibold text-lg">Chat protegido</h3>
-        <p className="text-sm text-muted-foreground max-w-sm">Esta órbita está bloqueada com PIN. Insira o código para revelar a conversa.</p>
+        <p className="text-sm text-muted-foreground max-w-sm">Esta conversa está bloqueada com PIN. Insira o código para revelar.</p>
         <Button onClick={() => setPinOpen(true)} className="cosmic-glow">Inserir PIN</Button>
         <Button variant="ghost" onClick={onBack}>Voltar</Button>
         <PinDialog open={pinOpen} setOpen={setPinOpen} pinValue={pinValue} setPinValue={setPinValue} onSubmit={tryUnlock} />
@@ -608,11 +610,15 @@ export function ChatView({ conversationId, onBack }: { conversationId: string; o
   }
 
   return (
-    <div className="flex-1 flex flex-col h-full">
-      {/* Header */}
-      <div className="h-14 px-2 sm:px-4 flex items-center gap-3 border-b border-white/5 glass">
-        <Button size="icon" variant="ghost" className="h-9 w-9 md:hidden" onClick={onBack}>
-          <ArrowLeft className="h-5 w-5" />
+    <div
+      className="chat-surface flex-1 flex flex-col h-full"
+      {...chatAppearanceAttributes(chatLook)}
+      style={{ "--chat-radius": `${chatLook.radius}px` } as CSSProperties}
+    >
+      {/* Cabeçalho */}
+      <div className="chat-chrome h-14 px-2 sm:px-4 flex items-center gap-2 border-b border-border">
+        <Button size="icon" variant="ghost" className="h-10 w-10 md:hidden" onClick={onBack} aria-label="Voltar">
+          <ArrowLeft className="h-5 w-5" aria-hidden="true" />
         </Button>
         {!appearance.hideAvatar && (
           <Avatar className={`h-9 w-9 ${header.isAi ? "carlos-avatar" : ""}`}>
@@ -625,36 +631,39 @@ export function ChatView({ conversationId, onBack }: { conversationId: string; o
         <div className="flex-1 min-w-0">
           <div className="font-semibold truncate flex items-center gap-1.5">
             {appearance.hideName && !header.isAi ? "•••" : header.displayName}
-            {header.isAi && <span className="text-[10px] px-1.5 py-0.5 rounded-full bg-primary/30 text-[var(--nebula)] font-semibold">IA</span>}
-            {ephemeralSeconds > 0 && <Timer className="h-3.5 w-3.5 text-[var(--nebula)]" />}
-            {privacy.antiDelete && <OrbitIcon className="h-3.5 w-3.5 text-muted-foreground" />}
+            {header.isAi && <span className="text-[10px] px-1.5 py-0.5 rounded-full bg-primary/15 text-primary font-semibold">IA</span>}
+            {ephemeralSeconds > 0 && <Timer className="h-3.5 w-3.5 text-muted-foreground" aria-label="Conversa temporária" />}
           </div>
-          <div className="text-xs opacity-80 truncate">
-            {aiThinking ? "Carlos está pensando…" : header.subtitle}
-          </div>
+          {(aiThinking || header.subtitle) && (
+            <div className="text-xs truncate text-muted-foreground" aria-live="polite">
+              {aiThinking ? "Carlos está digitando…" : header.subtitle}
+            </div>
+          )}
         </div>
-
-        {/* Resumo (Carlos) */}
-        <Button size="icon" variant="ghost" className="h-9 w-9" onClick={summarize} disabled={summarizing} title="Resumir conversa com Carlos">
-          {summarizing ? <Loader2 className="h-4 w-4 animate-spin" /> : <BrainCircuit className="h-4 w-4 text-[var(--nebula)]" />}
-        </Button>
 
         {!appearance.hideCallButton && (
           <>
-            <Button size="icon" variant="ghost" className="h-9 w-9" onClick={() => startCall("voice")} title="Chamada de voz">
-              <Phone className="h-4 w-4" />
+            <Button size="icon" variant="ghost" className="h-10 w-10" onClick={() => startCall("voice")} aria-label="Chamada de voz" title="Chamada de voz">
+              <Phone className="h-5 w-5" aria-hidden="true" />
             </Button>
-            <Button size="icon" variant="ghost" className="h-9 w-9" onClick={() => startCall("video")} title="Chamada de vídeo">
-              <Video className="h-4 w-4" />
+            <Button size="icon" variant="ghost" className="h-10 w-10" onClick={() => startCall("video")} aria-label="Chamada de vídeo" title="Chamada de vídeo">
+              <Video className="h-5 w-5" aria-hidden="true" />
             </Button>
           </>
         )}
 
         <DropdownMenu>
           <DropdownMenuTrigger asChild>
-            <Button size="icon" variant="ghost" className="h-9 w-9"><MoreVertical className="h-4 w-4" /></Button>
+            <Button size="icon" variant="ghost" className="h-10 w-10" aria-label="Mais opções da conversa"><MoreVertical className="h-5 w-5" aria-hidden="true" /></Button>
           </DropdownMenuTrigger>
           <DropdownMenuContent align="end" className="w-56">
+            <DropdownMenuItem onClick={suggest} disabled={suggesting}>
+              {suggesting ? <Loader2 className="mr-2 h-4 w-4 animate-spin" /> : <Wand2 className="mr-2 h-4 w-4" />} Sugerir respostas
+            </DropdownMenuItem>
+            <DropdownMenuItem onClick={summarize} disabled={summarizing}>
+              {summarizing ? <Loader2 className="mr-2 h-4 w-4 animate-spin" /> : <BrainCircuit className="mr-2 h-4 w-4" />} Resumir com Carlos
+            </DropdownMenuItem>
+            <DropdownMenuSeparator />
             <DropdownMenuItem onClick={() => setSearchOpen(true)}>
               <Search className="mr-2 h-4 w-4" /> Buscar nesta conversa
             </DropdownMenuItem>
@@ -719,7 +728,7 @@ export function ChatView({ conversationId, onBack }: { conversationId: string; o
       )}
 
       {/* Mensagens */}
-      <div ref={scrollRef} className={`relative flex-1 overflow-y-auto p-4 space-y-2 ${chatWallpaper.type === "gradient" && chatWallpaper.value === "stars" ? "chat-bg" : ""}`}
+      <div ref={scrollRef} className={`chat-transcript relative flex-1 overflow-y-auto p-4 ${chatWallpaper.type === "gradient" && chatWallpaper.value === "stars" ? "chat-bg" : ""}`}
         style={chatWallpaper.type === "gradient" && chatWallpaper.value !== "stars" ? { background: chatWallpaper.value } : undefined}>
         {chatWallpaper.type === "image" && (
           <div className="pointer-events-none absolute inset-0 -z-0">
@@ -739,7 +748,7 @@ export function ChatView({ conversationId, onBack }: { conversationId: string; o
             <div className="absolute inset-0 bg-background/30 backdrop-blur-[1px]" />
           </div>
         )}
-        <div className="relative z-10 space-y-2">
+        <div className="chat-stream relative z-10">
         {visibleMessages.map((m, i) => {
           const mine = m.sender_id === user?.id;
           const prev = visibleMessages[i - 1];
@@ -748,11 +757,11 @@ export function ChatView({ conversationId, onBack }: { conversationId: string; o
             ? Math.max(0, ephemeralSeconds - Math.floor((now - new Date(m.created_at).getTime()) / 1000))
             : null;
           return (
-            <div key={m.id} className={`flex ${mine ? "justify-end" : "justify-start"}`}>
+            <div key={m.id} className={`chat-message-row flex ${mine ? "justify-end" : "justify-start"}`}>
               <div className={`chat-bubble max-w-[78%] rounded-2xl px-3 py-2 shadow-sm group ${
                 m.is_ai ? "holo rounded-tl-sm" :
-                mine ? "bg-[var(--bubble-out)] text-foreground rounded-tr-sm border border-white/10" :
-                "bg-[var(--bubble-in)] text-foreground rounded-tl-sm border border-white/10"
+                mine ? "chat-bubble-out bg-[var(--bubble-out)] text-foreground rounded-tr-sm border border-white/10" :
+                "chat-bubble-in bg-[var(--bubble-in)] text-foreground rounded-tl-sm border border-white/10"
               }`}>
                 {m.is_ai && (
                   <div className="flex items-center gap-1 text-xs font-semibold text-[var(--nebula)] mb-0.5">
@@ -813,9 +822,9 @@ export function ChatView({ conversationId, onBack }: { conversationId: string; o
                 )}
                 <div className="flex items-center justify-between gap-3 mt-1">
                   <div className="flex items-center gap-2 text-[10px] text-muted-foreground">
-                    <span>{format(new Date(m.created_at), "HH:mm")}</span>
+                    <span className="chat-time">{format(new Date(m.created_at), "HH:mm")}</span>
                     {mine && !m.is_ai && (
-                      <span className="text-[var(--nebula)]" title="Entregue">{TICK_GLYPHS[appearance.tickStyle]}</span>
+                      <span className="text-primary" title="Enviada">{TICK_GLYPHS[appearance.tickStyle]}</span>
                     )}
                     {remaining !== null && (
                       <span className="inline-flex items-center gap-0.5 text-[var(--nebula)]">
@@ -940,24 +949,19 @@ export function ChatView({ conversationId, onBack }: { conversationId: string; o
 
       {/* Composer */}
 
-      <div className="p-2 sm:p-3 border-t border-white/5 glass flex items-center gap-2">
+      <div className="chat-chrome p-2 sm:p-3 border-t border-border flex items-center gap-1.5">
         {recording ? (
           <>
             <VoiceRecorder
               onCancel={cancelAudio}
               onReady={(h) => { recHandleRef.current = h; }}
             />
-            <Button size="icon" onClick={stopAndSendAudio} disabled={uploadingAudio} className="rounded-full cosmic-glow" title="Enviar áudio">
-              {uploadingAudio ? <Loader2 className="h-4 w-4 animate-spin" /> : <Send className="h-4 w-4" />}
+            <Button size="icon" onClick={stopAndSendAudio} disabled={uploadingAudio} className="h-11 w-11 rounded-full" aria-label="Enviar áudio">
+              {uploadingAudio ? <Loader2 className="h-4 w-4 animate-spin" /> : <Send className="h-4 w-4" aria-hidden="true" />}
             </Button>
           </>
         ) : (
           <>
-            {!header.isAi && (
-              <Button size="icon" variant="ghost" onClick={suggest} disabled={suggesting} title="Sugerir respostas com Carlos">
-                {suggesting ? <Loader2 className="h-4 w-4 animate-spin" /> : <Wand2 className="h-4 w-4 text-[var(--nebula)]" />}
-              </Button>
-            )}
             {!header.isAi && (
               <>
                 <input
@@ -968,15 +972,16 @@ export function ChatView({ conversationId, onBack }: { conversationId: string; o
                   onChange={(e) => sendAttachment(e.target.files?.[0])}
                 />
                 <Button
-                  size="icon" variant="ghost" className="shrink-0"
+                  size="icon" variant="ghost" className="h-11 w-11 shrink-0"
                   onClick={() => fileRef.current?.click()}
                   disabled={uploadingFile}
+                  aria-label="Anexar arquivo"
                   title="Anexar arquivo"
                 >
-                  {uploadingFile ? <Loader2 className="h-4 w-4 animate-spin" /> : <Paperclip className="h-4 w-4" />}
+                  {uploadingFile ? <Loader2 className="h-4 w-4 animate-spin" /> : <Paperclip className="h-5 w-5" aria-hidden="true" />}
                 </Button>
-                <Button size="icon" variant="ghost" className="shrink-0" onClick={() => setStickerOpen(true)} title="Figurinhas">
-                  <Sticker className="h-4 w-4 text-[var(--nebula)]" />
+                <Button size="icon" variant="ghost" className="h-11 w-11 shrink-0" onClick={() => setStickerOpen(true)} aria-label="Figurinhas" title="Figurinhas">
+                  <Sticker className="h-5 w-5" aria-hidden="true" />
                 </Button>
               </>
             )}
@@ -984,21 +989,22 @@ export function ChatView({ conversationId, onBack }: { conversationId: string; o
               value={text}
               onChange={(e) => setText(e.target.value)}
               onKeyDown={(e) => { if (e.key === "Enter" && !e.shiftKey) { e.preventDefault(); send(); } }}
-              placeholder={header.isAi ? "Pergunte algo ao Carlos…" : "Mensagem (use @carlos pra invocar a IA)"}
-              className="flex-1 rounded-full bg-secondary/40 border-white/10"
+              placeholder={header.isAi ? "Pergunte algo ao Carlos…" : "Mensagem"}
+              aria-label="Escrever mensagem"
+              className="h-11 flex-1 rounded-full border-border bg-secondary/60"
             />
             {text.trim() ? (
-              <Button size="icon" onClick={send} disabled={sending} className="rounded-full cosmic-glow">
-                <Send className="h-4 w-4" />
+              <Button size="icon" onClick={send} disabled={sending} className="h-11 w-11 rounded-full" aria-label="Enviar mensagem">
+                <Send className="h-4 w-4" aria-hidden="true" />
               </Button>
             ) : (
               <Button
                 size="icon" variant="ghost"
                 onClick={() => setRecording(true)}
-                title="Gravar áudio" className="rounded-full"
+                aria-label="Gravar áudio" title="Gravar áudio" className="h-11 w-11 rounded-full"
                 disabled={header.isAi}
               >
-                <Mic className="h-4 w-4 text-[var(--nebula)]" />
+                <Mic className="h-5 w-5" aria-hidden="true" />
               </Button>
             )}
           </>
@@ -1132,7 +1138,7 @@ export function ChatView({ conversationId, onBack }: { conversationId: string; o
             <DialogTitle className="flex items-center gap-2"><ShieldCheck className="h-4 w-4 text-emerald-400" /> Criptografia ponta a ponta</DialogTitle>
             <DialogDescription>
               As mensagens desta conversa são cifradas no seu aparelho (Cosmos Lattice · AES-GCM 256 com troca de chaves ECDH).
-              Nem o CatroGo consegue lê-las.
+              Nem o Nuv consegue lê-las.
             </DialogDescription>
           </DialogHeader>
           <div className="rounded-xl bg-secondary/40 p-4 text-center font-mono text-sm tracking-widest">{safety}</div>
@@ -1191,7 +1197,7 @@ function PinDialog({
       <DialogContent>
         <DialogHeader>
           <DialogTitle className="flex items-center gap-2"><Lock className="h-4 w-4" /> Inserir PIN</DialogTitle>
-          <DialogDescription>Esta órbita está bloqueada.</DialogDescription>
+          <DialogDescription>Esta conversa está bloqueada.</DialogDescription>
         </DialogHeader>
         <div className="space-y-2">
           <Label>PIN</Label>

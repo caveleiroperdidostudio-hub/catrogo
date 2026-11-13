@@ -55,65 +55,64 @@
   --font-display: "Outfit Variable", ui-sans-serif, system-ui, sans-serif;
 }
 
-/* === COSMOS CHAT — Tema minimalista galáctico (dark-first) === */
+/* === NUV — base neutra com o azul da marca (dark-first) === */
 :root {
   --radius: 0.875rem;
 
-  /* Deep space base */
-  --background: oklch(0.13 0.03 280);
-  --foreground: oklch(0.96 0.01 280);
+  /* Superfícies neutras, sem competir com as mensagens */
+  --background: oklch(0.16 0.004 265);
+  --foreground: oklch(0.97 0.002 265);
 
-  --card: oklch(0.17 0.035 280 / 0.7);
-  --card-foreground: oklch(0.96 0.01 280);
-  --popover: oklch(0.18 0.035 280);
-  --popover-foreground: oklch(0.96 0.01 280);
+  --card: oklch(0.2 0.005 265);
+  --card-foreground: oklch(0.97 0.002 265);
+  --popover: oklch(0.21 0.006 265);
+  --popover-foreground: oklch(0.97 0.002 265);
 
-  /* Roxo cósmico como primário (#7C3AED ≈) */
-  --primary: oklch(0.58 0.22 295);
-  --primary-foreground: oklch(0.98 0.005 280);
+  /* Azul do anel da logo */
+  --primary: oklch(0.63 0.19 257);
+  --primary-foreground: oklch(0.99 0 0);
 
-  --secondary: oklch(0.22 0.04 280);
-  --secondary-foreground: oklch(0.95 0.01 280);
+  --secondary: oklch(0.245 0.006 265);
+  --secondary-foreground: oklch(0.96 0.002 265);
 
-  --muted: oklch(0.2 0.03 280);
-  --muted-foreground: oklch(0.7 0.025 280);
+  --muted: oklch(0.23 0.005 265);
+  --muted-foreground: oklch(0.74 0.008 265);
 
-  /* Azul nebulosa como accent (#06B6D4) */
-  --accent: oklch(0.72 0.16 215);
-  --accent-foreground: oklch(0.14 0.02 280);
+  --accent: oklch(0.7 0.13 220);
+  --accent-foreground: oklch(0.16 0.01 265);
 
-  --destructive: oklch(0.62 0.24 25);
+  --destructive: oklch(0.62 0.22 25);
   --destructive-foreground: oklch(0.99 0 0);
 
-  --border: oklch(1 0 0 / 0.08);
+  --border: oklch(1 0 0 / 0.09);
   --input: oklch(1 0 0 / 0.12);
-  --ring: oklch(0.65 0.2 295);
+  --ring: oklch(0.63 0.19 257);
 
-  --brand: oklch(0.58 0.22 295);
-  --brand-foreground: oklch(0.98 0.005 280);
+  --brand: oklch(0.63 0.19 257);
+  --brand-foreground: oklch(0.99 0 0);
 
-  /* Balões: out = roxo translúcido, in = card glass */
-  --bubble-out: oklch(0.42 0.16 295 / 0.85);
-  --bubble-in: oklch(0.22 0.04 280 / 0.85);
+  /* Balões: out = azul da marca, in = superfície neutra */
+  --bubble-out: oklch(0.52 0.15 257);
+  --bubble-in: oklch(0.25 0.006 265);
 
-  --nebula: oklch(0.72 0.16 215);          /* azul nebulosa */
-  --cosmic: oklch(0.58 0.22 295);          /* roxo cósmico */
-  --stellar: oklch(0.75 0.02 280);         /* prata estelar */
+  --nebula: oklch(0.7 0.13 220);           /* azul claro */
+  --cosmic: oklch(0.63 0.19 257);          /* azul da marca */
+  --stellar: oklch(0.78 0.006 265);        /* prata neutra */
 
-  --chart-1: oklch(0.58 0.22 295);
-  --chart-2: oklch(0.72 0.16 215);
+  --chart-1: oklch(0.63 0.19 257);
+  --chart-2: oklch(0.7 0.13 220);
   --chart-3: oklch(0.78 0.18 70);
-  --chart-4: oklch(0.65 0.25 16);
-  --chart-5: oklch(0.7 0.18 145);
+  --chart-4: oklch(0.65 0.22 16);
+  --chart-5: oklch(0.7 0.16 145);
 
-  --sidebar: oklch(0.11 0.03 280);
-  --sidebar-foreground: oklch(0.94 0.01 280);
-  --sidebar-primary: oklch(0.58 0.22 295);
-  --sidebar-primary-foreground: oklch(0.98 0.005 280);
-  --sidebar-accent: oklch(0.2 0.04 280);
-  --sidebar-accent-foreground: oklch(0.95 0.01 280);
-  --sidebar-border: oklch(1 0 0 / 0.08);
-  --sidebar-ring: oklch(0.65 0.2 295);
+  --sidebar: oklch(0.14 0.004 265);
+  --sidebar-foreground: oklch(0.94 0.002 265);
+  --sidebar-primary: oklch(0.63 0.19 257);
+  --sidebar-primary-foreground: oklch(0.99 0 0);
+  --sidebar-accent: oklch(0.23 0.006 265);
+  --sidebar-accent-foreground: oklch(0.96 0.002 265);
+  --sidebar-border: oklch(1 0 0 / 0.09);
+  --sidebar-ring: oklch(0.63 0.19 257);
 }
 
 /* O app usa dark por padrão; sobrescrita apenas se .light for adicionada */
@@ -225,10 +224,7 @@
   body {
     background-color: var(--color-background);
     color: var(--color-foreground);
-    background-image:
-      radial-gradient(ellipse 80% 60% at 15% 10%, color-mix(in oklab, var(--cosmic) 22%, transparent) 0%, transparent 60%),
-      radial-gradient(ellipse 70% 50% at 85% 90%, color-mix(in oklab, var(--nebula) 18%, transparent) 0%, transparent 60%),
-      radial-gradient(circle at 50% 50%, transparent 0%, oklch(0.08 0.02 280) 100%);
+    background-image: radial-gradient(ellipse 90% 55% at 50% 0%, color-mix(in oklab, var(--cosmic) 7%, transparent) 0%, transparent 70%);
     background-attachment: fixed;
   }
 
@@ -1116,4 +1112,82 @@ a[href*="lovable.dev"] { display: none !important; }
 
 @media (prefers-reduced-motion: reduce) {
   .glass-dock__prism { animation: none; }
+}
+
+/* ================================================================
+   Aparência das conversas (Central de Aparência)
+   Fora de @layer para vencer os utilitários de espaçamento e raio.
+   ================================================================ */
+.chat-surface {
+  background: var(--chat-surface, var(--background));
+  color: var(--chat-ink, var(--foreground));
+}
+.chat-chrome {
+  background: var(--chat-chrome, var(--background));
+  border-color: var(--chat-line, var(--border));
+  color: var(--chat-ink, var(--foreground));
+}
+.chat-stream {
+  display: flex;
+  flex-direction: column;
+  gap: var(--chat-gap, 0.5rem);
+}
+.chat-row { padding-block: 0.65rem; }
+
+[data-chat-list="compact"] .chat-row { padding-block: 0.35rem; }
+
+/* Esquema claro aplicado apenas dentro da conversa */
+[data-chat-scheme="light"] {
+  --chat-surface: #f4f4f6;
+  --chat-ink: #17171b;
+  --chat-ink-soft: #5c5c66;
+  --chat-chrome: #ffffff;
+  --chat-line: oklch(0 0 0 / 0.09);
+  --bubble-in: #ffffff;
+}
+[data-chat-scheme="light"] .chat-bubble { color: #17171b; }
+[data-chat-scheme="light"] .chat-bubble-out { color: oklch(0.99 0 0); }
+[data-chat-scheme="light"] .chat-time { color: var(--chat-ink-soft); }
+
+/* Prévia da Central de Aparência (usa os mesmos tokens da conversa) */
+.chat-appearance-preview .chat-message {
+  background: var(--bubble-in);
+  color: var(--chat-ink, var(--foreground));
+  border-radius: var(--chat-radius, 1rem);
+  padding: 0.5rem 0.75rem;
+  font-size: 0.875rem;
+}
+.chat-appearance-preview .chat-message-out { background: var(--bubble-out); color: oklch(0.99 0 0); }
+.chat-appearance-preview .chat-message-time { display: block; margin-top: 0.15rem; font-size: 0.65rem; opacity: 0.75; }
+[data-chat-bubble="classic"] .chat-message { border-radius: 0.6rem; }
+[data-chat-bubble="sharp"] .chat-message { border-radius: 0.3rem; }
+[data-chat-bubble="minimal"] .chat-message { border-radius: 1.6rem; }
+[data-chat-density="compact"] .chat-message { padding: 0.35rem 0.6rem; }
+[data-chat-density="spacious"] .chat-message { padding: 0.75rem 1rem; }
+
+/* Paletas de balão */
+[data-chat-palette="ocean"] { --bubble-out: oklch(0.5 0.13 232); }
+[data-chat-palette="forest"] { --bubble-out: oklch(0.5 0.12 155); }
+[data-chat-palette="berry"] { --bubble-out: oklch(0.52 0.16 350); }
+[data-chat-palette="graphite"] { --bubble-out: oklch(0.38 0.012 265); }
+
+/* Forma dos balões */
+[data-chat-bubble] .chat-bubble { border-radius: var(--chat-radius, 1rem); }
+[data-chat-bubble="classic"] .chat-bubble { border-radius: 0.6rem; }
+[data-chat-bubble="sharp"] .chat-bubble { border-radius: 0.3rem; }
+[data-chat-bubble="minimal"] .chat-bubble { border-radius: 1.6rem; border-color: transparent; }
+
+/* Densidade das mensagens */
+[data-chat-density="compact"] { --chat-gap: 0.25rem; }
+[data-chat-density="compact"] .chat-bubble { padding: 0.35rem 0.6rem; }
+[data-chat-density="spacious"] { --chat-gap: 0.9rem; }
+[data-chat-density="spacious"] .chat-bubble { padding: 0.75rem 1rem; }
+
+/* Fundo do histórico */
+[data-chat-background="plain"] .chat-transcript { background: var(--chat-surface, var(--background)); }
+[data-chat-background="grid"] .chat-transcript {
+  background-image:
+    linear-gradient(color-mix(in oklab, var(--foreground) 5%, transparent) 1px, transparent 1px),
+    linear-gradient(90deg, color-mix(in oklab, var(--foreground) 5%, transparent) 1px, transparent 1px);
+  background-size: 22px 22px;
 }

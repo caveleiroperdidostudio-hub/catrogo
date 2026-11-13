@@ -35,7 +35,7 @@ export function NewChatDialog({ open, onOpenChange, onCreated }: { open: boolean
 
   const searchByPhone = async () => {
     const digits = q.replace(/\D/g, "");
-    if (digits.length < 6) return toast.error("Digite o número completo do CatroGo");
+    if (digits.length < 6) return toast.error("Digite o número completo do Nuv");
     const { data, error } = await supabase.rpc("find_by_app_phone", { _phone: q });
     const rows = (data ?? []) as (Profile & { app_phone: string })[];
     if (error || rows.length === 0) return toast.error("Nenhum perfil com esse número");
@@ -83,10 +83,10 @@ export function NewChatDialog({ open, onOpenChange, onCreated }: { open: boolean
           <TabsContent value="dm" className="space-y-3 mt-3">
             <div className="relative">
               <Search className="h-4 w-4 absolute left-3 top-1/2 -translate-y-1/2 text-muted-foreground" />
-              <Input value={q} onChange={(e) => search(e.target.value)} placeholder="Nome, @usuario ou número do CatroGo" className="pl-9" />
+              <Input value={q} onChange={(e) => search(e.target.value)} placeholder="Nome, @usuario ou número do Nuv" className="pl-9" />
             </div>
             <Button variant="secondary" className="w-full" onClick={searchByPhone} disabled={!q.trim()}>
-              <Phone className="mr-2 h-4 w-4" /> Buscar por número do CatroGo
+              <Phone className="mr-2 h-4 w-4" /> Buscar por número do Nuv
             </Button>
             <ul className="max-h-80 overflow-y-auto space-y-1">
               {results.map((p) => (

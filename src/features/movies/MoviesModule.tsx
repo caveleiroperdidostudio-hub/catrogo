@@ -186,7 +186,7 @@ export function MoviesModule() {
         </div>
         <div className="flex-1">
           <div className="font-semibold leading-tight">Filmes</div>
-          <div className="text-[11px] text-muted-foreground">Catálogo global do CatroGo</div>
+          <div className="text-[11px] text-muted-foreground">Catálogo global do Nuv</div>
         </div>
         {isOwner && (
           <Button size="icon" variant="ghost" onClick={() => setPromoteOpen(true)} title="Dar admin">

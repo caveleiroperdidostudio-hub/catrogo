@@ -3,7 +3,7 @@ import { createContext, useContext, useMemo, useRef, type ReactNode } from "reac
 /** Páginas que a IA pode abrir. Rotas administrativas ficam de fora de propósito. */
 export const AI_ALLOWED_ROUTES = [
   { id: "chat", path: "/chat", label: "Chat", aliases: ["conversas", "mensagens", "chat"] },
-  { id: "ia", path: "/ia", label: "CatroGo IA", aliases: ["ia", "assistente"] },
+  { id: "ia", path: "/ia", label: "Nuv IA", aliases: ["ia", "assistente"] },
   { id: "explore", path: "/explorar", label: "Explorar", aliases: ["explorar", "mods", "selos", "museu", "novidades"] },
   { id: "premium", path: "/premium", label: "Premium", aliases: ["premium", "assinatura"] },
   { id: "profile", path: "/perfil", label: "Perfil", aliases: ["perfil", "minha conta", "configurações", "ajustes"] },

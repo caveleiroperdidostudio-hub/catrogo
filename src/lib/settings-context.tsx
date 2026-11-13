@@ -76,7 +76,7 @@ type SettingsValue = {
 const SettingsCtx = createContext<SettingsValue | undefined>(undefined);
 const STORAGE = "cosmos-chat:settings:v3";
 
-const DEFAULT_WALLPAPER = "radial-gradient(circle at 20% 10%, oklch(0.32 0.12 295 / 0.35), transparent 55%), radial-gradient(circle at 80% 90%, oklch(0.32 0.14 230 / 0.35), transparent 50%), oklch(0.12 0.04 280)";
+const DEFAULT_WALLPAPER = "oklch(0.16 0.004 265)"
 
 type Persisted = {
   chatAppearance: ChatAppearance;

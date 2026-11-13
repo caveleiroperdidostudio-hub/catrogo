@@ -13,7 +13,8 @@ import { useSettings } from "@/lib/settings-context";
 import { NotificationCenter } from "@/features/notifications/NotificationCenter";
 import { Tabs, TabsList, TabsTrigger, TabsContent } from "@/components/ui/tabs";
 import { Button } from "@/components/ui/button";
-import { MessageCircle, Users, Circle, Phone, MoreVertical, LogOut, User as UserIcon, Sparkles, Orbit, ShieldHalf, Archive } from "lucide-react";
+import { BrandMark } from "@/components/BrandMark";
+import { MessageCircle, Users, Phone, LogOut, User as UserIcon, Settings, Archive, MessageSquarePlus } from "lucide-react";
 import { flushScheduledMessages } from "@/lib/scheduled";
 
 import {
@@ -33,7 +34,7 @@ export function ChatHome() {
   const [newChatOpen, setNewChatOpen] = useState(false);
   const [settingsOpen, setSettingsOpen] = useState(false);
   const [showArchived, setShowArchived] = useState(false);
-  const { wallpaper, appearance } = useSettings();
+  const { wallpaper, appearance, chatAppearance } = useSettings();
 
   // Dispara mensagens agendadas que já venceram enquanto o app está aberto
   useEffect(() => {
@@ -79,7 +80,7 @@ export function ChatHome() {
           sender_id: null,
           is_ai: true,
           content:
-            "Olá, viajante. Eu sou o Carlos, IA nativa do CatroGo. Posso redigir mensagens, traduzir, resumir conversas, sugerir respostas e te invocar com @carlos em qualquer chat. Pra onde vamos?",
+            "Olá! Eu sou o Carlos, assistente do Nuv. Posso redigir mensagens, traduzir, resumir conversas e sugerir respostas. Me chame com @carlos em qualquer conversa. Como posso ajudar?",
         });
       }
     })();
@@ -87,41 +88,45 @@ export function ChatHome() {
 
   return (
     <div className="flex h-full overflow-hidden">
-      {/* Sidebar */}
+      {/* Lista de conversas */}
       <aside
-        className={`w-full md:w-[380px] flex-shrink-0 border-r border-white/5 glass flex flex-col ${activeConvId ? "hidden md:flex" : "flex"}`}
+        className={`w-full md:w-[380px] flex-shrink-0 border-r border-border flex flex-col bg-background ${activeConvId ? "hidden md:flex" : "flex"}`}
         style={{ background: wallpaper, backgroundSize: wallpaper.includes("radial-gradient(white") ? "20px 20px, 35px 35px, auto" : undefined }}
       >
-        {/* Header */}
-        <div className="h-14 px-4 flex items-center justify-between border-b border-white/5">
-          <div className="flex items-center gap-2">
-            <div className="h-9 w-9 rounded-xl bg-primary/20 border border-primary/40 flex items-center justify-center cosmic-glow">
-              <Orbit className="h-4 w-4 text-primary" />
-            </div>
-            <span className="font-bold tracking-tight text-lg bg-gradient-to-r from-[var(--cosmic)] to-[var(--nebula)] bg-clip-text text-transparent">
-              CATROGO
-            </span>
+        {/* Cabeçalho */}
+        <header className="h-14 px-3 flex items-center justify-between gap-2 border-b border-border">
+          <div className="flex min-w-0 items-center gap-2.5">
+            <BrandMark size={30} />
+            <span className="font-display text-xl font-semibold tracking-tight text-foreground">Nuv</span>
           </div>
-          <div className="flex items-center gap-1">
+          <div className="flex items-center gap-0.5">
             <NotificationCenter />
-            <Button size="icon" variant="ghost" className="h-9 w-9" onClick={() => setSettingsOpen(true)} title="Privacidade & temas">
-              <ShieldHalf className="h-4 w-4 text-[var(--nebula)]" />
-            </Button>
-            <Button size="icon" variant="ghost" className="h-9 w-9" onClick={() => setNewChatOpen(true)} title="Nova conversa">
-              <Users className="h-4 w-4" />
+            <Button
+              size="icon"
+              variant="ghost"
+              className="h-10 w-10"
+              onClick={() => setNewChatOpen(true)}
+              aria-label="Nova conversa"
+              title="Nova conversa"
+            >
+              <MessageSquarePlus className="h-5 w-5" />
             </Button>
             <DropdownMenu>
               <DropdownMenuTrigger asChild>
-                <Button size="icon" variant="ghost" className="h-9 w-9">
-                  <MoreVertical className="h-4 w-4" />
+                <Button size="icon" variant="ghost" className="h-10 w-10" aria-label="Mais opções" title="Mais opções">
+                  <Settings className="h-5 w-5 text-muted-foreground" />
                 </Button>
               </DropdownMenuTrigger>
-              <DropdownMenuContent align="end">
+              <DropdownMenuContent align="end" className="w-56">
                 <DropdownMenuItem onClick={() => setProfileOpen(true)}>
                   <UserIcon className="mr-2 h-4 w-4" /> Meu perfil
                 </DropdownMenuItem>
                 <DropdownMenuItem onClick={() => setSettingsOpen(true)}>
-                  <ShieldHalf className="mr-2 h-4 w-4" /> Privacidade & temas
+                  <Settings className="mr-2 h-4 w-4" /> Ajustes e aparência
+                </DropdownMenuItem>
+                <DropdownMenuItem onClick={() => setShowArchived((v) => !v)}>
+                  <Archive className="mr-2 h-4 w-4" />
+                  {showArchived ? "Voltar às conversas" : "Conversas arquivadas"}
                 </DropdownMenuItem>
                 <DropdownMenuSeparator />
                 <DropdownMenuItem onClick={signOut} className="text-destructive">
@@ -130,48 +135,50 @@ export function ChatHome() {
               </DropdownMenuContent>
             </DropdownMenu>
           </div>
-        </div>
+        </header>
 
-        {/* Tabs */}
         <Tabs value={activeTab} onValueChange={setActiveTab} className="flex-1 flex flex-col overflow-hidden">
-          <TabsList className="rounded-none h-11 w-full justify-start bg-transparent border-b border-white/5 px-2 gap-1">
-            <TabsTrigger value="chats" className="data-[state=active]:bg-primary/15 data-[state=active]:text-foreground"><MessageCircle className="h-4 w-4 mr-1.5" />Conversas</TabsTrigger>
-            <TabsTrigger value="status" className="data-[state=active]:bg-primary/15 data-[state=active]:text-foreground"><Circle className="h-4 w-4 mr-1.5" />Órbitas</TabsTrigger>
-            <TabsTrigger value="calls" className="data-[state=active]:bg-primary/15 data-[state=active]:text-foreground"><Phone className="h-4 w-4 mr-1.5" />Sinais</TabsTrigger>
+          <TabsList className="w-full justify-start rounded-none border-b border-border bg-transparent px-1 h-12 gap-1">
+            <TabsTrigger value="chats" className="h-9 gap-1.5 data-[state=active]:bg-secondary data-[state=active]:text-foreground">
+              <MessageCircle className="h-4 w-4" aria-hidden="true" />Conversas
+            </TabsTrigger>
+            <TabsTrigger value="status" className="h-9 gap-1.5 data-[state=active]:bg-secondary data-[state=active]:text-foreground">
+              <Users className="h-4 w-4" aria-hidden="true" />Status
+            </TabsTrigger>
+            <TabsTrigger value="calls" className="h-9 gap-1.5 data-[state=active]:bg-secondary data-[state=active]:text-foreground">
+              <Phone className="h-4 w-4" aria-hidden="true" />Chamadas
+            </TabsTrigger>
           </TabsList>
 
           <TabsContent value="chats" className="flex-1 overflow-y-auto m-0">
-            {appearance.statusOnTop && (
-              <div className="border-b border-white/5 px-2 py-2">
+            {showArchived && (
+              <div className="flex items-center justify-between gap-2 border-b border-border px-3 py-2 text-xs text-muted-foreground">
+                <span className="inline-flex items-center gap-1.5"><Archive className="h-3.5 w-3.5" aria-hidden="true" /> Conversas arquivadas</span>
+                <Button size="sm" variant="ghost" className="h-8 text-xs" onClick={() => setShowArchived(false)}>
+                  Voltar
+                </Button>
+              </div>
+            )}
+            {appearance.statusOnTop && activeTab === "chats" && (
+              <div className="border-b border-border px-2 py-2">
                 <StatusTab compact />
               </div>
             )}
-            <div className="flex items-center justify-end px-2 py-1.5">
-              <Button
-                size="sm"
-                variant="ghost"
-                className="h-7 gap-1.5 text-[11px] text-muted-foreground"
-                onClick={() => setShowArchived((v) => !v)}
-              >
-                <Archive className="h-3.5 w-3.5" />
-                {showArchived ? "Ver conversas ativas" : "Arquivadas"}
-              </Button>
-            </div>
             {appearance.separateGroups ? (
               <Tabs value={chatFilter} onValueChange={(v) => setChatFilter(v as "direct" | "groups")}>
-                <TabsList className="w-full justify-start bg-transparent px-2 gap-1 h-9">
-                  <TabsTrigger value="direct" className="text-xs data-[state=active]:bg-primary/15">Conversas</TabsTrigger>
-                  <TabsTrigger value="groups" className="text-xs data-[state=active]:bg-primary/15">Grupos</TabsTrigger>
+                <TabsList className="w-full justify-start bg-transparent px-2 gap-1 h-10">
+                  <TabsTrigger value="direct" className="text-xs data-[state=active]:bg-secondary">Conversas</TabsTrigger>
+                  <TabsTrigger value="groups" className="text-xs data-[state=active]:bg-secondary">Grupos</TabsTrigger>
                 </TabsList>
                 <TabsContent value="direct" className="m-0">
-                  <ChatList activeId={activeConvId} onSelect={setActiveConvId} filter="direct" showArchived={showArchived} />
+                  <ChatList activeId={activeConvId} onSelect={setActiveConvId} filter="direct" showArchived={showArchived} listDensity={chatAppearance.list} onNewChat={() => setNewChatOpen(true)} />
                 </TabsContent>
                 <TabsContent value="groups" className="m-0">
-                  <ChatList activeId={activeConvId} onSelect={setActiveConvId} filter="groups" showArchived={showArchived} />
+                  <ChatList activeId={activeConvId} onSelect={setActiveConvId} filter="groups" showArchived={showArchived} listDensity={chatAppearance.list} onNewChat={() => setNewChatOpen(true)} />
                 </TabsContent>
               </Tabs>
             ) : (
-              <ChatList activeId={activeConvId} onSelect={setActiveConvId} showArchived={showArchived} />
+              <ChatList activeId={activeConvId} onSelect={setActiveConvId} showArchived={showArchived} listDensity={chatAppearance.list} onNewChat={() => setNewChatOpen(true)} />
             )}
 
           </TabsContent>
@@ -184,24 +191,17 @@ export function ChatHome() {
         </Tabs>
       </aside>
 
-      {/* Main pane */}
+      {/* Área da conversa */}
       <main className={`flex-1 ${activeConvId ? "flex" : "hidden md:flex"} flex-col`}>
         {activeConvId ? (
           <ChatView conversationId={activeConvId} onBack={() => setActiveConvId(null)} />
         ) : (
           <div className="flex-1 flex flex-col items-center justify-center text-center p-8">
-            <div className="h-28 w-28 rounded-full bg-primary/15 border border-primary/30 flex items-center justify-center mb-6 carlos-avatar">
-              <Sparkles className="h-12 w-12 text-[var(--nebula)]" />
-            </div>
-            <h2 className="text-2xl font-semibold mb-2 bg-gradient-to-r from-[var(--cosmic)] to-[var(--nebula)] bg-clip-text text-transparent">
-              CATROGO
-            </h2>
-            <p className="text-muted-foreground max-w-sm">
-              Selecione uma órbita para começar. Ou converse com{" "}
-              <span className="font-medium text-foreground inline-flex items-center gap-1">
-                <Sparkles className="h-3.5 w-3.5 text-[var(--nebula)]" />Carlos
-              </span>
-              {" "}— digite <span className="font-mono text-[var(--nebula)]">@carlos</span> em qualquer chat pra invocá-lo.
+            <BrandMark size={72} className="mb-5 opacity-90" />
+            <h2 className="font-display text-xl font-semibold text-foreground mb-1.5">Nuv</h2>
+            <p className="text-sm text-muted-foreground max-w-xs leading-relaxed">
+              Escolha uma conversa ao lado para começar. Ou fale com o Carlos digitando{" "}
+              <span className="font-mono text-foreground">@carlos</span> em qualquer conversa.
             </p>
             {profile && (
               <p className="mt-4 text-xs text-muted-foreground">Conectado como @{profile.username}</p>

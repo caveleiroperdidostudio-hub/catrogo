@@ -1,5 +1,6 @@
-import { useEffect, useRef, useState } from "react";
+import { useEffect, useId, useRef, useState } from "react";
 import { useSettings, type ThemeAccent, type AppFont, type BubbleStyle, type TickStyle, TICK_GLYPHS } from "@/lib/settings-context";
+import { ChatAppearancePanel } from "./ChatAppearancePanel";
 import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/lib/auth-context";
 import { Sheet, SheetContent, SheetHeader, SheetTitle, SheetDescription } from "@/components/ui/sheet";
@@ -56,6 +57,7 @@ export function SettingsSheet({ open, onOpenChange }: { open: boolean; onOpenCha
   const fileRef = useRef<HTMLInputElement>(null);
   const [appPhone, setAppPhone] = useState<string | null>(null);
   const [fingerprint, setFingerprint] = useState<string | null>(null);
+  const [appearanceOpen, setAppearanceOpen] = useState(false);
 
   useEffect(() => {
     if (!user || !open) return;
@@ -88,17 +90,29 @@ export function SettingsSheet({ open, onOpenChange }: { open: boolean; onOpenCha
       <SheetContent className="overflow-y-auto">
         <SheetHeader>
           <SheetTitle className="flex items-center gap-2">
-            <Ghost className="h-5 w-5 text-[var(--cosmic)]" /> Central de Privacidade
+            <Ghost className="h-5 w-5 text-primary" aria-hidden="true" /> Ajustes
           </SheetTitle>
           <SheetDescription>
-            Modo Fantasma, temas, wallpapers e personalização do Chat.
+            Aparência, privacidade e notificações do Nuv.
           </SheetDescription>
         </SheetHeader>
 
         <div className="px-4 py-5 space-y-5">
+          <Button
+            variant="outline"
+            className="h-auto w-full items-start justify-start gap-3 py-3 text-left"
+            onClick={() => { onOpenChange(false); setAppearanceOpen(true); }}
+          >
+            <Palette className="mt-0.5 h-5 w-5 text-primary" aria-hidden="true" />
+            <span className="flex flex-col items-start">
+              <span className="font-medium">Aparência das conversas</span>
+              <span className="text-xs font-normal text-muted-foreground">Cores, balões, densidade e fundo</span>
+            </span>
+          </Button>
+
           <section className="space-y-3">
-            <h3 className="text-sm font-semibold flex items-center gap-2 text-[var(--nebula)]">
-              <Phone className="h-4 w-4" /> Seu número do CatroGo
+            <h3 className="text-sm font-semibold flex items-center gap-2 text-foreground">
+              <Phone className="h-4 w-4" aria-hidden="true" /> Seu número no Nuv
             </h3>
             <div className="flex items-center gap-2 rounded-xl bg-secondary/40 px-3 py-2">
               <span className="flex-1 font-mono text-sm">{appPhone ?? "—"}</span>
@@ -129,7 +143,7 @@ export function SettingsSheet({ open, onOpenChange }: { open: boolean; onOpenCha
           <Separator />
 
           <section className="space-y-3">
-            <h3 className="text-sm font-semibold flex items-center gap-2 text-[var(--nebula)]">
+            <h3 className="text-sm font-semibold flex items-center gap-2 text-foreground">
               <Bell className="h-4 w-4" /> Notificações Push
             </h3>
             <Button
@@ -156,7 +170,7 @@ export function SettingsSheet({ open, onOpenChange }: { open: boolean; onOpenCha
 
 
           <section className="space-y-3">
-            <h3 className="text-sm font-semibold flex items-center gap-2 text-[var(--nebula)]">
+            <h3 className="text-sm font-semibold flex items-center gap-2 text-foreground">
               <Ghost className="h-4 w-4" /> Modo Fantasma Total
             </h3>
             <Row icon={<Eye className="h-4 w-4" />} label="Congelar visto por último"
@@ -172,7 +186,7 @@ export function SettingsSheet({ open, onOpenChange }: { open: boolean; onOpenCha
           <Separator />
 
           <section className="space-y-3">
-            <h3 className="text-sm font-semibold flex items-center gap-2 text-[var(--nebula)]">
+            <h3 className="text-sm font-semibold flex items-center gap-2 text-foreground">
               <OrbitIcon className="h-4 w-4" /> Anti-Deletar
             </h3>
             <Row icon={<OrbitIcon className="h-4 w-4" />}
@@ -183,7 +197,7 @@ export function SettingsSheet({ open, onOpenChange }: { open: boolean; onOpenCha
           <Separator />
 
           <section className="space-y-3">
-            <h3 className="text-sm font-semibold flex items-center gap-2 text-[var(--nebula)]">
+            <h3 className="text-sm font-semibold flex items-center gap-2 text-foreground">
               <ImageIcon className="h-4 w-4" /> Visualização Única
             </h3>
             <Row icon={<ImageIcon className="h-4 w-4" />}
@@ -194,7 +208,7 @@ export function SettingsSheet({ open, onOpenChange }: { open: boolean; onOpenCha
           <Separator />
 
           <section className="space-y-3">
-            <h3 className="text-sm font-semibold flex items-center gap-2 text-[var(--nebula)]">
+            <h3 className="text-sm font-semibold flex items-center gap-2 text-foreground">
               <Palette className="h-4 w-4" /> Central de Temas
             </h3>
             <div className="grid grid-cols-2 gap-2">
@@ -217,7 +231,7 @@ export function SettingsSheet({ open, onOpenChange }: { open: boolean; onOpenCha
 
           {/* Cor de acento personalizada */}
           <section className="space-y-3">
-            <h3 className="text-sm font-semibold flex items-center gap-2 text-[var(--nebula)]">
+            <h3 className="text-sm font-semibold flex items-center gap-2 text-foreground">
               <Droplet className="h-4 w-4" /> Cor de Acento Personalizada
             </h3>
             <p className="text-xs text-muted-foreground">Defina manualmente o tom de cor de botões, balões e destaques.</p>
@@ -243,7 +257,7 @@ export function SettingsSheet({ open, onOpenChange }: { open: boolean; onOpenCha
 
           {/* Fontes */}
           <section className="space-y-3">
-            <h3 className="text-sm font-semibold flex items-center gap-2 text-[var(--nebula)]">
+            <h3 className="text-sm font-semibold flex items-center gap-2 text-foreground">
               <Type className="h-4 w-4" /> Fonte da Interface
             </h3>
             <div className="grid grid-cols-3 gap-2">
@@ -263,7 +277,7 @@ export function SettingsSheet({ open, onOpenChange }: { open: boolean; onOpenCha
 
           {/* Estilo de balões */}
           <section className="space-y-3">
-            <h3 className="text-sm font-semibold flex items-center gap-2 text-[var(--nebula)]">
+            <h3 className="text-sm font-semibold flex items-center gap-2 text-foreground">
               <MessageSquare className="h-4 w-4" /> Estilo dos Balões
             </h3>
             <div className="grid grid-cols-4 gap-2">
@@ -283,7 +297,7 @@ export function SettingsSheet({ open, onOpenChange }: { open: boolean; onOpenCha
 
           {/* Estilo de ticks */}
           <section className="space-y-3">
-            <h3 className="text-sm font-semibold flex items-center gap-2 text-[var(--nebula)]">
+            <h3 className="text-sm font-semibold flex items-center gap-2 text-foreground">
               <CheckCheck className="h-4 w-4" /> Estilo dos Vistos (Ticks)
             </h3>
             <div className="flex gap-2 flex-wrap">
@@ -303,7 +317,7 @@ export function SettingsSheet({ open, onOpenChange }: { open: boolean; onOpenCha
 
           {/* Estilo da Home */}
           <section className="space-y-3">
-            <h3 className="text-sm font-semibold flex items-center gap-2 text-[var(--nebula)]">
+            <h3 className="text-sm font-semibold flex items-center gap-2 text-foreground">
               <LayoutGrid className="h-4 w-4" /> Estilo da Home
             </h3>
             <Row icon={<OrbitIcon className="h-4 w-4" />} label="Status no topo (estilo Instagram)"
@@ -316,7 +330,7 @@ export function SettingsSheet({ open, onOpenChange }: { open: boolean; onOpenCha
 
           {/* Cabeçalho personalizado */}
           <section className="space-y-3">
-            <h3 className="text-sm font-semibold flex items-center gap-2 text-[var(--nebula)]">
+            <h3 className="text-sm font-semibold flex items-center gap-2 text-foreground">
               <Eye className="h-4 w-4" /> Cabeçalho da Conversa
             </h3>
             <Row icon={<Eye className="h-4 w-4" />} label="Ocultar nome do contato"
@@ -331,7 +345,7 @@ export function SettingsSheet({ open, onOpenChange }: { open: boolean; onOpenCha
 
 
           <section className="space-y-3">
-            <h3 className="text-sm font-semibold flex items-center gap-2 text-[var(--nebula)]">
+            <h3 className="text-sm font-semibold flex items-center gap-2 text-foreground">
               <Palette className="h-4 w-4" /> Lobby — Wallpaper
             </h3>
             <p className="text-xs text-muted-foreground">Personalize o fundo da lista de conversas.</p>
@@ -354,7 +368,7 @@ export function SettingsSheet({ open, onOpenChange }: { open: boolean; onOpenCha
           <Separator />
 
           <section className="space-y-3">
-            <h3 className="text-sm font-semibold flex items-center gap-2 text-[var(--nebula)]">
+            <h3 className="text-sm font-semibold flex items-center gap-2 text-foreground">
               <Wallpaper className="h-4 w-4" /> Fundo do Chat
             </h3>
             <p className="text-xs text-muted-foreground">Cores, gradientes, foto ou vídeo em loop dentro da conversa.</p>
@@ -444,18 +458,21 @@ export function SettingsSheet({ open, onOpenChange }: { open: boolean; onOpenCha
           </section>
         </div>
       </SheetContent>
+
+      <ChatAppearancePanel open={appearanceOpen} onOpenChange={setAppearanceOpen} />
     </Sheet>
   );
 }
 
 function Row({ icon, label, checked, onChange }: { icon: React.ReactNode; label: string; checked: boolean; onChange: () => void }) {
+  const id = useId();
   return (
-    <div className="flex items-center justify-between gap-3 rounded-md px-2 py-1.5 hover:bg-accent/5">
-      <Label className="flex items-center gap-2 cursor-pointer text-sm font-normal">
-        <span className="text-muted-foreground">{icon}</span>
+    <div className="flex min-h-11 items-center justify-between gap-3 rounded-lg px-2 py-2 hover:bg-secondary/50">
+      <Label htmlFor={id} className="flex cursor-pointer items-center gap-2 text-sm font-normal">
+        <span className="text-muted-foreground" aria-hidden="true">{icon}</span>
         {label}
       </Label>
-      <Switch checked={checked} onCheckedChange={onChange} />
+      <Switch id={id} checked={checked} onCheckedChange={onChange} />
     </div>
   );
 }

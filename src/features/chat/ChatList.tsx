@@ -2,8 +2,12 @@ import { useEffect, useState } from "react";
 import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/lib/auth-context";
 import { useSettings } from "@/lib/settings-context";
+import { conversationTime, type ChatAppearance } from "@/lib/chat-appearance";
+import { cn } from "@/lib/utils";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
-import { Sparkles, Users, Lock, Pin, PinOff, BellOff, Bell, Archive, ArchiveRestore, MoreVertical } from "lucide-react";
+import { EmptyState } from "@/components/ui/empty-state";
+import { Button } from "@/components/ui/button";
+import { Sparkles, Users, Lock, Pin, PinOff, BellOff, Bell, Archive, ArchiveRestore, MoreVertical, MessageSquarePlus } from "lucide-react";
 import { ListSkeleton } from "@/components/ui/list-skeleton";
 import {
   DropdownMenu,
@@ -11,8 +15,6 @@ import {
   DropdownMenuItem,
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
-import { formatRelative } from "date-fns";
-import { ptBR } from "date-fns/locale";
 import { toast } from "sonner";
 
 type ConvRow = {
@@ -41,11 +43,15 @@ export function ChatList({
   onSelect,
   filter = "all",
   showArchived = false,
+  listDensity = "comfortable",
+  onNewChat,
 }: {
   activeId: string | null;
   onSelect: (id: string) => void;
   filter?: "all" | "direct" | "groups";
   showArchived?: boolean;
+  listDensity?: ChatAppearance["list"];
+  onNewChat?: () => void;
 }) {
   const { user } = useAuth();
   const { locks } = useSettings();
@@ -57,7 +63,7 @@ export function ChatList({
   const archivedCount = allItems.filter((c) => c.archived).length;
 
   const load = async () => {
-    if (!user) return;
+    if (!user) { setLoading(false); return; }
     const { data: members } = await supabase
       .from("conversation_members")
       .select("conversation_id, pinned, archived, muted_until")
@@ -164,51 +170,69 @@ export function ChatList({
   if (loading) return <ListSkeleton rows={7} />;
   if (items.length === 0)
     return (
-      <div className="p-6 text-sm text-muted-foreground text-center">
-        {showArchived ? "Nenhuma conversa arquivada." : (
-          <>Nenhuma órbita ainda. Toque em <Users className="inline h-3.5 w-3.5" /> acima para iniciar.</>
-        )}
-      </div>
+      <EmptyState
+        icon={showArchived ? Archive : MessageSquarePlus}
+        title={showArchived ? "Nada arquivado" : "Nenhuma conversa ainda"}
+        description={
+          showArchived
+            ? "As conversas que você arquivar aparecem aqui."
+            : "Comece uma conversa com alguém ou fale com o Carlos, o assistente do Nuv."
+        }
+        action={
+          !showArchived && onNewChat ? (
+            <Button size="sm" onClick={onNewChat} className="gap-1.5">
+              <MessageSquarePlus className="h-4 w-4" aria-hidden="true" /> Nova conversa
+            </Button>
+          ) : undefined
+        }
+      />
     );
 
   return (
     <>
       {!showArchived && archivedCount > 0 && (
-        <div className="px-3 py-2 text-[11px] text-muted-foreground border-b border-white/5 flex items-center gap-1.5">
-          <Archive className="h-3.5 w-3.5" /> {archivedCount} conversa(s) arquivada(s)
+        <div className="flex items-center gap-1.5 border-b border-border px-3 py-1.5 text-[11px] text-muted-foreground">
+          <Archive className="h-3.5 w-3.5" aria-hidden="true" /> {archivedCount} conversa{archivedCount > 1 ? "s" : ""} arquivada{archivedCount > 1 ? "s" : ""}
         </div>
       )}
-      <ul>
+      <ul data-chat-list={listDensity}>
         {items.map((c) => {
           const locked = !!locks[c.id];
           const muted = isMuted(c.mutedUntil);
           return (
-            <li key={c.id} className="relative group">
+            <li key={c.id} className="group relative">
               <button
                 onClick={() => onSelect(c.id)}
-                className={`w-full flex items-center gap-3 px-3 py-3 pr-11 hover:bg-primary/10 transition-colors border-b border-white/5 text-left ${activeId === c.id ? "bg-primary/15" : ""}`}
+                aria-current={activeId === c.id ? "true" : undefined}
+                className={cn(
+                  "chat-row flex w-full items-center gap-3 border-b border-border/60 pl-3 pr-12 text-left transition-colors",
+                  "hover:bg-secondary/70 focus-visible:bg-secondary/70",
+                  activeId === c.id && "bg-secondary",
+                )}
               >
-                <Avatar className={`h-12 w-12 ${c.isAi ? "carlos-avatar" : ""}`}>
-                  {c.avatar_url && <AvatarImage src={c.avatar_url} />}
-                  <AvatarFallback className={c.isAi ? "bg-primary/30 text-[var(--nebula)] border border-primary/40" : "bg-secondary text-foreground"}>
-                    {c.isAi ? <Sparkles className="h-5 w-5" /> : c.is_group ? <Users className="h-5 w-5" /> : c.displayName.charAt(0).toUpperCase()}
+                <Avatar className="h-12 w-12 shrink-0">
+                  {c.avatar_url && <AvatarImage src={c.avatar_url} alt="" />}
+                  <AvatarFallback className={c.isAi ? "bg-primary/15 text-primary" : "bg-secondary text-foreground"}>
+                    {c.isAi ? <Sparkles className="h-5 w-5" aria-hidden="true" /> : c.is_group ? <Users className="h-5 w-5" aria-hidden="true" /> : c.displayName.charAt(0).toUpperCase()}
                   </AvatarFallback>
                 </Avatar>
-                <div className="flex-1 min-w-0">
-                  <div className="flex justify-between items-baseline gap-2">
-                    <span className="font-medium truncate flex items-center gap-1.5">
-                      {c.displayName}
-                      {(c.isAi || c.pinned) && <Pin className="h-3 w-3 text-[var(--nebula)]" />}
-                      {c.isAi && <span className="text-[10px] px-1.5 py-0.5 rounded-full bg-primary/30 text-[var(--nebula)] font-semibold">IA</span>}
-                      {muted && <BellOff className="h-3 w-3 text-muted-foreground" />}
-                      {locked && <Lock className="h-3 w-3 text-muted-foreground" />}
+                <div className="min-w-0 flex-1">
+                  <div className="flex items-baseline justify-between gap-2">
+                    <span className="flex min-w-0 items-center gap-1.5">
+                      <span className="truncate text-[15px] font-medium text-foreground">{c.displayName}</span>
+                      {c.isAi && (
+                        <span className="shrink-0 rounded-full bg-primary/15 px-1.5 py-0.5 text-[10px] font-semibold text-primary">IA</span>
+                      )}
+                      {c.pinned && !c.isAi && <Pin className="h-3 w-3 shrink-0 text-muted-foreground" aria-label="Fixada" />}
+                      {muted && <BellOff className="h-3.5 w-3.5 shrink-0 text-muted-foreground" aria-label="Silenciada" />}
+                      {locked && <Lock className="h-3.5 w-3.5 shrink-0 text-muted-foreground" aria-label="Protegida por PIN" />}
                     </span>
-                    <span className="text-[11px] text-muted-foreground flex-shrink-0">
-                      {formatRelative(new Date(c.last_message_at), new Date(), { locale: ptBR }).split(" às")[0]}
+                    <span className="shrink-0 text-[11px] tabular-nums text-muted-foreground">
+                      {conversationTime(c.last_message_at)}
                     </span>
                   </div>
-                  <p className="text-sm text-muted-foreground truncate">
-                    {locked ? "🔒 Chat protegido com PIN" : (c.lastMessage ?? "—")}
+                  <p className="mt-0.5 truncate text-[13px] text-muted-foreground">
+                    {locked ? "Chat protegido com PIN" : (c.lastMessage ?? "Sem mensagens ainda")}
                   </p>
                 </div>
               </button>
@@ -217,10 +241,10 @@ export function ChatList({
                 <DropdownMenu>
                   <DropdownMenuTrigger asChild>
                     <button
-                      className="tap-press absolute right-1.5 top-1/2 -translate-y-1/2 rounded-md p-1.5 text-muted-foreground hover:text-foreground hover:bg-white/5"
+                      className="absolute right-1.5 top-1/2 -translate-y-1/2 rounded-full p-2 text-muted-foreground transition-colors hover:bg-secondary hover:text-foreground focus-visible:bg-secondary"
                       aria-label={`Opções de ${c.displayName}`}
                     >
-                      <MoreVertical className="h-4 w-4" />
+                      <MoreVertical className="h-4 w-4" aria-hidden="true" />
                     </button>
                   </DropdownMenuTrigger>
                   <DropdownMenuContent align="end">

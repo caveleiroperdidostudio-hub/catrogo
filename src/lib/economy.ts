@@ -56,7 +56,7 @@ export const TX_LABEL: Record<string, { label: string; emoji: string }> = {
   daily: { label: "Bônus diário", emoji: "📅" },
   bonus: { label: "Bônus", emoji: "✨" },
   export_game: { label: "Exportação de jogo", emoji: "📦" },
-  publish_game: { label: "Publicação no CatroGo", emoji: "🚀" },
+  publish_game: { label: "Publicação no Nuv", emoji: "🚀" },
   import_game: { label: "Importação de jogo", emoji: "📥" },
 };
 

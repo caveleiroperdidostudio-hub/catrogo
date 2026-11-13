@@ -91,7 +91,7 @@ function AccountSection() {
           <Input value={user?.email ?? ""} disabled className="opacity-60" />
         </div>
         <div className="space-y-1.5">
-          <Label className="text-xs">Telefone CatroGo</Label>
+          <Label className="text-xs">Telefone Nuv</Label>
           <Input value={phone} onChange={(e) => setPhone(e.target.value)} placeholder="+55 ..." />
         </div>
         <Button className="w-full" onClick={save} disabled={saving}>
@@ -424,7 +424,7 @@ function AboutSection() {
         <div className="h-16 w-16 rounded-2xl bg-primary flex items-center justify-center cosmic-glow">
           <Sparkles className="h-8 w-8 text-primary-foreground" />
         </div>
-        <h2 className="text-xl font-bold">CatroGo</h2>
+        <h2 className="text-xl font-bold">Nuv</h2>
         <p className="text-sm text-muted-foreground">Versão {APP_VERSION}</p>
       </div>
 
@@ -435,7 +435,7 @@ function AboutSection() {
       <Row icon={Crown} label="Ctrg OS" desc={isPro ? "Desbloqueado" : "Bloqueado — requer assinatura"}>
         {isPro ? <Crown className="h-4 w-4 text-amber-400" /> : <Shield className="h-4 w-4 text-muted-foreground" />}
       </Row>
-      <Row icon={Info} label="Plataforma" desc="CatroGo Platform" />
+      <Row icon={Info} label="Plataforma" desc="Nuv Platform" />
 
       <SectionTitle>Explorar</SectionTitle>
       <Row icon={Zap} label="Histórico de versões" desc="Novidades e mudanças">
@@ -444,7 +444,7 @@ function AboutSection() {
       <Row icon={Smartphone} label="Museu" desc="Experimente versões antigas">
         <ChevronRight className="h-4 w-4 text-muted-foreground" />
       </Row>
-      <Row icon={Info} label="Créditos" desc="Quem construiu o CatroGo">
+      <Row icon={Info} label="Créditos" desc="Quem construiu o Nuv">
         <ChevronRight className="h-4 w-4 text-muted-foreground" />
       </Row>
 

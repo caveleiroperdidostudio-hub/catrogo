@@ -1,16 +1,16 @@
-# CatroGo — Roadmap
+# Nuv — Roadmap
 
 ## Nova identidade e interface limpa
-- [ ] Concluir e conectar a personalização das conversas
-- [ ] Simplificar navegação, lista de conversas, conversa e Configurações com acessibilidade
-- [ ] Remover indicadores de presença ou entrega sem confirmação real
-- [ ] Aplicar o novo nome e a logo enviada em todo o app, incluindo ícone e metadados
+- [x] Concluir e conectar a personalização das conversas (Central de Aparência em Ajustes)
+- [x] Simplificar navegação, lista de conversas, conversa e Configurações com acessibilidade
+- [x] Remover indicadores de presença ou entrega sem confirmação real
+- [x] Aplicar o novo nome e a logo enviada em todo o app, incluindo ícone e metadados
 - [ ] Testar os fluxos principais no celular e no desktop
 
 ## Atualização focada em comunicação
 - [ ] Renovar lista e pesquisa de conversas sem indicadores falsos
-- [ ] Refinar cabeçalho, mensagens, anexos e campo de digitação preservando os fluxos
-- [ ] Central de aparência de chats com prévia, restauração e preferências privadas
+- [x] Refinar cabeçalho, mensagens, anexos e campo de digitação preservando os fluxos
+- [x] Central de aparência de chats com prévia, restauração e preferências privadas
 - [ ] Variações Glass premium e movimento reduzido
 - [ ] Verificar segurança existente e testar os fluxos disponíveis
 

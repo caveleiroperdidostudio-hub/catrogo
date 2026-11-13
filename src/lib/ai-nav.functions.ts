@@ -7,7 +7,7 @@ const Input = z.object({ message: z.string().min(1).max(500) });
 
 const LIST = AI_ALLOWED_ROUTES.map((r) => `${r.id} = ${r.label} (${r.aliases.join(", ")})`).join("\n");
 
-const SYSTEM = `Você decide se a mensagem do usuário pede para ABRIR uma tela do app CatroGo.
+const SYSTEM = `Você decide se a mensagem do usuário pede para ABRIR uma tela do app Nuv.
 Telas permitidas:
 ${LIST}
 
