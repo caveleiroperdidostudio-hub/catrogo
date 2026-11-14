@@ -11,37 +11,12 @@ import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter } from "
 import { Film, Plus, Loader2, Eye, X, ShieldCheck, UserPlus } from "lucide-react";
 import { toast } from "sonner";
 import { ReportButton } from "@/components/ReportButton";
-
-
-type Movie = {
-  id: string;
-  title: string;
-  description: string | null;
-  poster_url: string | null;
-  video_url: string;
-  category: string;
-  year: number | null;
-  duration_min: number | null;
-  views: number;
-};
+import { MovieDetails } from "./MovieDetails";
+import { MoviePoster } from "./MoviePoster";
+import { MovieRail } from "./MovieRail";
+import type { Movie, MovieProgress } from "./types";
 
 const CATEGORIES = ["Ação", "Comédia", "Drama", "Terror", "Animação", "Documentário", "Ficção"];
-
-function Poster({ path, title }: { path: string | null; title: string }) {
-  const [url, setUrl] = useState<string | null>(null);
-  useEffect(() => {
-    if (!path) return;
-    if (/^https?:/.test(path)) setUrl(path);
-    else signedUrl("movies", path).then(setUrl);
-  }, [path]);
-  if (!url)
-    return (
-      <div className="flex aspect-[2/3] w-full items-center justify-center rounded-xl bg-white/5 text-center text-xs text-muted-foreground">
-        {title}
-      </div>
-    );
-  return <img src={url} alt={`Pôster de ${title}`} loading="lazy" className="aspect-[2/3] w-full rounded-xl object-cover" />;
-}
 
 function Player({ movie, startAt, onClose }: { movie: Movie; startAt: number; onClose: () => void }) {
   const [url, setUrl] = useState<string | null>(null);
@@ -100,12 +75,14 @@ export function MoviesModule() {
   const [staff, setStaff] = useState(false);
   const [cat, setCat] = useState<string>("Todos");
   const [playing, setPlaying] = useState<Movie | null>(null);
+  const [selected, setSelected] = useState<Movie | null>(null);
   const [open, setOpen] = useState(false);
   const [busy, setBusy] = useState(false);
   const [promoteOpen, setPromoteOpen] = useState(false);
   const [promoteName, setPromoteName] = useState("");
 
-  const [progress, setProgress] = useState<Record<string, { pos: number; dur: number }>>({});
+  const [progress, setProgress] = useState<Record<string, MovieProgress>>({});
+  const [favorites, setFavorites] = useState<Record<string, true>>({});
   const [form, setForm] = useState({ title: "", description: "", category: CATEGORIES[0], year: "", duration: "", rights: "", license: "" });
   const [videoFile, setVideoFile] = useState<File | null>(null);
   const [posterFile, setPosterFile] = useState<File | null>(null);
@@ -113,7 +90,7 @@ export function MoviesModule() {
   const load = async () => {
     const { data } = await supabase
       .from("movies")
-      .select("id, title, description, poster_url, video_url, category, year, duration_min, views")
+      .select("id, title, description, poster_url, video_url, category, year, duration_min, views, director, cast_names, rating, age_rating")
       .order("created_at", { ascending: false });
     setMovies((data ?? []) as Movie[]);
     setLoading(false);
@@ -121,15 +98,47 @@ export function MoviesModule() {
 
   const loadProgress = async () => {
     if (!user) return;
-    const { data } = await supabase.from("movie_progress").select("movie_id, position_sec, duration_sec").eq("user_id", user.id);
-    const map: Record<string, { pos: number; dur: number }> = {};
-    for (const r of data ?? []) map[r.movie_id] = { pos: r.position_sec, dur: r.duration_sec };
+    const { data } = await supabase
+      .from("movie_progress")
+      .select("movie_id, position_sec, duration_sec, updated_at")
+      .eq("user_id", user.id);
+    const map: Record<string, MovieProgress> = {};
+    for (const r of data ?? []) map[r.movie_id] = { pos: r.position_sec, dur: r.duration_sec, at: r.updated_at };
     setProgress(map);
+  };
+
+  const loadFavorites = async () => {
+    if (!user) { setFavorites({}); return; }
+    const { data } = await supabase.from("movie_favorites").select("movie_id").eq("user_id", user.id);
+    const map: Record<string, true> = {};
+    for (const r of data ?? []) map[r.movie_id] = true;
+    setFavorites(map);
+  };
+
+  const toggleFavorite = async (movieId: string) => {
+    if (!user) return toast.error("Entre na sua conta para salvar filmes");
+    const next = !favorites[movieId];
+    setFavorites((cur) => {
+      const map = { ...cur };
+      if (next) map[movieId] = true;
+      else delete map[movieId];
+      return map;
+    });
+    const { error } = next
+      ? await supabase.from("movie_favorites").insert({ user_id: user.id, movie_id: movieId })
+      : await supabase.from("movie_favorites").delete().eq("user_id", user.id).eq("movie_id", movieId);
+    if (error) {
+      toast.error("Não foi possível atualizar sua lista");
+      loadFavorites();
+      return;
+    }
+    toast.success(next ? "Adicionado à minha lista" : "Removido da minha lista");
   };
 
   useEffect(() => {
     load();
     loadProgress();
+    loadFavorites();
     supabase.rpc("is_staff").then(({ data }) => setStaff(!!data));
   }, [user]);
 
@@ -177,6 +186,18 @@ export function MoviesModule() {
   };
 
   const list = cat === "Todos" ? movies : movies.filter((m) => m.category === cat);
+
+  // Histórico: vistos recentemente, sem os que já terminaram.
+  const continueList = movies
+    .filter((m) => {
+      const saved = progress[m.id];
+      if (!saved || saved.pos <= 30) return false;
+      return saved.dur === 0 || saved.pos / saved.dur < 0.95;
+    })
+    .sort((a, b) => new Date(progress[b.id].at).getTime() - new Date(progress[a.id].at).getTime())
+    .slice(0, 10);
+
+  const favoriteList = movies.filter((m) => favorites[m.id]);
 
   return (
     <div className="flex h-full flex-col overflow-hidden">
@@ -226,22 +247,29 @@ export function MoviesModule() {
             {staff ? "Nenhum filme ainda. Publique o primeiro!" : "Ainda não há filmes no catálogo."}
           </div>
         ) : (
-          <div className="grid grid-cols-2 gap-3 sm:grid-cols-3">
-            {list.map((m) => (
-              <div key={m.id}>
-                <button onClick={() => setPlaying(m)} className="tap-press w-full text-left">
-                  <Poster path={m.poster_url} title={m.title} />
-                  <div className="mt-1 truncate text-sm font-medium">{m.title}</div>
-                  <div className="flex items-center gap-1 text-[11px] text-muted-foreground">
-                    <Eye className="h-3 w-3" /> {m.views}
-                    {m.year ? ` · ${m.year}` : ""}
-                  </div>
-                </button>
-                <ReportButton targetType="movie" targetId={m.id} label="" />
+          <>
+            {(continueList.length > 0 || favoriteList.length > 0) && (
+              <div className="mb-5 space-y-4">
+                <MovieRail title="Continuar assistindo" items={continueList} progress={progress} onOpen={setSelected} />
+                <MovieRail title="Minha lista" items={favoriteList} progress={progress} onOpen={setSelected} />
               </div>
-            ))}
-
-          </div>
+            )}
+            <div className="grid grid-cols-2 gap-3 sm:grid-cols-3">
+              {list.map((m) => (
+                <div key={m.id}>
+                  <button onClick={() => setSelected(m)} className="tap-press w-full text-left">
+                    <MoviePoster path={m.poster_url} title={m.title} />
+                    <div className="mt-1 truncate text-sm font-medium">{m.title}</div>
+                    <div className="flex items-center gap-1 text-[11px] text-muted-foreground">
+                      <Eye className="h-3 w-3" /> {m.views}
+                      {m.year ? ` · ${m.year}` : ""}
+                    </div>
+                  </button>
+                  <ReportButton targetType="movie" targetId={m.id} label="" />
+                </div>
+              ))}
+            </div>
+          </>
         )}
       </div>
 
@@ -253,6 +281,21 @@ export function MoviesModule() {
             setPlaying(null);
             loadProgress();
           }}
+        />
+      )}
+
+      {selected && (
+        <MovieDetails
+          movie={selected}
+          favorite={!!favorites[selected.id]}
+          progress={progress[selected.id]}
+          onToggleFavorite={() => toggleFavorite(selected.id)}
+          onPlay={() => {
+            const movie = selected;
+            setSelected(null);
+            setPlaying(movie);
+          }}
+          onClose={() => setSelected(null)}
         />
       )}
 

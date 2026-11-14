@@ -59,7 +59,7 @@ type Ctx = {
 
 const CtrgUiContext = createContext<Ctx | undefined>(undefined);
 
-export const APP_VERSION = "4.2.0";
+export const APP_VERSION = "4.3.0";
 
 export function CtrgUiProvider({ children }: { children: ReactNode }) {
   const { session, isOwner } = useAuth();

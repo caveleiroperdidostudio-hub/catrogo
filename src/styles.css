@@ -927,12 +927,70 @@ a[href*="lovable.dev"] { display: none !important; }
    ========================================================================== */
 .glass-dock-stage {
   position: relative;
-  display: grid;
-  place-items: center;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 2rem;
   min-height: 100dvh;
-  padding: 3rem 0;
+  padding: 3rem 1rem;
   background: #000;
   overflow: hidden;
+
+  /* Tokens do vidro: cada variação premium troca estes valores. */
+  --glass-face: linear-gradient(180deg, oklch(1 0 0 / 0.07), oklch(1 0 0 / 0.015) 52%, oklch(1 0 0 / 0.045));
+  --glass-body: oklch(0.235 0.004 270 / 0.55);
+  --glass-lens: radial-gradient(120% 120% at 30% 20%, oklch(1 0 0 / 0.12), oklch(1 0 0 / 0.015) 46%, oklch(1 0 0 / 0.05) 100%);
+  --glass-prism: conic-gradient(
+    from 205deg,
+    oklch(0.83 0.16 205 / 0.9),
+    oklch(0.72 0.22 320 / 0.85),
+    oklch(0.9 0.14 95 / 0.6),
+    oklch(0.82 0.17 160 / 0.65),
+    oklch(0.83 0.16 205 / 0.9)
+  );
+  --glass-sheen:
+    radial-gradient(42% 36% at 30% 20%, oklch(1 0 0 / 0.38), oklch(1 0 0 / 0) 72%),
+    radial-gradient(58% 46% at 74% 88%, oklch(1 0 0 / 0.14), oklch(1 0 0 / 0) 74%),
+    linear-gradient(180deg, oklch(1 0 0 / 0.1), oklch(1 0 0 / 0) 36%);
+}
+
+/* Âmbar: vidro quente, com brilho de mel nas bordas. */
+[data-glass-variant="amber"] {
+  --glass-face: linear-gradient(180deg, oklch(1 0.03 85 / 0.09), oklch(1 0 0 / 0.02) 52%, oklch(0.98 0.07 80 / 0.07));
+  --glass-body: oklch(0.275 0.032 62 / 0.6);
+  --glass-lens: radial-gradient(120% 120% at 30% 20%, oklch(1 0.1 90 / 0.17), oklch(1 0.06 80 / 0.025) 46%, oklch(1 0.08 85 / 0.07) 100%);
+  --glass-prism: conic-gradient(
+    from 205deg,
+    oklch(0.9 0.13 85 / 0.9),
+    oklch(0.82 0.16 45 / 0.85),
+    oklch(0.95 0.1 100 / 0.6),
+    oklch(0.86 0.12 25 / 0.65),
+    oklch(0.9 0.13 85 / 0.9)
+  );
+  --glass-sheen:
+    radial-gradient(42% 36% at 30% 20%, oklch(1 0.09 88 / 0.34), oklch(1 0 0 / 0) 72%),
+    radial-gradient(58% 46% at 74% 88%, oklch(0.98 0.08 70 / 0.17), oklch(1 0 0 / 0) 74%),
+    linear-gradient(180deg, oklch(1 0.06 85 / 0.11), oklch(1 0 0 / 0) 36%);
+}
+
+/* Ônix: vidro noturno, frio e mais denso. */
+[data-glass-variant="onyx"] {
+  --glass-face: linear-gradient(180deg, oklch(0.75 0.09 255 / 0.1), oklch(0.6 0.1 260 / 0.025) 52%, oklch(0.7 0.08 250 / 0.05));
+  --glass-body: oklch(0.17 0.028 265 / 0.72);
+  --glass-lens: radial-gradient(120% 120% at 30% 20%, oklch(0.86 0.1 250 / 0.2), oklch(1 0 0 / 0.015) 46%, oklch(0.8 0.12 265 / 0.08) 100%);
+  --glass-prism: conic-gradient(
+    from 205deg,
+    oklch(0.72 0.14 255 / 0.9),
+    oklch(0.66 0.2 300 / 0.85),
+    oklch(0.78 0.12 210 / 0.6),
+    oklch(0.7 0.16 265 / 0.65),
+    oklch(0.72 0.14 255 / 0.9)
+  );
+  --glass-sheen:
+    radial-gradient(42% 36% at 30% 20%, oklch(0.9 0.08 250 / 0.3), oklch(1 0 0 / 0) 72%),
+    radial-gradient(58% 46% at 74% 88%, oklch(0.75 0.12 265 / 0.2), oklch(1 0 0 / 0) 74%),
+    linear-gradient(180deg, oklch(0.9 0.06 250 / 0.11), oklch(1 0 0 / 0) 36%);
 }
 
 .glass-dock {
@@ -947,9 +1005,7 @@ a[href*="lovable.dev"] { display: none !important; }
   border-radius: 999px;
   overflow: hidden;
   isolation: isolate;
-  background:
-    linear-gradient(180deg, oklch(1 0 0 / 0.07), oklch(1 0 0 / 0.015) 52%, oklch(1 0 0 / 0.045)),
-    oklch(0.235 0.004 270 / 0.55);
+  background: var(--glass-face), var(--glass-body);
   box-shadow:
     inset 0 0 0 1px oklch(1 0 0 / 0.09),
     inset 0 1px 0 oklch(1 0 0 / 0.16),
@@ -1016,8 +1072,7 @@ a[href*="lovable.dev"] { display: none !important; }
   isolation: isolate;
   pointer-events: none;
   will-change: transform;
-  background:
-    radial-gradient(120% 120% at 30% 20%, oklch(1 0 0 / 0.12), oklch(1 0 0 / 0.015) 46%, oklch(1 0 0 / 0.05) 100%);
+  background: var(--glass-lens);
   box-shadow:
     inset 0 0 0 1px oklch(1 0 0 / 0.24),
     inset 0 1px 2px oklch(1 0 0 / 0.5),
@@ -1077,14 +1132,7 @@ a[href*="lovable.dev"] { display: none !important; }
 /* Aresta iridescente que respira devagar. */
 .glass-dock__prism {
   padding: 1.5px;
-  background: conic-gradient(
-    from 205deg,
-    oklch(0.83 0.16 205 / 0.9),
-    oklch(0.72 0.22 320 / 0.85),
-    oklch(0.9 0.14 95 / 0.6),
-    oklch(0.82 0.17 160 / 0.65),
-    oklch(0.83 0.16 205 / 0.9)
-  );
+  background: var(--glass-prism);
   -webkit-mask: linear-gradient(#000 0 0) content-box, linear-gradient(#000 0 0);
   -webkit-mask-composite: xor;
   mask: linear-gradient(#000 0 0) content-box, linear-gradient(#000 0 0);
@@ -1104,14 +1152,60 @@ a[href*="lovable.dev"] { display: none !important; }
 .glass-dock__sheen {
   opacity: 0.75;
   mix-blend-mode: screen;
-  background:
-    radial-gradient(42% 36% at 30% 20%, oklch(1 0 0 / 0.38), oklch(1 0 0 / 0) 72%),
-    radial-gradient(58% 46% at 74% 88%, oklch(1 0 0 / 0.14), oklch(1 0 0 / 0) 74%),
-    linear-gradient(180deg, oklch(1 0 0 / 0.1), oklch(1 0 0 / 0) 36%);
+  background: var(--glass-sheen);
 }
+
+/* Painel de variações e movimento do showcase */
+.glass-dock-panel {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 0.6rem;
+}
+
+.glass-switch {
+  display: flex;
+  align-items: center;
+  gap: 0.25rem;
+  padding: 0.28rem;
+  border-radius: 999px;
+  background: oklch(1 0 0 / 0.045);
+  box-shadow: inset 0 0 0 1px oklch(1 0 0 / 0.09), inset 0 1px 0 oklch(1 0 0 / 0.1);
+  @apply backdrop-blur-xl;
+}
+
+.glass-chip {
+  border: 0;
+  border-radius: 999px;
+  padding: 0.42rem 0.85rem;
+  font-size: 0.78rem;
+  font-weight: 550;
+  letter-spacing: 0.01em;
+  color: oklch(1 0 0 / 0.62);
+  background: transparent;
+  transition: color 180ms ease, background 180ms ease, box-shadow 180ms ease;
+}
+
+.glass-chip:hover { color: oklch(1 0 0 / 0.88); }
+
+.glass-chip[aria-pressed="true"] {
+  color: oklch(0.99 0 0);
+  background: oklch(1 0 0 / 0.14);
+  box-shadow: inset 0 0 0 1px oklch(1 0 0 / 0.18), 0 1px 0 oklch(1 0 0 / 0.12);
+}
+
+.glass-chip:focus-visible {
+  outline: 2px solid oklch(0.83 0.16 205 / 0.9);
+  outline-offset: 2px;
+}
+
+/* Movimento reduzido escolhido no painel: nada se move por conta própria. */
+[data-glass-motion="reduced"] .glass-dock__prism { animation: none; opacity: 0.3; }
+[data-glass-motion="reduced"] .glass-dock__sheen { animation: none; }
 
 @media (prefers-reduced-motion: reduce) {
   .glass-dock__prism { animation: none; }
+  .glass-chip { transition: none; }
 }
 
 /* ================================================================

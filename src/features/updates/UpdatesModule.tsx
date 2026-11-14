@@ -8,6 +8,19 @@ export type ChangelogVersion = { version: string; date: string; title: string; c
 // Mais recente primeiro
 export const CHANGELOG: ChangelogVersion[] = [
   {
+    version: "4.3.0",
+    date: "Novembro de 2026",
+    title: "Nuv • Vidro premium, filmes com ficha e biblioteca",
+    changes: [
+      { type: "novo", text: "Vidro premium com três variações: Cristal, Âmbar e Ônix." },
+      { type: "novo", text: "Movimento reduzido: a lente acompanha direto, sem mola, e respeita a preferência do sistema." },
+      { type: "novo", text: "Ficha do filme com sinopse, direção, elenco, classificação e nota." },
+      { type: "novo", text: "Minha lista: salve filmes para assistir depois." },
+      { type: "novo", text: "Histórico: continue de onde parou, direto na tela de Filmes." },
+      { type: "melhoria", text: "Dependências do projeto atualizadas e build mais estável." },
+    ],
+  },
+  {
     version: "4.2.0",
     date: "Novembro de 2026",
     title: "Nuv • Animações sob medida, IA sem pausa e interface mais limpa",
