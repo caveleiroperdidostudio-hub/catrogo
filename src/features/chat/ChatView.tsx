@@ -1,14 +1,16 @@
-import { useEffect, useMemo, useRef, useState } from "react";
+import { useEffect, useMemo, useRef, useState, type CSSProperties } from "react";
 import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/lib/auth-context";
-import { useSettings, verifyPin, TICK_GLYPHS } from "@/lib/settings-context";
+import { useSettings, verifyPin } from "@/lib/settings-context";
+import { chatAppearanceAttributes } from "@/lib/chat-appearance";
+import { ChatAppearancePanel } from "./ChatAppearancePanel";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import {
   ArrowLeft, Sparkles, Send, Phone, Video, MoreVertical, Users, Wand2, Loader2,
-  Languages, BrainCircuit, Timer, Lock, OrbitIcon, ShieldHalf, ShieldCheck, MailOpen, Mic, Image as ImageIcon,
-  Reply, Pencil, Trash2, Star, Forward, Search, Copy, SmilePlus, X, Clock, CheckCheck, FileDown, Eraser,
+  Languages, BrainCircuit, Lock, ShieldHalf, ShieldCheck, Mic, Palette,
+  Reply, Pencil, Trash2, Star, Forward, Search, Copy, X, Clock, FileDown, Eraser,
   Paperclip, Sticker, FileText, Download,
 
 } from "lucide-react";
@@ -32,7 +34,7 @@ import {
 import { uploadFile, signedUrl, mediaKind, humanSize } from "@/lib/media";
 import { StickerPicker, StickerImg, type StickerRow } from "./StickerPicker";
 
-const QUICK_REACTIONS = ["❤️", "😂", "😮", "😢", "🙏", "👍", "🚀"];
+const QUICK_REACTIONS = ["❤️", "😂", "😮", "😢", "🙏", "👍"];
 
 type Message = {
   id: string;
@@ -69,13 +71,6 @@ type ConvHeader = {
   otherUserId: string | null;
 };
 
-const EPHEMERAL_OPTIONS: { label: string; seconds: number }[] = [
-  { label: "Desativado", seconds: 0 },
-  { label: "5 minutos", seconds: 5 * 60 },
-  { label: "1 hora", seconds: 60 * 60 },
-  { label: "24 horas", seconds: 24 * 60 * 60 },
-];
-
 const TRANSLATE_TARGETS = ["inglês", "espanhol", "francês", "alemão", "japonês", "italiano"];
 
 const isCarlosName = (n: string | null) => n === "Carlos" || n === "Jarvis IA";
@@ -83,15 +78,15 @@ const isCarlosName = (n: string | null) => n === "Carlos" || n === "Jarvis IA";
 export function ChatView({ conversationId, onBack }: { conversationId: string; onBack: () => void }) {
   const { user } = useAuth();
   const {
-    privacy, ephemeral, setEphemeral, locks, lockChat, unlockChat, isUnlockedNow, markUnlockedNow,
-    chatWallpaper: globalWallpaper, appearance, contactWallpapers, setContactWallpaper,
+    locks, lockChat, unlockChat, isUnlockedNow, markUnlockedNow,
+    chatAppearance: globalChatAppearance, conversationAppearance, markConversationRead,
   } = useSettings();
-  const chatWallpaper = contactWallpapers[conversationId] ?? globalWallpaper;
+  const chatAppearance = conversationAppearance[conversationId] ?? globalChatAppearance;
+  const [appearanceOpen, setAppearanceOpen] = useState(false);
   const [call, setCall] = useState<null | { mode: CallMode; sessionId: string; isCaller: boolean }>(null);
   const [recording, setRecording] = useState(false);
   const recHandleRef = useRef<RecordingHandle | null>(null);
   const [uploadingAudio, setUploadingAudio] = useState(false);
-  const [unreadMarks, setUnreadMarks] = useState<Record<string, boolean>>({});
 
   const [messages, setMessages] = useState<Message[]>([]);
   const [text, setText] = useState("");
@@ -104,7 +99,6 @@ export function ChatView({ conversationId, onBack }: { conversationId: string; o
   const [translatingId, setTranslatingId] = useState<string | null>(null);
   const [summary, setSummary] = useState<string | null>(null);
   const [summarizing, setSummarizing] = useState(false);
-  const [now, setNow] = useState(Date.now());
 
   // Novos recursos de mensagem
   const [replyTo, setReplyTo] = useState<Message | null>(null);
@@ -136,14 +130,6 @@ export function ChatView({ conversationId, onBack }: { conversationId: string; o
     if (isLocked && !unlocked) setPinOpen(true);
     else setPinOpen(false);
   }, [conversationId, isLocked, unlocked]);
-
-  // tick global de 1s para timers efêmeros
-  useEffect(() => {
-    const ephemeralOn = ephemeral[conversationId];
-    if (!ephemeralOn) return;
-    const id = setInterval(() => setNow(Date.now()), 1000);
-    return () => clearInterval(id);
-  }, [ephemeral, conversationId]);
 
   // --- Criptografia ponta a ponta (Cosmos Lattice) + mídia
   const [plain, setPlain] = useState<Record<string, string>>({});
@@ -190,7 +176,7 @@ export function ChatView({ conversationId, onBack }: { conversationId: string; o
       if (!c) return;
       const isAi = !c.is_group && isCarlosName(c.name);
       let displayName = isAi ? "Carlos" : (c.name ?? "Conversa");
-      let subtitle = isAi ? "IA Carlos · sempre orbitando" : c.is_group ? "Grupo" : "online";
+      let subtitle = isAi ? "Assistente do Nuv" : c.is_group ? "Grupo" : "Conversa privada";
       let otherUserId: string | null = null;
       if (!c.is_group && !isAi) {
         const { data: others } = await supabase
@@ -198,16 +184,15 @@ export function ChatView({ conversationId, onBack }: { conversationId: string; o
         otherUserId = others?.[0]?.user_id ?? null;
         if (otherUserId) {
           const { data: p } = await supabase.from("profiles").select("display_name, avatar_url, about").eq("id", otherUserId).maybeSingle();
-          if (p) { displayName = p.display_name; subtitle = p.about ?? "online"; c.avatar_url = c.avatar_url ?? p.avatar_url; }
+          if (p) { displayName = p.display_name; subtitle = p.about ?? "Conversa privada"; c.avatar_url = c.avatar_url ?? p.avatar_url; }
         }
       } else if (c.is_group) {
         const { count } = await supabase.from("conversation_members").select("*", { count: "exact", head: true }).eq("conversation_id", conversationId);
         subtitle = `${count ?? 0} membros`;
       }
-      if (privacy.ghostOnline && subtitle === "online") subtitle = "—";
       setHeader({ id: c.id, is_group: c.is_group, name: c.name, avatar_url: c.avatar_url, displayName, subtitle, isAi, otherUserId });
     })();
-  }, [conversationId, user, privacy.ghostOnline]);
+  }, [conversationId, user]);
 
   // mensagens
   const loadMessages = async (): Promise<string[]> => {
@@ -245,12 +230,12 @@ export function ChatView({ conversationId, onBack }: { conversationId: string; o
     const body = messages
       .map((m) => `[${format(new Date(m.created_at), "dd/MM/yyyy HH:mm")}] ${who(m)}: ${m.deleted_at ? "(mensagem apagada)" : textOf(m)}`)
       .join("\n");
-    const head = `Conversa do CatroGo — ${header?.displayName ?? "Conversa"}\nExportada em ${format(new Date(), "dd/MM/yyyy HH:mm")}\n\n`;
+    const head = `Conversa do Nuv — ${header?.displayName ?? "Conversa"}\nExportada em ${format(new Date(), "dd/MM/yyyy HH:mm")}\n\n`;
     const blob = new Blob([head + body], { type: "text/plain;charset=utf-8" });
     const url = URL.createObjectURL(blob);
     const a = document.createElement("a");
     a.href = url;
-    a.download = `catrogo-${(header?.displayName ?? "conversa").replace(/[^\w-]+/g, "-").toLowerCase()}.txt`;
+    a.download = `nuv-${(header?.displayName ?? "conversa").replace(/[^\w-]+/g, "-").toLowerCase()}.txt`;
     a.click();
     URL.revokeObjectURL(url);
     toast.success("Conversa exportada");
@@ -300,15 +285,11 @@ export function ChatView({ conversationId, onBack }: { conversationId: string; o
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [conversationId, user]);
 
-  // filtro efêmero (visual) + busca dentro da conversa
-  const ephemeralSeconds = ephemeral[conversationId] ?? 0;
   const visibleMessages = useMemo(() => {
-    let list = messages;
-    if (ephemeralSeconds) list = list.filter((m) => (now - new Date(m.created_at).getTime()) < ephemeralSeconds * 1000);
-    const q = searchQuery.trim().toLowerCase();
-    if (q) list = list.filter((m) => textOf(m).toLowerCase().includes(q));
-    return list;
-  }, [messages, ephemeralSeconds, now, searchQuery]);
+    const query = searchQuery.trim().toLowerCase();
+    if (!query) return messages;
+    return messages.filter((message) => textOf(message).toLowerCase().includes(query));
+  }, [messages, searchQuery, plain]);
 
   const messageById = useMemo(() => {
     const map: Record<string, Message> = {};
@@ -318,8 +299,10 @@ export function ChatView({ conversationId, onBack }: { conversationId: string; o
 
 
   useEffect(() => {
-    scrollRef.current?.scrollTo({ top: scrollRef.current.scrollHeight, behavior: "smooth" });
-  }, [visibleMessages, aiThinking]);
+    scrollRef.current?.scrollTo({ top: scrollRef.current.scrollHeight, behavior: "auto" });
+    const latest = messages[messages.length - 1];
+    if (latest) markConversationRead(conversationId, latest.created_at);
+  }, [visibleMessages, aiThinking, messages, conversationId, markConversationRead]);
 
   const callAI = async (body: Record<string, unknown>) => {
     const session = (await supabase.auth.getSession()).data.session;

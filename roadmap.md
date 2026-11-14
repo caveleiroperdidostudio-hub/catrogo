@@ -1,4 +1,10 @@
-# CatroGo — Roadmap
+# Nuv — Roadmap
+
+## Conclusão da limpeza e dos fluxos de conversa
+- [ ] Remover truques de mods: repetição de visualização única, antirrevogação, estilos falsos de confirmação e controles de presença sem suporte real
+- [ ] Simplificar as telas restantes e terminar a personalização conectada às conversas
+- [ ] Aplicar nome e logo Nuv nas telas e metadados restantes
+- [ ] Testar o fluxo de conversa e registrar qualquer bloqueio externo
 
 ## Nova identidade e interface limpa
 - [ ] Concluir e conectar a personalização das conversas

@@ -1,5 +1,5 @@
 import { useEffect, useState } from "react";
-import { LogOut, Settings, BadgeCheck, Shield, Bell, Palette, User as UserIcon, Info, Sparkles, ChevronRight } from "lucide-react";
+import { LogOut, Settings, BadgeCheck, Bell, Palette, User as UserIcon, Info, Sparkles, ChevronRight } from "lucide-react";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { Button } from "@/components/ui/button";
 import { useAuth } from "@/lib/auth-context";
@@ -90,12 +90,11 @@ export function ProfileModule({ initialSection }: { initialSection?: string }) {
 
         {/* Quick links */}
         <div className="p-2 space-y-1">
-          <ProfileLink icon={Settings} label="Configurações" desc="Conta, privacidade, aparência e mais" onClick={() => setShowSettings(true)} />
+          <ProfileLink icon={Settings} label="Configurações" desc="Conta e dados do perfil" onClick={() => { setShowSettings(true); }} />
+          <ProfileLink icon={Palette} label="Aparência" desc="Cores, balões e Glass" onClick={() => { setShowSettings(true); }} />
+          <ProfileLink icon={Bell} label="Notificações" desc="Avisos de novas mensagens" onClick={() => { setShowSettings(true); }} />
           <ProfileLink icon={BadgeCheck} label="Selos" desc="Solicite selos de verificação" onClick={() => go("explore")} />
-          <ProfileLink icon={Shield} label="Privacidade" desc="Modo fantasma, bloqueios e segurança" onClick={() => setShowSettings(true)} />
-          <ProfileLink icon={Bell} label="Notificações" desc="Push, categorias e preferências" onClick={() => setShowSettings(true)} />
-          <ProfileLink icon={Palette} label="Aparência" desc="Tema, fonte, balões e densidade" onClick={() => setShowSettings(true)} />
-          <ProfileLink icon={Info} label="Sobre" desc="Versão, termos e museu" onClick={() => go("explore")} />
+          <ProfileLink icon={Info} label="Sobre o Nuv" desc="Versão e recursos" onClick={() => go("explore")} />
         </div>
       </div>
     </div>

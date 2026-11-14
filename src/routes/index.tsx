@@ -6,10 +6,10 @@ import { AppPhoneGate } from "@/features/onboarding/AppPhoneGate";
 export const Route = createFileRoute("/")({
   head: () => ({
     meta: [
-      { title: "CATROGO — Chat, IA e comunidade" },
-      { name: "description", content: "Converse, crie e explore a comunidade CATROGO com chamadas, IA, mods e Ctrg OS." },
-      { property: "og:title", content: "CATROGO — Chat, IA e comunidade" },
-      { property: "og:description", content: "Converse, crie e explore a comunidade CATROGO com chamadas, IA, mods e Ctrg OS." },
+      { title: "Nuv — suas conversas" },
+      { name: "description", content: "Converse com pessoas e grupos no Nuv com mensagens, mídia, chamadas e personalização simples." },
+      { property: "og:title", content: "Nuv — suas conversas" },
+      { property: "og:description", content: "Mensagens, chamadas e contatos em uma interface simples e segura." },
       { property: "og:type", content: "website" },
       { name: "twitter:card", content: "summary_large_image" },
     ],

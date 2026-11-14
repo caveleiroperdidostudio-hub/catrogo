@@ -1,4 +1,5 @@
 import { useEffect, useState } from "react";
+import { Circle, LogOut, MessageCircle, MoreVertical, Phone, Plus, Settings, Sparkles, User as UserIcon } from "lucide-react";
 import { useAuth } from "@/lib/auth-context";
 import { supabase } from "@/integrations/supabase/client";
 import { ChatList } from "./ChatList";
@@ -9,44 +10,34 @@ import { ProfileSheet } from "./ProfileSheet";
 import { NewChatDialog } from "./NewChatDialog";
 import { SettingsSheet } from "./SettingsSheet";
 import { IncomingCallListener } from "./IncomingCallListener";
-import { useSettings } from "@/lib/settings-context";
 import { NotificationCenter } from "@/features/notifications/NotificationCenter";
-import { Tabs, TabsList, TabsTrigger, TabsContent } from "@/components/ui/tabs";
+import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Button } from "@/components/ui/button";
-import { MessageCircle, Users, Circle, Phone, MoreVertical, LogOut, User as UserIcon, Sparkles, Orbit, ShieldHalf, Archive } from "lucide-react";
+import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuSeparator, DropdownMenuTrigger } from "@/components/ui/dropdown-menu";
 import { flushScheduledMessages } from "@/lib/scheduled";
-
-import {
-  DropdownMenu,
-  DropdownMenuContent,
-  DropdownMenuItem,
-  DropdownMenuTrigger,
-  DropdownMenuSeparator,
-} from "@/components/ui/dropdown-menu";
+import { chatAppearanceAttributes } from "@/lib/chat-appearance";
+import { useSettings } from "@/lib/settings-context";
+import { NUV_LOGO_URL } from "@/lib/brand";
 
 export function ChatHome() {
   const { user, profile, signOut } = useAuth();
+  const { chatAppearance } = useSettings();
   const [activeConvId, setActiveConvId] = useState<string | null>(null);
   const [activeTab, setActiveTab] = useState("chats");
-  const [chatFilter, setChatFilter] = useState<"direct" | "groups">("direct");
   const [profileOpen, setProfileOpen] = useState(false);
   const [newChatOpen, setNewChatOpen] = useState(false);
   const [settingsOpen, setSettingsOpen] = useState(false);
-  const [showArchived, setShowArchived] = useState(false);
-  const { wallpaper, appearance } = useSettings();
 
-  // Dispara mensagens agendadas que já venceram enquanto o app está aberto
   useEffect(() => {
     if (!user) return;
-    const run = () => { flushScheduledMessages(user.id).catch(() => {}); };
+    const run = () => {
+      flushScheduledMessages(user.id).catch(() => {});
+    };
     run();
-    const t = setInterval(run, 30000);
-    return () => clearInterval(t);
+    const timer = setInterval(run, 30000);
+    return () => clearInterval(timer);
   }, [user]);
 
-
-
-  // Garante que a conversa com Carlos existe para o usuário
   useEffect(() => {
     if (!user) return;
     (async () => {
@@ -56,72 +47,56 @@ export function ChatHome() {
         .eq("created_by", user.id)
         .in("name", ["Carlos", "Jarvis IA"])
         .eq("is_group", false)
+        .limit(1)
         .maybeSingle();
       if (existing) return;
-      const { data: conv } = await supabase
+      const { data: conversation } = await supabase
         .from("conversations")
-        .insert({
-          is_group: false,
-          name: "Carlos",
-          avatar_url: null,
-          created_by: user.id,
-        })
+        .insert({ is_group: false, name: "Carlos", avatar_url: null, created_by: user.id })
         .select("id")
         .single();
-      if (conv) {
-        await supabase.from("conversation_members").insert({
-          conversation_id: conv.id,
-          user_id: user.id,
-          is_admin: true,
-        });
-        await supabase.from("messages").insert({
-          conversation_id: conv.id,
-          sender_id: null,
-          is_ai: true,
-          content:
-            "Olá, viajante. Eu sou o Carlos, IA nativa do CatroGo. Posso redigir mensagens, traduzir, resumir conversas, sugerir respostas e te invocar com @carlos em qualquer chat. Pra onde vamos?",
-        });
-      }
+      if (!conversation) return;
+      await supabase.from("conversation_members").insert({ conversation_id: conversation.id, user_id: user.id, is_admin: true });
+      await supabase.from("messages").insert({
+        conversation_id: conversation.id,
+        sender_id: null,
+        is_ai: true,
+        content: "Olá! Eu sou o Carlos, assistente do Nuv. Posso ajudar a escrever, traduzir e resumir mensagens. Como posso ajudar?",
+      });
     })();
   }, [user]);
 
   return (
     <div className="flex h-full overflow-hidden">
-      {/* Sidebar */}
       <aside
-        className={`w-full md:w-[380px] flex-shrink-0 border-r border-white/5 glass flex flex-col ${activeConvId ? "hidden md:flex" : "flex"}`}
-        style={{ background: wallpaper, backgroundSize: wallpaper.includes("radial-gradient(white") ? "20px 20px, 35px 35px, auto" : undefined }}
+        className={`chat-surface w-full flex-shrink-0 flex-col border-r border-border md:flex md:w-[380px] ${activeConvId ? "hidden" : "flex"}`}
+        {...chatAppearanceAttributes(chatAppearance)}
       >
-        {/* Header */}
-        <div className="h-14 px-4 flex items-center justify-between border-b border-white/5">
-          <div className="flex items-center gap-2">
-            <div className="h-9 w-9 rounded-xl bg-primary/20 border border-primary/40 flex items-center justify-center cosmic-glow">
-              <Orbit className="h-4 w-4 text-primary" />
+        <header className="chat-chrome flex h-16 items-center justify-between border-b border-border px-4">
+          <div className="flex min-w-0 items-center gap-2.5">
+            <img src={NUV_LOGO_URL} alt="" className="h-10 w-10 shrink-0 object-contain" />
+            <div>
+              <div className="font-display text-xl font-bold tracking-tight">Nuv</div>
+              <div className="text-[11px] text-muted-foreground">suas conversas</div>
             </div>
-            <span className="font-bold tracking-tight text-lg bg-gradient-to-r from-[var(--cosmic)] to-[var(--nebula)] bg-clip-text text-transparent">
-              CATROGO
-            </span>
           </div>
-          <div className="flex items-center gap-1">
+          <div className="flex items-center gap-0.5">
             <NotificationCenter />
-            <Button size="icon" variant="ghost" className="h-9 w-9" onClick={() => setSettingsOpen(true)} title="Privacidade & temas">
-              <ShieldHalf className="h-4 w-4 text-[var(--nebula)]" />
-            </Button>
-            <Button size="icon" variant="ghost" className="h-9 w-9" onClick={() => setNewChatOpen(true)} title="Nova conversa">
-              <Users className="h-4 w-4" />
+            <Button size="icon" variant="ghost" className="h-10 w-10" onClick={() => setNewChatOpen(true)} title="Nova conversa" aria-label="Nova conversa">
+              <Plus className="h-5 w-5" />
             </Button>
             <DropdownMenu>
               <DropdownMenuTrigger asChild>
-                <Button size="icon" variant="ghost" className="h-9 w-9">
-                  <MoreVertical className="h-4 w-4" />
+                <Button size="icon" variant="ghost" className="h-10 w-10" aria-label="Mais opções">
+                  <MoreVertical className="h-5 w-5" />
                 </Button>
               </DropdownMenuTrigger>
-              <DropdownMenuContent align="end">
+              <DropdownMenuContent align="end" className="w-52">
                 <DropdownMenuItem onClick={() => setProfileOpen(true)}>
                   <UserIcon className="mr-2 h-4 w-4" /> Meu perfil
                 </DropdownMenuItem>
                 <DropdownMenuItem onClick={() => setSettingsOpen(true)}>
-                  <ShieldHalf className="mr-2 h-4 w-4" /> Privacidade & temas
+                  <Settings className="mr-2 h-4 w-4" /> Ajustes das conversas
                 </DropdownMenuItem>
                 <DropdownMenuSeparator />
                 <DropdownMenuItem onClick={signOut} className="text-destructive">
@@ -130,89 +105,51 @@ export function ChatHome() {
               </DropdownMenuContent>
             </DropdownMenu>
           </div>
-        </div>
+        </header>
 
-        {/* Tabs */}
-        <Tabs value={activeTab} onValueChange={setActiveTab} className="flex-1 flex flex-col overflow-hidden">
-          <TabsList className="rounded-none h-11 w-full justify-start bg-transparent border-b border-white/5 px-2 gap-1">
-            <TabsTrigger value="chats" className="data-[state=active]:bg-primary/15 data-[state=active]:text-foreground"><MessageCircle className="h-4 w-4 mr-1.5" />Conversas</TabsTrigger>
-            <TabsTrigger value="status" className="data-[state=active]:bg-primary/15 data-[state=active]:text-foreground"><Circle className="h-4 w-4 mr-1.5" />Órbitas</TabsTrigger>
-            <TabsTrigger value="calls" className="data-[state=active]:bg-primary/15 data-[state=active]:text-foreground"><Phone className="h-4 w-4 mr-1.5" />Sinais</TabsTrigger>
+        <Tabs value={activeTab} onValueChange={setActiveTab} className="flex min-h-0 flex-1 flex-col">
+          <TabsList className="h-12 w-full justify-start gap-1 rounded-none border-b border-border bg-transparent px-2">
+            <TabsTrigger value="chats" className="gap-1.5 data-[state=active]:bg-primary/15 data-[state=active]:text-foreground">
+              <MessageCircle className="h-4 w-4" /> Conversas
+            </TabsTrigger>
+            <TabsTrigger value="status" className="gap-1.5 data-[state=active]:bg-primary/15 data-[state=active]:text-foreground">
+              <Circle className="h-4 w-4" /> Órbitas
+            </TabsTrigger>
+            <TabsTrigger value="calls" className="gap-1.5 data-[state=active]:bg-primary/15 data-[state=active]:text-foreground">
+              <Phone className="h-4 w-4" /> Chamadas
+            </TabsTrigger>
           </TabsList>
-
-          <TabsContent value="chats" className="flex-1 overflow-y-auto m-0">
-            {appearance.statusOnTop && (
-              <div className="border-b border-white/5 px-2 py-2">
-                <StatusTab compact />
-              </div>
-            )}
-            <div className="flex items-center justify-end px-2 py-1.5">
-              <Button
-                size="sm"
-                variant="ghost"
-                className="h-7 gap-1.5 text-[11px] text-muted-foreground"
-                onClick={() => setShowArchived((v) => !v)}
-              >
-                <Archive className="h-3.5 w-3.5" />
-                {showArchived ? "Ver conversas ativas" : "Arquivadas"}
-              </Button>
-            </div>
-            {appearance.separateGroups ? (
-              <Tabs value={chatFilter} onValueChange={(v) => setChatFilter(v as "direct" | "groups")}>
-                <TabsList className="w-full justify-start bg-transparent px-2 gap-1 h-9">
-                  <TabsTrigger value="direct" className="text-xs data-[state=active]:bg-primary/15">Conversas</TabsTrigger>
-                  <TabsTrigger value="groups" className="text-xs data-[state=active]:bg-primary/15">Grupos</TabsTrigger>
-                </TabsList>
-                <TabsContent value="direct" className="m-0">
-                  <ChatList activeId={activeConvId} onSelect={setActiveConvId} filter="direct" showArchived={showArchived} />
-                </TabsContent>
-                <TabsContent value="groups" className="m-0">
-                  <ChatList activeId={activeConvId} onSelect={setActiveConvId} filter="groups" showArchived={showArchived} />
-                </TabsContent>
-              </Tabs>
-            ) : (
-              <ChatList activeId={activeConvId} onSelect={setActiveConvId} showArchived={showArchived} />
-            )}
-
+          <TabsContent value="chats" className="m-0 min-h-0 flex-1 overflow-y-auto">
+            <ChatList activeId={activeConvId} onSelect={setActiveConvId} onNewChat={() => setNewChatOpen(true)} />
           </TabsContent>
-          <TabsContent value="status" className="flex-1 overflow-y-auto m-0 p-4">
+          <TabsContent value="status" className="m-0 min-h-0 flex-1 overflow-y-auto p-4">
             <StatusTab />
           </TabsContent>
-          <TabsContent value="calls" className="flex-1 overflow-y-auto m-0 p-4">
+          <TabsContent value="calls" className="m-0 min-h-0 flex-1 overflow-y-auto p-4">
             <CallsTab />
           </TabsContent>
         </Tabs>
       </aside>
 
-      {/* Main pane */}
-      <main className={`flex-1 ${activeConvId ? "flex" : "hidden md:flex"} flex-col`}>
+      <main className={`flex-1 flex-col ${activeConvId ? "flex" : "hidden md:flex"}`}>
         {activeConvId ? (
           <ChatView conversationId={activeConvId} onBack={() => setActiveConvId(null)} />
         ) : (
-          <div className="flex-1 flex flex-col items-center justify-center text-center p-8">
-            <div className="h-28 w-28 rounded-full bg-primary/15 border border-primary/30 flex items-center justify-center mb-6 carlos-avatar">
-              <Sparkles className="h-12 w-12 text-[var(--nebula)]" />
-            </div>
-            <h2 className="text-2xl font-semibold mb-2 bg-gradient-to-r from-[var(--cosmic)] to-[var(--nebula)] bg-clip-text text-transparent">
-              CATROGO
-            </h2>
-            <p className="text-muted-foreground max-w-sm">
-              Selecione uma órbita para começar. Ou converse com{" "}
-              <span className="font-medium text-foreground inline-flex items-center gap-1">
-                <Sparkles className="h-3.5 w-3.5 text-[var(--nebula)]" />Carlos
-              </span>
-              {" "}— digite <span className="font-mono text-[var(--nebula)]">@carlos</span> em qualquer chat pra invocá-lo.
+          <div className="flex flex-1 flex-col items-center justify-center p-8 text-center">
+            <img src={NUV_LOGO_URL} alt="Nuv" className="mb-5 h-24 w-24 object-contain" />
+            <h2 className="text-2xl font-semibold">Conversas simples, do seu jeito</h2>
+            <p className="mt-2 max-w-sm text-sm leading-relaxed text-muted-foreground">
+              Escolha uma conversa ou toque no botão de adicionar para começar.
             </p>
-            {profile && (
-              <p className="mt-4 text-xs text-muted-foreground">Conectado como @{profile.username}</p>
-            )}
+            {profile && <p className="mt-5 text-xs text-muted-foreground">Conectado como @{profile.username}</p>}
+            <Sparkles className="mt-6 h-4 w-4 text-primary" aria-hidden="true" />
           </div>
         )}
       </main>
 
       <ProfileSheet open={profileOpen} onOpenChange={setProfileOpen} />
       <SettingsSheet open={settingsOpen} onOpenChange={setSettingsOpen} />
-      <NewChatDialog open={newChatOpen} onOpenChange={setNewChatOpen} onCreated={(id: string) => setActiveConvId(id)} />
+      <NewChatDialog open={newChatOpen} onOpenChange={setNewChatOpen} onCreated={setActiveConvId} />
       <IncomingCallListener />
     </div>
   );
