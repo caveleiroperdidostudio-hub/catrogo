@@ -1,4 +1,4 @@
-import { useCallback, useEffect, useLayoutEffect, useRef, type PointerEvent as ReactPointerEvent } from "react";
+import { useCallback, useEffect, useLayoutEffect, useRef, useState, type PointerEvent as ReactPointerEvent } from "react";
 
 /**
  * Cápsula de vidro com lente líquida deslizante.
@@ -70,7 +70,23 @@ const SLOTS: SlotDef[] = [
   { id: "more", label: "Mais opções", variant: "glass-dock__slot--round", glyph: <DotsGlyph /> },
 ];
 
+export type GlassVariant = "crystal" | "amber" | "onyx";
+
+/** Variações premium do vidro: mesma mecânica, profundidade e cor diferentes. */
+const VARIANTS: { id: GlassVariant; label: string }[] = [
+  { id: "crystal", label: "Cristal" },
+  { id: "amber", label: "Âmbar" },
+  { id: "onyx", label: "Ônix" },
+];
+
 export function GlassLensDock() {
+  const [variant, setVariant] = useState<GlassVariant>("crystal");
+  const [reduced, setReduced] = useState(
+    () => typeof window !== "undefined" && !!window.matchMedia?.("(prefers-reduced-motion: reduce)").matches,
+  );
+  const reducedRef = useRef(reduced);
+  useEffect(() => { reducedRef.current = reduced; }, [reduced]);
+
   const barRef = useRef<HTMLDivElement>(null);
   const lensRef = useRef<HTMLDivElement>(null);
   const worldRef = useRef<HTMLDivElement>(null);
@@ -169,21 +185,27 @@ export function GlassLensDock() {
       last = now;
 
       if (dt > 0 && lensWRef.current) {
-        // sub-passos fixos deixam a mola estável independente do fps
-        const steps = Math.max(1, Math.ceil(dt / 0.004));
-        const h = dt / steps;
-        for (let s = 0; s < steps; s += 1) {
-          const a =
-            SPRING.stiffness * (targetRef.current - xRef.current) - SPRING.damping * vRef.current;
-          vRef.current += (a / SPRING.mass) * h;
-          xRef.current += vRef.current * h;
+        if (reducedRef.current) {
+          // Movimento reduzido: a lente acompanha direto, sem mola nem inércia.
+          xRef.current = targetRef.current;
+          vRef.current = 0;
+        } else {
+          // sub-passos fixos deixam a mola estável independente do fps
+          const steps = Math.max(1, Math.ceil(dt / 0.004));
+          const h = dt / steps;
+          for (let s = 0; s < steps; s += 1) {
+            const a =
+              SPRING.stiffness * (targetRef.current - xRef.current) - SPRING.damping * vRef.current;
+            vRef.current += (a / SPRING.mass) * h;
+            xRef.current += vRef.current * h;
+          }
         }
 
         const lens = lensRef.current;
         const world = worldRef.current;
         if (lens && world) {
           const w = lensWRef.current;
-          const stretch = Math.min(Math.abs(vRef.current) / SQUASH_REF, 1);
+          const stretch = reducedRef.current ? 0 : Math.min(Math.abs(vRef.current) / SQUASH_REF, 1);
           const sx = 1 + stretch * 0.06;
           const sy = 1 - stretch * 0.045;
           const x = xRef.current;
@@ -206,7 +228,7 @@ export function GlassLensDock() {
     let index = 1;
     let dir = 1;
     const id = window.setInterval(() => {
-      if (draggingRef.current || performance.now() < resumeAutoAtRef.current) return;
+      if (reducedRef.current || draggingRef.current || performance.now() < resumeAutoAtRef.current) return;
       const count = targetsRef.current.length;
       if (count < 2) return;
       index += dir;
@@ -223,7 +245,31 @@ export function GlassLensDock() {
   }, [goTo]);
 
   return (
-    <div className="glass-dock-stage">
+    <div className="glass-dock-stage" data-glass-variant={variant} data-glass-motion={reduced ? "reduced" : "full"}>
+      <div className="glass-dock-panel">
+        <div className="glass-switch" role="group" aria-label="Variação do vidro">
+          {VARIANTS.map((v) => (
+            <button
+              key={v.id}
+              type="button"
+              className="glass-chip"
+              aria-pressed={variant === v.id}
+              onClick={() => setVariant(v.id)}
+            >
+              {v.label}
+            </button>
+          ))}
+        </div>
+        <div className="glass-switch" role="group" aria-label="Movimento da interface">
+          <button type="button" className="glass-chip" aria-pressed={!reduced} onClick={() => setReduced(false)}>
+            Movimento
+          </button>
+          <button type="button" className="glass-chip" aria-pressed={reduced} onClick={() => setReduced(true)}>
+            Reduzido
+          </button>
+        </div>
+      </div>
+
       <div className="glass-dock" ref={barRef} onPointerDown={handlePointerDown} onPointerMove={handlePointerMove} onPointerUp={finishDrag} onPointerCancel={finishDrag}>
         <div className="glass-dock__icons">
           {SLOTS.map((slot, i) => (

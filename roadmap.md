@@ -11,13 +11,13 @@
 - [ ] Renovar lista e pesquisa de conversas sem indicadores falsos
 - [x] Refinar cabeçalho, mensagens, anexos e campo de digitação preservando os fluxos
 - [x] Central de aparência de chats com prévia, restauração e preferências privadas
-- [ ] Variações Glass premium e movimento reduzido
+- [x] Variações Glass premium (Cristal, Âmbar, Ônix) e movimento reduzido
 - [ ] Verificar segurança existente e testar os fluxos disponíveis
 
 ## Em andamento
 - [x] Player oficial (CatroPlayer) ligado aos Filmes + continuar assistindo (`movie_progress`)
 - [x] Campos de licença nos filmes (detentor dos direitos / contrato)
-- [ ] Detalhes do filme, minha lista (`movie_favorites`) e histórico na UI
+- [x] Detalhes do filme, minha lista (`movie_favorites`) e histórico na UI
 - [x] Botão de denúncia em filmes, shorts, mods e canais
 - [x] Provedores de IA configuráveis pelo painel (ordem, modelo, limites, registro de uso)
 - [ ] RBAC real ampliado (permissões por tela)
